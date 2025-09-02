@@ -1,0 +1,142 @@
+{
+  "infoScreen": {
+    "creadoPor": "Créé par"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "theme": "Thème",
+    "font": "Police",
+    "sep": "Séparateur décimal",
+    "sepInfo": "Configurez le séparateur décimal utilisé pour l’affichage des nombres. Cela n’affectera pas le séparateur décimal utilisé dans les fichiers exportés ni dans les résultats copiés dans le presse-papiers.",
+    "pre": "Précision décimale",
+    "preInfo1": "Normal : Affiche jusqu’à 8 décimales de précision, en supprimant les zéros inutiles à la fin.",
+    "preInfo2": "Fix : Affiche toujours le même nombre de décimales fixes, tel que configuré par l’utilisateur.",
+    "preInfo3": "Scientifique : Représente le nombre en notation scientifique, utilisant des puissances de 10 et un exposant en indice.",
+    "preInfo4": "Ingénierie : Similaire à la notation scientifique, mais l’exposant est toujours un multiple de 3, ce qui facilite la lecture dans les contextes techniques.",
+    "themeSystem": "Système",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "langSpanish": "Espagnol",
+    "langEnglish": "Anglais",
+    "langFrench": "Français",
+    "langGerman": "Allemand",
+    "langChinese": "Chinois",
+    "langJapanese": "Japonais",
+    "fontVerySmall": "Très petite",
+    "fontSmall": "Petite",
+    "fontNormal": "Normale",
+    "fontLarge": "Grande",
+    "fontVeryLarge": "Très grande",
+    "sepDot": "Point",
+    "sepComma": "Virgule",
+    "preNormal": "Normale",
+    "preFix": "Fixe",
+    "preScientific": "Scientifique",
+    "preEngineering": "Ingénierie",
+    "resetAlert": {
+      "title": "Réinitialiser les paramètres",
+      "message": "Êtes-vous sûr de vouloir réinitialiser tous les paramètres à leur configuration par défaut ?",
+      "confirm": "Réinitialiser"
+    }
+  },
+  "common": {
+    "calculate": "Calculer",
+    "copy": "Copier",
+    "clear": "Effacer",
+    "history": "Historique",
+    "success": "Succès",
+    "error": "Erreur",
+    "cancel": "Annuler"
+  },
+  "continuidadCalc": {
+    "calculator": "Calculatrice",
+    "title": "Équation de continuité",
+    "saveToHistory": "Enregistrer dans l’historique",
+    "flow": "Débit",
+    "section": "Section",
+    "section1": "Section 1",
+    "section2": "Section 2",
+    "fluidProps": "Propriétés du fluide",
+    "fill": "Remplissage",
+    "labels": {
+      "sectionType": "Type de section",
+      "fillType": "Remplissage",
+      "diameter": "Diamètre",
+      "side": "Côté",
+      "width": "Largeur",
+      "height": "Hauteur",
+      "velocity": "Vitesse",
+      "fillHeight": "Hauteur de la nappe",
+      "A1": "Surface de la section (A₁)",
+      "v1": "Vitesse dans la section (v₁)",
+      "A2": "Surface de la section (A₂)",
+      "v2": "Vitesse dans la section (v₂)"
+    },
+    "mode": {
+      "flow": "Débit",
+      "continuity": "Continuité"
+    },
+    "options": {
+      "sectionType": {
+        "circular": "Circulaire",
+        "square": "Carrée",
+        "rectangular": "Rectangulaire"
+      },
+      "fillType": {
+        "total": "Total",
+        "partial": "Partiel"
+      }
+    },
+    "toasts": {
+      "noFlowToCopy": "Aucun débit calculé à copier.",
+      "noContinuityToCopy": "Aucun débit ou valeur de continuité calculé à copier.",
+      "copied": "Calcul copié dans le presse-papiers.",
+      "nothingToSave": "Aucun résultat à enregistrer.",
+      "saved": "Calcul enregistré dans l’historique.",
+      "saveError": "Impossible d’enregistrer le calcul."
+    }
+  },
+  "optionsScreen": {
+    "titles": {
+      "length": "Longueur",
+      "area": "Surface"
+    },
+    "subtitles": {
+      "selection": "Sélection",
+      "units": "Unités"
+    }
+  },
+  "history": {
+    "title": "Historique des calculs",
+    "savedOn": "Enregistré le",
+    "empty": "Historique vide"
+  },
+  "theoryContinuity": {
+    "subtitle": "Qu’est-ce que c’est ?",
+    "titles": {
+      "mainTitle": "Équation de continuité",
+      "title1": "Formulations Intégrale vs. Différentielle de l’Équation",
+      "title2": "Écoulements Incompressibles (Application à l’Hydraulique de l’Eau)",
+      "title3": "Écoulements Compressibles et Continuité de la Masse",
+      "title4": "Pertinence dans les Calculs Hydrauliques et le Génie Civil",
+      "references": "Références"
+    },
+    "paragraphs": {
+      "paragraph1": "L’équation de continuité est essentiellement la manifestation mathématique de la loi de conservation de la masse appliquée à un fluide en mouvement. En termes simples, cette loi établit que la masse ne peut ni être créée ni détruite dans un système fermé. Pour un fluide en écoulement, cela implique que (en l’absence de sources ou de puits) la masse qui entre dans une région doit être égale à la masse qui en sort sur tout intervalle de temps donné. Si l’on considère un volume de contrôle fixe dans l’espace (une portion imaginaire de fluide délimitée par une surface fermée), la masse totale à l’intérieur de ce volume ne change que s’il y a un flux de masse à travers ses frontières.",
+      "paragraph2": "Mathématiquement, le bilan de masse sur un volume de contrôle V avec une surface S s’exprime par la forme intégrale de l’équation de continuité :",
+      "paragraph3": "où ρ(x,t) est la densité du fluide et v(x,t) est le vecteur vitesse du fluide en chaque point du volume. Cette équation intégrale indique que le taux d’accumulation de masse à l’intérieur du volume (premier terme) plus le flux net de masse traversant la surface (deuxième terme) est nul. En d’autres termes, toute augmentation de masse à l’intérieur du volume doit être due à un flux entrant, et toute diminution à un flux sortant, garantissant ainsi la conservation de la masse.",
+      "paragraph4": "En appliquant le théorème de la divergence à l’intégrale de surface, l’équation précédente peut être reformulée sous sa forme différentielle (locale) :",
+      "paragraph5": "Cette expression compacte signifie que le taux de variation locale de la densité en un point donné plus la divergence du flux de masse (c’est-à-dire la sortie nette de masse par unité de volume) est égal à zéro. Autrement dit, la masse est conservée en tout point du fluide, de façon continue dans l’espace et le temps. La forme différentielle est particulièrement utile car elle décrit le comportement point par point à l’intérieur du fluide, et fut d’ailleurs la formulation présentée par Euler dans ses équations pour le fluide idéal. Il convient de noter que cette équation de continuité est l’une des trois équations fondamentales d’Euler pour les fluides (avec la conservation de la quantité de mouvement et – pour les écoulements compressibles – de l’énergie). En forme lagrangienne (en suivant une particule fluide en mouvement), la même condition peut s’exprimer ainsi :",
+      "paragraph6": "ce qui souligne que toute variation de densité d’un élément fluide est due à la divergence (expansion ou compression) de l’écoulement environnant. Si le fluide conserve sa densité constante au cours de son mouvement, cette dernière équation implique immédiatement ∇ · v = 0, comme nous le verrons ci-après.",
+      "paragraph7": "La forme intégrale considère un volume macroscopique fixe dans l’espace et établit que la masse dans ce volume ne change que par le flux qui traverse ses surfaces. La forme différentielle, en revanche, considère un volume infinitésimal et établit localement la conservation de la masse en chaque point du champ d’écoulement. Si l’équation intégrale est respectée pour tout volume de contrôle imaginable, la seule façon de la satisfaire est que l’intégrande soit nul en chaque point, menant ainsi à la forme différentielle :",
+      "paragraph8": "Dans de nombreux cas d’intérêt en hydraulique, le fluide peut être considéré comme incompressible, ce qui signifie que sa densité ρ reste pratiquement constante. Lorsque cela se produit, l’équation de continuité se simplifie :",
+      "paragraph9": "Pour un écoulement unidimensionnel stationnaire d’un fluide incompressible dans un conduit fermé, on obtient la relation :",
+      "paragraph10": "où A est la surface de la section transversale et v la vitesse moyenne du fluide dans cette section.",
+      "paragraph11": "Lorsque l’on traite des écoulements compressibles, la densité ρ du fluide ne peut pas être considérée comme constante. Dans ce cas, le flux massique se conserve selon :",
+      "paragraph12": "Cela généralise le cas des fluides incompressibles et est crucial en aérodynamique, dans la conception de tuyères, de turbines à gaz et de conduites à haute vitesse.",
+      "paragraph13": "En génie civil, l’équation de continuité garantit que le débit qui entre dans un tronçon est égal à celui qui en sort, ce qui permet d’équilibrer les réseaux de distribution, d’analyser les canaux à ciel ouvert et de calculer les profils d’écoulement. Dans les dispositifs hydrauliques tels que buses, diffuseurs, pompes et turbines, elle garantit que la quantité de fluide traitée est conservée. Même dans les transitoires comme le coup de bélier, la continuité reste valable et nécessaire pour la modélisation."
+    }
+  },
+  "welcomeText": "La calculatrice qui optimise les calculs hydrauliques, avec précision et simplicité"
+}

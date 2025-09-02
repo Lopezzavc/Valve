@@ -1,0 +1,142 @@
+{
+  "infoScreen": {
+    "creadoPor": "Created by"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "font": "Font",
+    "sep": "Decimal separator",
+    "sepInfo": "Set the decimal separator used for displaying numbers. This will not affect the decimal separator used in exported files or in results copied to the clipboard.",
+    "pre": "Decimal precision",
+    "preInfo1": "Normal: Shows up to 8 decimal places of precision, removing unnecessary trailing zeros.",
+    "preInfo2": "Fix: Always shows the same number of fixed decimal places, as configured by the user.",
+    "preInfo3": "Scientific: Represents the number in scientific notation, using powers of 10 and a superscript exponent.",
+    "preInfo4": "Engineering: Similar to scientific notation, but the exponent is always a multiple of 3, making it easier to read in technical contexts.",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "langSpanish": "Spanish",
+    "langEnglish": "English",
+    "langFrench": "French",
+    "langGerman": "German",
+    "langChinese": "Chinese",
+    "langJapanese": "Japanese",
+    "fontVerySmall": "Very Small",
+    "fontSmall": "Small",
+    "fontNormal": "Normal",
+    "fontLarge": "Large",
+    "fontVeryLarge": "Very Large",
+    "sepDot": "Dot",
+    "sepComma": "Comma",
+    "preNormal": "Normal",
+    "preFix": "Fix",
+    "preScientific": "Scientific",
+    "preEngineering": "Engineering",
+    "resetAlert": {
+      "title": "Reset settings",
+      "message": "Are you sure you want to reset all settings to their default values?",
+      "confirm": "Reset"
+    }
+  },
+  "common": {
+    "calculate": "Calculate",
+    "copy": "Copy",
+    "clear": "Clear",
+    "history": "History",
+    "success": "Success",
+    "error": "Error",
+    "cancel": "Cancel"
+  },
+  "continuidadCalc": {
+    "calculator": "Calculator",
+    "title": "Continuity equation",
+    "saveToHistory": "Save to history",
+    "flow": "Flow",
+    "section": "Section",
+    "section1": "Section 1",
+    "section2": "Section 2",
+    "fluidProps": "Fluid properties",
+    "fill": "Fill",
+    "labels": {
+      "sectionType": "Section type",
+      "fillType": "Fill",
+      "diameter": "Diameter",
+      "side": "Side",
+      "width": "Width",
+      "height": "Height",
+      "velocity": "Velocity",
+      "fillHeight": "Water depth",
+      "A1": "Section area (A₁)",
+      "v1": "Velocity at section (v₁)",
+      "A2": "Section area (A₂)",
+      "v2": "Velocity at section (v₂)"
+    },
+    "mode": {
+      "flow": "Flow",
+      "continuity": "Continuity"
+    },
+    "options": {
+      "sectionType": {
+        "circular": "Circular",
+        "square": "Square",
+        "rectangular": "Rectangular"
+      },
+      "fillType": {
+        "total": "Total",
+        "partial": "Partial"
+      }
+    },
+    "toasts": {
+      "noFlowToCopy": "No calculated flow to copy.",
+      "noContinuityToCopy": "No flow or continuity values calculated to copy.",
+      "copied": "Calculation copied to clipboard.",
+      "nothingToSave": "No results to save.",
+      "saved": "Calculation saved to history.",
+      "saveError": "Could not save the calculation."
+    }
+  },
+  "optionsScreen": {
+    "titles": {
+      "length": "Length",
+      "area": "Area"
+    },
+    "subtitles": {
+      "selection": "Selection",
+      "units": "Units"
+    }
+  },
+  "history": {
+    "title": "Calculation history",
+    "savedOn": "Saved on",
+    "empty": "Empty history"
+  },
+  "theoryContinuity": {
+    "subtitle": "What is it?",
+    "titles": {
+      "mainTitle": "Continuity equation",
+      "title1": "Integral vs. Differential Formulations of the Equation",
+      "title2": "Incompressible Flows (Application to Water Hydraulics)",
+      "title3": "Compressible Flows and Mass Continuity",
+      "title4": "Relevance in Hydraulic Calculations and Civil Engineering",
+      "references": "References"
+    },
+    "paragraphs": {
+      "paragraph1": "The continuity equation is essentially the mathematical manifestation of the law of conservation of mass applied to a moving fluid. Simply put, this law states that mass cannot be created or destroyed within a closed system. For a flowing fluid, this implies that (in the absence of sources or sinks) the mass entering a region must equal the mass leaving it over any given time interval. If we consider a fixed control volume in space (an imaginary portion of fluid bounded by a closed surface), the total mass within that volume only changes if there is mass flow across its boundaries.",
+      "paragraph2": "Mathematically, the mass balance over a control volume V with surface S is expressed with the integral form of the continuity equation:",
+      "paragraph3": "where ρ(x,t) is the fluid density and v(x,t) is the fluid velocity vector at each point in the volume. This integral equation states that the rate of mass accumulation within the volume (first term) plus the net mass flux across the surface (second term) is zero. In other words, any increase in mass inside the volume must be due to inflow, and any decrease to outflow, ensuring mass conservation.",
+      "paragraph4": "By applying the divergence theorem to the surface integral, the previous equation can be reformulated in its differential (local) form:",
+      "paragraph5": "This compact expression means that the local rate of change of density at a given point plus the divergence of the mass flux (that is, the net mass outflow per unit volume) add to zero. This is equivalent to saying that mass is conserved at every point in the fluid continuously in space and time. The differential form is especially useful because it describes point-by-point behavior within the fluid, and in fact, it was the formulation presented by Euler in his equations for the ideal fluid. It is worth noting that this continuity equation is one of Euler’s three fundamental equations for fluids (along with momentum conservation and—in compressible flows—energy conservation). In Lagrangian form (following a fluid particle in motion), the same condition can be expressed as",
+      "paragraph6": "which emphasizes that any change in the density of a fluid element is due to the divergence (expansion or compression) of the surrounding flow. If the fluid maintains constant density along its motion, this last equation immediately implies ∇ · v=0, as we will see below.",
+      "paragraph7": "The integral form considers a macroscopic volume fixed in space and states that the mass in that volume only changes due to the flow crossing its surfaces. The differential form, on the other hand, considers an infinitesimal volume and states locally that mass is conserved at each point in the flow field. If the integral equation holds for every imaginable control volume, the only way to satisfy it is for the integrand to be zero at every point, leading to the differential form:",
+      "paragraph8": "In many cases of interest in hydraulics, the fluid can be considered incompressible, which means that its density ρ remains practically constant. When this happens, the continuity equation simplifies:",
+      "paragraph9": "For steady one-dimensional flow of an incompressible fluid in a closed conduit, the relation is obtained:",
+      "paragraph10": "where A is the cross-sectional area and v is the average fluid velocity in that section.",
+      "paragraph11": "When dealing with compressible flows, the fluid density ρ cannot be considered constant. In this case, the mass flow is conserved according to:",
+      "paragraph12": "This generalizes the incompressible case and is crucial in aerodynamics, nozzle design, gas turbines, and high-speed ducts.",
+      "paragraph13": "In civil engineering, the continuity equation ensures that the flow entering a section is equal to the flow exiting it, allowing distribution networks to be balanced, open channels to be analyzed, and flow profiles to be calculated. In hydraulic devices such as nozzles, diffusers, pumps, and turbines, it guarantees that the amount of fluid processed is conserved. Even in transients such as water hammer, continuity remains valid and necessary for modeling."
+    }
+  },
+  "welcomeText": "The calculator that optimizes hydraulic calculations, with precision and simplicity"
+}

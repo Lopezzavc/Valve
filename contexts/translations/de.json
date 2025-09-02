@@ -1,0 +1,142 @@
+{
+  "infoScreen": {
+    "creadoPor": "Erstellt von"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "theme": "Thema",
+    "font": "Schriftart",
+    "sep": "Dezimaltrennzeichen",
+    "sepInfo": "Stelle das Dezimaltrennzeichen für die Anzeige von Zahlen ein. Dies wirkt sich nicht auf das Dezimaltrennzeichen in exportierten Dateien oder in die Zwischenablage kopierten Ergebnissen aus.",
+    "pre": "Dezimalgenauigkeit",
+    "preInfo1": "Normal: Zeigt bis zu 8 Dezimalstellen an und entfernt unnötige Nullen am Ende.",
+    "preInfo2": "Fix: Zeigt immer die gleiche Anzahl fester Dezimalstellen an, wie vom Benutzer eingestellt.",
+    "preInfo3": "Wissenschaftlich: Stellt die Zahl in wissenschaftlicher Notation dar, unter Verwendung von Zehnerpotenzen und hochgestelltem Exponenten.",
+    "preInfo4": "Ingenieurmäßig: Ähnlich der wissenschaftlichen Notation, jedoch ist der Exponent immer ein Vielfaches von 3, was das Lesen in technischen Zusammenhängen erleichtert.",
+    "themeSystem": "System",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "langSpanish": "Spanisch",
+    "langEnglish": "Englisch",
+    "langFrench": "Französisch",
+    "langGerman": "Deutsch",
+    "langChinese": "Chinesisch",
+    "langJapanese": "Japanisch",
+    "fontVerySmall": "Sehr klein",
+    "fontSmall": "Klein",
+    "fontNormal": "Normal",
+    "fontLarge": "Groß",
+    "fontVeryLarge": "Sehr groß",
+    "sepDot": "Punkt",
+    "sepComma": "Komma",
+    "preNormal": "Normal",
+    "preFix": "Fix",
+    "preScientific": "Wissenschaftlich",
+    "preEngineering": "Ingenieurmäßig",
+    "resetAlert": {
+      "title": "Einstellungen zurücksetzen",
+      "message": "Bist du sicher, dass du alle Einstellungen auf die Standardkonfiguration zurücksetzen möchtest?",
+      "confirm": "Zurücksetzen"
+    }
+  },
+  "common": {
+    "calculate": "Berechnen",
+    "copy": "Kopieren",
+    "clear": "Löschen",
+    "history": "Verlauf",
+    "success": "Erfolg",
+    "error": "Fehler",
+    "cancel": "Abbrechen"
+  },
+  "continuidadCalc": {
+    "calculator": "Rechner",
+    "title": "Kontinuitätsgleichung",
+    "saveToHistory": "Im Verlauf speichern",
+    "flow": "Durchfluss",
+    "section": "Querschnitt",
+    "section1": "Querschnitt 1",
+    "section2": "Querschnitt 2",
+    "fluidProps": "Fluideigenschaften",
+    "fill": "Füllung",
+    "labels": {
+      "sectionType": "Querschnittstyp",
+      "fillType": "Füllung",
+      "diameter": "Durchmesser",
+      "side": "Seite",
+      "width": "Breite",
+      "height": "Höhe",
+      "velocity": "Geschwindigkeit",
+      "fillHeight": "Füllhöhe",
+      "A1": "Querschnittsfläche (A₁)",
+      "v1": "Geschwindigkeit im Querschnitt (v₁)",
+      "A2": "Querschnittsfläche (A₂)",
+      "v2": "Geschwindigkeit im Querschnitt (v₂)"
+    },
+    "mode": {
+      "flow": "Durchfluss",
+      "continuity": "Kontinuität"
+    },
+    "options": {
+      "sectionType": {
+        "circular": "Kreisförmig",
+        "square": "Quadratisch",
+        "rectangular": "Rechteckig"
+      },
+      "fillType": {
+        "total": "Vollständig",
+        "partial": "Teilweise"
+      }
+    },
+    "toasts": {
+      "noFlowToCopy": "Kein berechneter Durchfluss zum Kopieren vorhanden.",
+      "noContinuityToCopy": "Kein berechneter Durchfluss oder Kontinuitätswert zum Kopieren vorhanden.",
+      "copied": "Berechnung in die Zwischenablage kopiert.",
+      "nothingToSave": "Keine Ergebnisse zum Speichern vorhanden.",
+      "saved": "Berechnung im Verlauf gespeichert.",
+      "saveError": "Berechnung konnte nicht gespeichert werden."
+    }
+  },
+  "optionsScreen": {
+    "titles": {
+      "length": "Länge",
+      "area": "Fläche"
+    },
+    "subtitles": {
+      "selection": "Auswahl",
+      "units": "Einheiten"
+    }
+  },
+  "history": {
+    "title": "Berechnungsverlauf",
+    "savedOn": "Gespeichert am",
+    "empty": "Verlauf leer"
+  },
+  "theoryContinuity": {
+    "subtitle": "Was ist das?",
+    "titles": {
+      "mainTitle": "Kontinuitätsgleichung",
+      "title1": "Integrale vs. Differentielle Formulierungen der Gleichung",
+      "title2": "Inkompressible Strömungen (Anwendung in der Wasserhydraulik)",
+      "title3": "Kompressible Strömungen und die Massenerhaltung",
+      "title4": "Bedeutung in hydraulischen Berechnungen und im Bauingenieurwesen",
+      "references": "Referenzen"
+    },
+    "paragraphs": {
+      "paragraph1": "Die Kontinuitätsgleichung ist im Wesentlichen der mathematische Ausdruck des Gesetzes der Massenerhaltung, angewandt auf ein strömendes Fluid. Einfach gesagt besagt dieses Gesetz, dass Masse in einem abgeschlossenen System weder erzeugt noch zerstört werden kann. Für ein strömendes Fluid bedeutet dies, dass (in Abwesenheit von Quellen oder Senken) die Masse, die in einen Bereich eintritt, gleich der Masse sein muss, die ihn in jedem gegebenen Zeitintervall verlässt. Wenn wir ein festes Kontrollvolumen im Raum betrachten (einen imaginären Fluidausschnitt, begrenzt durch eine geschlossene Oberfläche), ändert sich die Gesamtmasse in diesem Volumen nur, wenn Massenstrom durch seine Grenzen fließt.",
+      "paragraph2": "Mathematisch wird die Massenbilanz über ein Kontrollvolumen V mit einer Oberfläche S durch die integrale Form der Kontinuitätsgleichung ausgedrückt:",
+      "paragraph3": "wobei ρ(x,t) die Dichte des Fluids ist und v(x,t) der Geschwindigkeitsvektor des Fluids an jedem Punkt des Volumens. Diese Integralgleichung besagt, dass die Änderungsrate der Masse im Volumen (erster Term) plus der Netto-Massenstrom durch die Oberfläche (zweiter Term) null ist. Mit anderen Worten: Jede Zunahme der Masse im Volumen muss auf eintretenden Fluss zurückzuführen sein, und jede Abnahme auf austretenden Fluss, wodurch die Massenerhaltung gewährleistet wird.",
+      "paragraph4": "Wendet man den Divergenzsatz auf das Flächenintegral an, kann die obige Gleichung in ihrer differentiellen (lokalen) Form umgeschrieben werden:",
+      "paragraph5": "Dieser kompakte Ausdruck bedeutet, dass die lokale Änderungsrate der Dichte an einem bestimmten Punkt plus die Divergenz des Massenflusses (d. h. der Netto-Massenaustritt pro Volumeneinheit) null ist. Das heißt, die Masse wird an jedem Punkt des Fluids kontinuierlich in Raum und Zeit erhalten. Die differentielle Form ist besonders nützlich, da sie das Verhalten Punkt für Punkt im Fluid beschreibt, und tatsächlich war es diese Formulierung, die von Euler in seinen Gleichungen für ideale Fluide vorgestellt wurde. Es ist zu beachten, dass diese Kontinuitätsgleichung eine der drei fundamentalen Euler-Gleichungen für Fluide ist (neben Impuls- und – bei kompressiblen Strömungen – Energieerhaltung). In Lagrangescher Form (dem Weg einer bewegten Fluidpartikel folgend) kann dieselbe Bedingung wie folgt ausgedrückt werden:",
+      "paragraph6": "Dies betont, dass jede Änderung der Dichte eines Fluidelements auf die Divergenz (Ausdehnung oder Kompression) der umgebenden Strömung zurückzuführen ist. Wenn das Fluid während seiner Bewegung seine Dichte konstant hält, impliziert diese letzte Gleichung unmittelbar ∇ · v = 0, wie wir im Folgenden sehen werden.",
+      "paragraph7": "Die integrale Form betrachtet ein makroskopisches Volumen, das im Raum fixiert ist, und besagt, dass sich die Masse in diesem Volumen nur durch den Fluss über seine Oberflächen ändert. Die differentielle Form hingegen betrachtet ein infinitesimales Volumen und stellt lokal die Massenerhaltung an jedem Punkt des Strömungsfeldes sicher. Wenn die integrale Gleichung für jedes vorstellbare Kontrollvolumen gilt, kann sie nur erfüllt werden, wenn der Integrand an jedem Punkt null ist, was zur differentiellen Form führt:",
+      "paragraph8": "In vielen hydraulisch relevanten Fällen kann das Fluid als inkompressibel betrachtet werden, was bedeutet, dass seine Dichte ρ praktisch konstant bleibt. In diesem Fall vereinfacht sich die Kontinuitätsgleichung:",
+      "paragraph9": "Für eine stationäre eindimensionale Strömung eines inkompressiblen Fluids in einem geschlossenen Kanal erhält man die Beziehung:",
+      "paragraph10": "wobei A die Querschnittsfläche und v die mittlere Geschwindigkeit des Fluids in diesem Querschnitt ist.",
+      "paragraph11": "Bei kompressiblen Strömungen kann die Dichte ρ des Fluids nicht als konstant betrachtet werden. In diesem Fall wird der Massenstrom gemäß folgender Beziehung erhalten:",
+      "paragraph12": "Dies verallgemeinert den Fall inkompressibler Fluide und ist entscheidend in der Aerodynamik, beim Design von Düsen, Gasturbinen und Hochgeschwindigkeitskanälen.",
+      "paragraph13": "Im Bauingenieurwesen stellt die Kontinuitätsgleichung sicher, dass der Zufluss in einem Abschnitt gleich dem Abfluss ist. Dadurch können Versorgungsnetze ausgeglichen, offene Gerinne analysiert und Strömungsprofile berechnet werden. In hydraulischen Geräten wie Düsen, Diffusoren, Pumpen und Turbinen garantiert sie die Erhaltung der verarbeiteten Fluidmenge. Selbst bei transienten Vorgängen wie dem Wasserschlag bleibt die Kontinuität gültig und notwendig für die Modellierung."
+    }
+  },
+  "welcomeText": "Der Rechner, der hydraulische Berechnungen optimiert – präzise und einfach"
+}
