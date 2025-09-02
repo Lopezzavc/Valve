@@ -42,7 +42,7 @@ const InfoScreen = () => {
           </View>
         </View>
         <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Pre-Alpha 2.4.1 [Build 25]</Text>
+          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Pre-Alpha 2.4.2 [Build 26]</Text>
         </View>
         <View style={{ height: 150 }} />
       </ScrollView>
