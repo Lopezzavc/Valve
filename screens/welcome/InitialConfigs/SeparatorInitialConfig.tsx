@@ -27,11 +27,12 @@ const THEME_COLORS = {
     gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     innerInputs: 'rgba(255, 255, 255, 1)',
     innerInputsChildren: 'rgba(245, 245, 245, 1)',
+    resultsPhoto: 'rgba(196, 224, 225, 1)',
   },
   dark: {
     background: 'rgb(12,12,12)',
     card: 'rgba(24,24,24,1)',
-    text: 'rgb(235,235,235)',
+    text: 'rgb(255,255,255)',
     textStrong: 'rgb(250,250,250)',
     separator: 'rgba(255,255,255,0.12)',
     icon: 'rgb(245,245,245)',
@@ -40,6 +41,7 @@ const THEME_COLORS = {
     gradient: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
     innerInputs: 'rgba(24,24,24,1)',
     innerInputsChildren: 'rgba(40,40,40,1)',
+    resultsPhoto: 'rgba(118, 136, 136, 1)',
   }
 } as const;
 
@@ -123,6 +125,7 @@ const SeparatorInitialConfig = () => {
   const animatedSeparatorColor = themeNow.separator;
   const animatedInnerInputsColor = themeNow.innerInputs;
   const animatedInnerInputsChildrenColor = themeNow.innerInputsChildren;
+  const animatedResultsPhotoColor = themeNow.resultsPhoto;
 
   useEffect(() => {
     const initialAnimatingItems: Record<string, { text: string; phase: number; font: string; size: number }> = {};
@@ -310,18 +313,18 @@ const SeparatorInitialConfig = () => {
               </View>
               <View style={styles.results}>
                 <View style={styles.resultsMain}>
-                  <View style={styles.resultsPhoto}>
+                  <Animated.View style={[styles.resultsPhoto, { backgroundColor: animatedResultsPhotoColor }]}>
                     <Text
                       style={{
                         fontFamily: 'SFUIDisplay-Bold',
                         fontSize: 30 * fontSizeFactor,
                         textAlign: 'center',
-                        color: 'black',
+                        color: animatedTextColor,
                       }}
                     >
                       {sampleNumber}
                     </Text>
-                  </View>
+                  </Animated.View>
                 </View>
               </View>
               <View style={styles.circularButtons}>
@@ -434,7 +437,7 @@ const styles = StyleSheet.create({
   topContainer: {
     flex: 1,
     marginHorizontal: 20,
-    marginTop: 80,
+    marginTop: 40,
     borderRadius: 25,
     padding: 1,
   },
@@ -558,7 +561,6 @@ const styles = StyleSheet.create({
   },
   resultsPhoto: {
     flex: 1,
-    backgroundColor: 'rgba(196, 224, 225, 1)',
     marginTop: 25,
     borderRadius: 25,
     justifyContent: 'flex-end',

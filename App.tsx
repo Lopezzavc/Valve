@@ -20,6 +20,7 @@ import WelcomeScreen from './screens/welcome/WelcomeScreen';
 import ThemeInitialConfig from './screens/welcome/InitialConfigs/ThemeInitialConfig'
 import SeparatorInitialConfig from './screens/welcome/InitialConfigs/SeparatorInitialConfig'
 import PrecisionInitialConfig from './screens/welcome/InitialConfigs/PrecisionInitialConfig'
+import InitialConfigSetup from './screens/welcome/InitialConfigs/InitialConfigSetup'
 
 import HomeScreen from './screens/menu/HomeScreen';
 import FavScreen from './screens/menu/FavScreen';
@@ -82,6 +83,7 @@ export type RootStackParamList = {
   ThemeInitialConfig: undefined;
   SeparatorInitialConfig: undefined;
   PrecisionInitialConfig: undefined;
+  InitialConfigSetup: undefined;
 };
 
 export type RootTabParamList = {
@@ -306,14 +308,26 @@ const App = () => {
                     }}
                   />
                   <Stack.Screen
+                    name="InitialConfigSetup"
+                    component={InitialConfigSetup}
+                    options={{
+                      headerShown: false,
+                      cardStyleInterpolator: forFade,
+                      transitionSpec: {
+                        open: { animation: 'timing', config: { duration: 500 } },
+                        close: { animation: 'timing', config: { duration: 250 } },
+                      },
+                    }}
+                  />
+                  <Stack.Screen
                     name="MainTabs"
                     component={TabNavigator}
                     options={{
                       headerShown: false,
                       cardStyleInterpolator: CardStyleInterpolators.forScaleFromCenterAndroid,
                       transitionSpec: {
-                        open: { animation: 'timing', config: { duration: 300 } },
-                        close: { animation: 'timing', config: { duration: 300 } },
+                        open: { animation: 'timing', config: { duration: 500 } },
+                        close: { animation: 'timing', config: { duration: 500 } },
                       },
                     }}
                   />

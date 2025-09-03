@@ -33,11 +33,12 @@ const THEME_COLORS = {
     innerInputsChildren: 'rgba(245, 245, 245, 1)',
     descriptionText: 'rgb(170, 170, 170)',
     sliderTrack: 'rgb(228,228,228)',
+    resultsPhoto: 'rgba(196, 224, 225, 1)',
   },
   dark: {
     background: 'rgb(12,12,12)',
     card: 'rgba(24,24,24,1)',
-    text: 'rgb(235,235,235)',
+    text: 'rgb(255,255,255)',
     textStrong: 'rgb(250,250,250)',
     separator: 'rgba(255,255,255,0.12)',
     icon: 'rgb(245,245,245)',
@@ -48,6 +49,7 @@ const THEME_COLORS = {
     innerInputsChildren: 'rgba(40,40,40,1)',
     descriptionText: 'rgba(85, 85, 85, 1)',
     sliderTrack: 'rgba(255,255,255,0.12)',
+    resultsPhoto: 'rgba(118, 136, 136, 1)',
   }
 } as const;
 
@@ -220,7 +222,7 @@ const PrecisionInitialConfig = () => {
   } = useContext(PrecisionDecimalContext);
 
   const handleNavigatetoNext = () => {
-    navigation.navigate('MainTabs');
+    navigation.navigate('InitialConfigSetup');
   };
 
   const isDark = currentTheme === 'dark';
@@ -252,6 +254,7 @@ const PrecisionInitialConfig = () => {
   const animatedSeparatorColor = themeNow.separator;
   const animatedInnerInputsColor = themeNow.innerInputs;
   const animatedInnerInputsChildrenColor = themeNow.innerInputsChildren;
+  const animatedResultsPhotoColor = themeNow.resultsPhoto;
 
   useEffect(() => {
     const initialAnimatingItems: Record<string, { text: string; phase: number; font: string; size: number }> = {};
@@ -437,29 +440,29 @@ const PrecisionInitialConfig = () => {
             <View style={styles.bg}>
               <View style={styles.header}>
                 <View style={styles.headerLeft}></View>
-                <View style={styles.headerRightContainer}>
-                  <View style={styles.headerRight}></View>
-                  <View style={styles.headerRight}></View>
+                  <View style={styles.headerRightContainer}>
+                    <View style={styles.headerRight}></View>
+                    <View style={styles.headerRight}></View>
+                  </View>
                 </View>
-              </View>
               <View style={styles.titles}>
                 <View style={styles.subtitle}/>
                 <View style={styles.title}/>
               </View>
               <View style={styles.results}>
                 <View style={styles.resultsMain}>
-                  <View style={styles.resultsPhoto}>
+                  <Animated.View style={[styles.resultsPhoto, { backgroundColor: animatedResultsPhotoColor }]}>
                     <Text
                       style={{
                         fontFamily: 'SFUIDisplay-Bold',
                         fontSize: 30 * fontSizeFactor,
                         textAlign: 'center',
-                        color: 'black',
+                        color: animatedTextColor,
                       }}
                     >
                       {sampleNumber}
                     </Text>
-                  </View>
+                  </Animated.View>
                 </View>
               </View>
               <View style={styles.circularButtons}>
@@ -619,7 +622,7 @@ const styles = StyleSheet.create({
   topContainer: {
     flex: 1,
     marginHorizontal: 20,
-    marginTop: 80,
+    marginTop: 40,
     borderRadius: 25,
     padding: 1,
   },
@@ -746,7 +749,6 @@ const styles = StyleSheet.create({
   },
   resultsPhoto: {
     flex: 1,
-    backgroundColor: 'rgba(196, 224, 225, 1)',
     marginTop: 25,
     borderRadius: 25,
     justifyContent: 'flex-end',
