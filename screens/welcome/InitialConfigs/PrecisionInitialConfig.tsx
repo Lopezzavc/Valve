@@ -34,6 +34,7 @@ const THEME_COLORS = {
     descriptionText: 'rgb(170, 170, 170)',
     sliderTrack: 'rgb(228,228,228)',
     resultsPhoto: 'rgba(196, 224, 225, 1)',
+    cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
   },
   dark: {
     background: 'rgb(12,12,12)',
@@ -50,6 +51,7 @@ const THEME_COLORS = {
     descriptionText: 'rgba(85, 85, 85, 1)',
     sliderTrack: 'rgba(255,255,255,0.12)',
     resultsPhoto: 'rgba(118, 136, 136, 1)',
+    cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
   }
 } as const;
 
@@ -249,7 +251,7 @@ const PrecisionInitialConfig = () => {
   }, [t]);
 
   const animatedBackgroundColor = themeNow.background;
-  const animatedCardColor = themeNow.card;
+  const animatedCardColor = themeNow.cardGradient;
   const animatedTextColor = themeNow.text;
   const animatedSeparatorColor = themeNow.separator;
   const animatedInnerInputsColor = themeNow.innerInputs;
@@ -520,7 +522,7 @@ const PrecisionInitialConfig = () => {
         </View>
 
         <View style={[styles.optionsContainerMain, { experimental_backgroundImage: themeNow.gradient }]}>
-          <Animated.View style={[styles.optionsContainer, { backgroundColor: animatedCardColor }]}>
+          <Animated.View style={[styles.optionsContainer, { experimental_backgroundImage: animatedCardColor }]}>
             {renderOptionItem('Normal')}
             <Animated.View style={[styles.separator, { backgroundColor: animatedSeparatorColor }]} />
             {renderOptionItem('Fix')}

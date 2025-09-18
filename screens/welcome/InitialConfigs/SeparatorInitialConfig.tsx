@@ -28,6 +28,7 @@ const THEME_COLORS = {
     innerInputs: 'rgba(255, 255, 255, 1)',
     innerInputsChildren: 'rgba(245, 245, 245, 1)',
     resultsPhoto: 'rgba(196, 224, 225, 1)',
+    cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
   },
   dark: {
     background: 'rgb(12,12,12)',
@@ -42,6 +43,7 @@ const THEME_COLORS = {
     innerInputs: 'rgba(24,24,24,1)',
     innerInputsChildren: 'rgba(40,40,40,1)',
     resultsPhoto: 'rgba(118, 136, 136, 1)',
+    cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
   }
 } as const;
 
@@ -120,7 +122,7 @@ const SeparatorInitialConfig = () => {
   }, [t]);
 
   const animatedBackgroundColor = themeNow.background;
-  const animatedCardColor = themeNow.card;
+  const animatedCardColor = themeNow.cardGradient;
   const animatedTextColor = themeNow.text;
   const animatedSeparatorColor = themeNow.separator;
   const animatedInnerInputsColor = themeNow.innerInputs;
@@ -382,7 +384,7 @@ const SeparatorInitialConfig = () => {
         </View>
 
         <View style={[styles.optionsContainerMain, { experimental_backgroundImage: themeNow.gradient }]}>
-          <Animated.View style={[styles.optionsContainer, { backgroundColor: animatedCardColor }]}>
+          <Animated.View style={[styles.optionsContainer, { experimental_backgroundImage: animatedCardColor }]}>
             {renderOptionItem('Punto')}
             <Animated.View style={[styles.separator, { backgroundColor: animatedSeparatorColor }]} />
             {renderOptionItem('Coma')}

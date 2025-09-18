@@ -116,7 +116,7 @@ const iconMap: Record<string, string> = {
 const CustomTabBar = React.memo(({ state, descriptors, navigation }: BottomTabBarProps) => {
   const animatedValue = React.useRef(new Animated.Value(0)).current;
   const { currentTheme } = useTheme();
-  const tabBarBg = currentTheme === 'dark' ? 'rgb(24, 24, 24)' : 'rgba(0, 0, 0, 1)';
+  const tabBarBg = currentTheme === 'dark' ? 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))' : 'linear-gradient(to bottom, rgb(14,14,14), rgb(0,0,0))';
   const tabBarButton = currentTheme === 'dark' ? 'rgba(174, 174, 174, 0.02)' : 'rgba(174, 174, 174, 0.12)';
 
   React.useEffect(() => {
@@ -148,7 +148,7 @@ const CustomTabBar = React.memo(({ state, descriptors, navigation }: BottomTabBa
 
   return (
     <View style={styles.ScreenArea}>
-      <View style={[styles.tabBarContainer, { backgroundColor: tabBarBg }]}>
+      <View style={[styles.tabBarContainer, { experimental_backgroundImage: tabBarBg }]}>
         <Animated.View
           style={[
             styles.movingCircle,

@@ -30,6 +30,7 @@ const FuenteScreen = () => {
       checkIcon: 'rgb(0, 0, 0)',
       accentChip: 'rgb(194, 254, 12)',
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     },
     dark: {
       background: 'rgb(12,12,12)',
@@ -41,6 +42,7 @@ const FuenteScreen = () => {
       checkIcon: 'rgb(12,12,12)',
       accentChip: 'rgb(194, 254, 12)',
       gradient: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+      cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
     }
   };
 
@@ -270,7 +272,7 @@ const FuenteScreen = () => {
         <View style={styles.rightIconsContainer}>
           <View style={[styles.iconWrapper2, { experimental_backgroundImage: colors.gradient }]}>
             <Pressable
-              style={[styles.iconContainer, { backgroundColor: colors.card }]}
+              style={[styles.iconContainer, { experimental_backgroundImage: colors.cardGradient }]}
               onPress={handleResetFontSize}
             >
               <Icon name="refresh-cw" size={20} color={colors.icon} />
@@ -278,7 +280,7 @@ const FuenteScreen = () => {
           </View>
           <View style={[styles.iconWrapper, { experimental_backgroundImage: colors.gradient }]}>
             <Pressable
-              style={[styles.iconContainer, { backgroundColor: colors.card }]}
+              style={[styles.iconContainer, { experimental_backgroundImage: colors.cardGradient }]}
               onPress={() => navigation.goBack()}
             >
               <Icon name="chevron-down" size={22} color={colors.icon} />
@@ -291,7 +293,7 @@ const FuenteScreen = () => {
         <Text style={[styles.title, { color: colors.textStrong, fontSize: 30 * fontSizeFactor }]}>{t('settings.font')}</Text>
       </View>
       <View style={[styles.optionsContainerMain, { experimental_backgroundImage: colors.gradient }]}>
-        <View style={[styles.optionsContainer, { backgroundColor: colors.card }]}>
+        <View style={[styles.optionsContainer, { experimental_backgroundImage: colors.cardGradient }]}>
           {renderOptionItem('Muy Pequeña')}
           <View style={[styles.separator, { backgroundColor: colors.separator }]} />
           {renderOptionItem('Pequeña')}

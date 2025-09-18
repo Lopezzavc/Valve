@@ -209,6 +209,7 @@ const ColebrookCalc: React.FC = () => {
         separator: 'rgba(255,255,255,0.12)',
         icon: 'rgb(245,245,245)',
         gradient: 'linear-gradient(to bottom right, rgba(170, 170, 170, 0.4) 30%, rgba(58, 58, 58, 0.4) 45%, rgba(58, 58, 58, 0.4) 55%, rgba(170, 170, 170, 0.4)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
     return {
@@ -218,6 +219,7 @@ const ColebrookCalc: React.FC = () => {
       separator: 'rgb(235, 235, 235)',
       icon: 'rgb(0, 0, 0)',
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
     };
   }, [currentTheme]);
 
@@ -784,13 +786,16 @@ const ColebrookCalc: React.FC = () => {
         {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.iconWrapper}>
-            <Pressable style={styles.iconContainer} onPress={() => navigation.goBack()}>
-              <Icon name="chevron-left" size={22} color="rgb(255, 255, 255)" />
+            <Pressable
+              style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+              onPress={() => navigation.goBack()}
+            >
+              <Icon name="chevron-left" size={22} color={'white'} />
             </Pressable>
           </View>
           <View style={styles.rightIconsContainer}>
             <View style={styles.iconWrapper2}>
-              <Pressable style={styles.iconContainer} onPress={toggleFavorite}>
+              <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={toggleFavorite}>
                 <IconFavorite
                   name={isFav ? "heart" : "heart-o"}
                   size={20}
@@ -799,7 +804,7 @@ const ColebrookCalc: React.FC = () => {
               </Pressable>
             </View>
             <View style={styles.iconWrapper2}>
-              <Pressable style={styles.iconContainer} onPress={() => navigation.navigate('ColebrookTheory')}>
+              <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.navigate('ColebrookTheory')}>
                 <Icon name="book" size={20} color="rgb(255, 255, 255)" />
               </Pressable>
             </View>
@@ -872,7 +877,7 @@ const ColebrookCalc: React.FC = () => {
           ].map(({ icon, label, action }) => (
             <View style={styles.actionWrapper} key={label}>
               <View style={styles.actionButtonMain}>
-                <Pressable style={styles.actionButton} onPress={action}>
+                <Pressable style={[styles.actionButton, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={action}>
                   <Icon name={icon} size={22 * fontSizeFactor} color="rgb(255, 255, 255)" />
                   <Icon name={icon} size={22 * fontSizeFactor} color="rgba(255, 255, 255, 0.5)" style={{ position: 'absolute', filter: 'blur(4px)' }} />
                 </Pressable>

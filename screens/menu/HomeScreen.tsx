@@ -70,6 +70,7 @@ const HomeScreen = () => {
         icon: 'rgb(245,245,245)',
         gradient:
           'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
     return {
@@ -82,6 +83,7 @@ const HomeScreen = () => {
       icon: 'rgb(0, 0, 0)',
       gradient:
         'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(250, 250, 250, 1))',
     };
   }, [currentTheme]);
 
@@ -449,7 +451,7 @@ const HomeScreen = () => {
             style={styles.simpleButtonContainer}
             onPress={() => navigation.navigate('SearchScreen')}
           >
-            <View style={[styles.buttonBackground, { backgroundColor: themeColors.card }]} />
+            <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
             <MaskedView
               style={styles.maskedButton}
               maskElement={<View style={styles.transparentButtonMask} />}
@@ -468,7 +470,7 @@ const HomeScreen = () => {
             style={styles.simpleButtonContainer2}
             onPress={() => navigation.navigate('InfoScreen')}
           >
-            <View style={[styles.buttonBackground2, { backgroundColor: themeColors.card }]} />
+            <View style={[styles.buttonBackground2, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
             <MaskedView
               style={styles.maskedButton2}
               maskElement={<View style={styles.transparentButtonMask2} />}
@@ -516,7 +518,7 @@ const HomeScreen = () => {
             <View
               style={[
                 stylesRef.innerBox,
-                { backgroundColor: themeColors.card },
+                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
               ]}
               onLayout={onLayoutInner4}
             >
@@ -584,7 +586,7 @@ const HomeScreen = () => {
             <View
               style={[
                 stylesRef.innerBox,
-                { backgroundColor: themeColors.card },
+                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
               ]}
               onLayout={onLayoutInner}
             >
@@ -649,7 +651,7 @@ const HomeScreen = () => {
             <View
               style={[
                 stylesRef.innerBox,
-                { backgroundColor: themeColors.card },
+                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
               ]}
               onLayout={onLayoutInner2}
             >
@@ -717,7 +719,7 @@ const HomeScreen = () => {
             <View
               style={[
                 stylesRef.innerBox,
-                { backgroundColor: themeColors.card },
+                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
               ]}
               onLayout={onLayoutInner3}
             >
@@ -891,7 +893,6 @@ const styles = StyleSheet.create({
     marginTop: -7,
     marginBottom: 7,
   },
-
   container: {
     flex: 1,
     justifyContent: 'center',
