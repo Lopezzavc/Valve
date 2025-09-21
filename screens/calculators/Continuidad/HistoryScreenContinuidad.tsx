@@ -568,7 +568,7 @@ const HistoryScreenContinuidad = () => {
         }
       />
 
-      <Toast config={toastConfig} />
+      <Toast config={toastConfig} position="bottom" />
     </View>
   );
 };

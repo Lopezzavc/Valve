@@ -87,6 +87,8 @@
     isManualEditA2: boolean;
     isManualEditV2: boolean;
     lockedField: string | null;
+    invalidFields: string[];
+    autoCalculatedField: 'A1' | 'V1' | 'A2' | 'V2' | null;
   }
 
   // Métricas internas de los botones
@@ -200,6 +202,8 @@
     isManualEditA2: false,
     isManualEditV2: false,
     lockedField: null,
+    invalidFields: [],
+    autoCalculatedField: null,
   });
 
   // Componente principal
@@ -209,6 +213,7 @@
     const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
     const { fontSizeFactor } = useContext(FontSizeContext);
     const [inputSectionPadding, setInputSectionPadding] = useState(100);
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
     // Tema actual
     const { currentTheme } = useTheme();
@@ -224,7 +229,7 @@
           icon: 'rgb(245,245,245)',
           gradient: 'linear-gradient(to bottom right, rgba(170, 170, 170, 0.4) 30%, rgba(58, 58, 58, 0.4) 45%, rgba(58, 58, 58, 0.4) 55%, rgba(170, 170, 170, 0.4)) 70%',
           cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
-          blockInput: 'rgba(37, 42, 27, 1)',
+          blockInput: 'rgba(30, 30, 30, 1)',
         };
       }
       return {
@@ -235,7 +240,7 @@
         icon: 'rgb(0, 0, 0)',
         gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
         cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
-        blockInput: 'rgba(247, 255, 223, 1)',
+        blockInput: 'rgba(240, 240, 240, 1)',
       };
     }, [currentTheme]);
 
@@ -362,23 +367,52 @@
     }, [selectedDecimalSeparator]);
 
     const calculateCaudal = useCallback(() => {
-      const vel = state.velocityCaudal ? parseFloat(state.velocityCaudal.replace(',', '.')) * conversionFactors.velocity[state.velocityCaudalUnit] : NaN;
-      if (isNaN(vel)) {
-        setState((prev) => ({ ...prev, resultCaudal: 0 }));
+      // 1) VALIDACIÓN PRIMERO (marca en rojo si falta algo)
+      const requiredIds: string[] = ['velocityCaudal'];
+      if (state.sectionType === 'Circular') requiredIds.push('diameter');
+      if (state.sectionType === 'Cuadrada') requiredIds.push('side');
+      if (state.sectionType === 'Rectangular') requiredIds.push('rectWidth', 'rectHeight');
+      if (state.fillType === 'Parcial') requiredIds.push('fillHeight');
+        
+      const missing = requiredIds.filter((id) => {
+        const raw = (state as any)[id] as string;
+        const val = raw?.replace(',', '.');
+        return !val || isNaN(parseFloat(val));
+      });
+    
+      if (missing.length > 0) {
+        // ➜ pinta en rojo (incluye el caso "todo vacío") y no calcula
+        setState((prev) => ({
+          ...prev,
+          invalidFields: missing,
+          autoCalculatedField: null,
+          resultCaudal: 0,
+        }));
         return;
+      } else {
+        // ➜ limpia rojos si todo está OK
+        setState((prev) => ({ ...prev, invalidFields: [], autoCalculatedField: null }));
       }
+    
+      // 2) PARSEAR Y CALCULAR (ya validado)
+      const vel =
+        parseFloat(state.velocityCaudal.replace(',', '.')) *
+        conversionFactors.velocity[state.velocityCaudalUnit];
+    
       let area = 0;
-
+    
       switch (state.sectionType) {
         case 'Circular': {
-          const d = state.diameter ? parseFloat(state.diameter.replace(',', '.')) * conversionFactors.length[state.diameterUnit] : NaN;
-          if (isNaN(d) || d <= 0) break;
+          const d =
+            parseFloat(state.diameter.replace(',', '.')) *
+            conversionFactors.length[state.diameterUnit];
           const R = d / 2;
           if (state.fillType === 'Total') {
             area = Math.PI * R * R;
           } else {
-            const h = state.fillHeight ? parseFloat(state.fillHeight.replace(',', '.')) * conversionFactors.length[state.fillHeightUnit] : NaN;
-            if (isNaN(h)) break;
+            const h =
+              parseFloat(state.fillHeight.replace(',', '.')) *
+              conversionFactors.length[state.fillHeightUnit];
             const h_clamped = Math.min(Math.max(h, 0), d);
             const theta = 2 * Math.acos((R - h_clamped) / R);
             area = (R * R / 2) * (theta - Math.sin(theta));
@@ -386,34 +420,40 @@
           break;
         }
         case 'Cuadrada': {
-          const s = state.side ? parseFloat(state.side.replace(',', '.')) * conversionFactors.length[state.sideUnit] : NaN;
-          if (isNaN(s) || s <= 0) break;
+          const s =
+            parseFloat(state.side.replace(',', '.')) *
+            conversionFactors.length[state.sideUnit];
           if (state.fillType === 'Total') {
             area = s * s;
           } else {
-            const h = state.fillHeight ? parseFloat(state.fillHeight.replace(',', '.')) * conversionFactors.length[state.fillHeightUnit] : NaN;
-            if (isNaN(h)) break;
+            const h =
+              parseFloat(state.fillHeight.replace(',', '.')) *
+              conversionFactors.length[state.fillHeightUnit];
             const h_clamped = Math.min(Math.max(h, 0), s);
             area = s * h_clamped;
           }
           break;
         }
         case 'Rectangular': {
-          const w = state.rectWidth ? parseFloat(state.rectWidth.replace(',', '.')) * conversionFactors.length[state.rectWidthUnit] : NaN;
-          const h0 = state.rectHeight ? parseFloat(state.rectHeight.replace(',', '.')) * conversionFactors.length[state.rectHeightUnit] : NaN;
-          if (isNaN(w) || isNaN(h0) || w <= 0 || h0 <= 0) break;
+          const w =
+            parseFloat(state.rectWidth.replace(',', '.')) *
+            conversionFactors.length[state.rectWidthUnit];
+          const h0 =
+            parseFloat(state.rectHeight.replace(',', '.')) *
+            conversionFactors.length[state.rectHeightUnit];
           if (state.fillType === 'Total') {
             area = w * h0;
           } else {
-            const h = state.fillHeight ? parseFloat(state.fillHeight.replace(',', '.')) * conversionFactors.length[state.fillHeightUnit] : NaN;
-            if (isNaN(h)) break;
+            const h =
+              parseFloat(state.fillHeight.replace(',', '.')) *
+              conversionFactors.length[state.fillHeightUnit];
             const h_clamped = Math.min(Math.max(h, 0), h0);
             area = w * h_clamped;
           }
           break;
         }
       }
-
+    
       setState((prev) => ({ ...prev, resultCaudal: area * vel }));
     }, [state]);
 
@@ -426,6 +466,12 @@
       const valids = [!isNaN(a1), !isNaN(vv1), !isNaN(a2), !isNaN(vv2)];
       const validCount = valids.filter(Boolean).length;
 
+      const inputsMap = { A1: a1, V1: vv1, A2: a2, V2: vv2 };
+
+      const emptyIds = Object.entries(inputsMap)
+        .filter(([, v]) => isNaN(v as number))
+        .map(([k]) => k);
+
       if (validCount !== 3) {
         setState((prev) => ({
           ...prev,
@@ -434,15 +480,17 @@
           resultV1: '',
           resultA2: '',
           resultV2: '',
+          invalidFields: emptyIds,         // ⬅️ pinta rojo lo que falte
+          autoCalculatedField: null,       // ⬅️ sin azul
         }));
         return;
       }
 
-      let missing: string | null = null;
-      if (isNaN(a1)) missing = 'A1';
-      else if (isNaN(vv1)) missing = 'V1';
-      else if (isNaN(a2)) missing = 'A2';
-      else if (isNaN(vv2)) missing = 'V2';
+      let missing: 'A1' | 'V1' | 'A2' | 'V2' | null = null;
+        if (isNaN(a1)) missing = 'A1';
+        else if (isNaN(vv1)) missing = 'V1';
+        else if (isNaN(a2)) missing = 'A2';
+        else if (isNaN(vv2)) missing = 'V2';
 
       let newQ = 0;
       if (!isNaN(a1) && !isNaN(vv1)) newQ = a1 * vv1;
@@ -489,7 +537,12 @@
         }
       }
 
-      setState((prev) => ({ ...prev, ...newState }));
+      setState((prev) => ({
+        ...prev,
+        ...newState,
+        invalidFields: [],
+        autoCalculatedField: missing,
+      }));
     }, [state, formatResult]);
 
     const handleCalculate = useCallback(() => {
@@ -541,6 +594,8 @@
         isManualEditA2: false,
         isManualEditV2: false,
         lockedField: null,
+        invalidFields: [],
+        autoCalculatedField: null,
       }));
     }, []);
 
@@ -702,7 +757,6 @@
       }
     }, [state.A1, state.v1, state.A2, state.v2]);
 
-    // Navegar a selector de opciones/unidades (memo)
     const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string) => {
       navigation.navigate('OptionsScreen', { category, onSelectOption, selectedOption });
     }, [navigation]);
@@ -723,15 +777,14 @@
       }
     };
 
-    // Render de input numérico con etiqueta visible traducida SIN romper mapas internos
     const renderInput = useCallback((
-      label: string,                              // clave interna (ES) usada en unitMap
+      label: string,
       value: string,
       onChange: (text: string) => void,
       setManualEdit: (value: boolean) => void,
       fieldId?: string,
       resultValue?: string,
-      displayLabel?: string                       // NUEVO: etiqueta traducida para UI
+      displayLabel?: string,
     ) => {
       const unitMap: { [key: string]: string } = {
         'Diámetro': state.diameterUnit,
@@ -748,9 +801,41 @@
       const unit = unitMap[label] || '';
       const shownLabel = displayLabel || label;
 
+      const isFieldLocked =
+        state.mode === 'continuidad' && fieldId && state.lockedField === fieldId;
+          
+      const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
+
       return (
         <View style={styles.inputWrapper}>
-          <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>{shownLabel}</Text>
+          <View style={styles.labelRow}>
+            <Text
+              style={[
+                styles.inputLabel,
+                { color: themeColors.text, fontSize: 16 * fontSizeFactor }
+              ]}
+            >
+              {shownLabel}
+            </Text>
+          {(() => {
+            const id = fieldId || label;
+            const hasUserValue = (value?.trim()?.length ?? 0) > 0;
+            const isInvalid = state.invalidFields.includes(id);
+            const isAuto =
+              state.mode === 'continuidad' &&
+              (id === state.autoCalculatedField) &&
+              !hasUserValue &&
+              !!(resultValue && resultValue !== '');
+          
+            let dotColor = 'rgb(200,200,200)';
+            if (isInvalid) dotColor = 'rgb(254, 12, 12)';
+            else if (isAuto) dotColor = 'rgb(66, 133, 244)';
+            else if (hasUserValue) dotColor = 'rgb(194, 254, 12)';
+          
+            return <View style={[styles.valueDot, { backgroundColor: dotColor }]} />;
+          })()}
+
+          </View>
           <View style={styles.redContainer}>
             <View
               style={[
@@ -758,7 +843,7 @@
                 { experimental_backgroundImage: themeColors.gradient }
               ]}
             >
-              <View style={[styles.innerWhiteContainer, { backgroundColor: themeColors.card }]}>
+              <View style={[styles.innerWhiteContainer, { backgroundColor: inputContainerBg }]}>
                 <TextInput
                   style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
                   keyboardType="numeric"
@@ -771,6 +856,14 @@
                     if (label !== 'Área de la sección (A₂)') setState((prev) => ({ ...prev, isManualEditA2: false }));
                     if (label !== 'Velocidad en la sección (v₂)') setState((prev) => ({ ...prev, isManualEditV2: false }));
                     updateLockedField();
+                    if (fieldId) {
+                      setState((prev) => ({
+                        ...prev,
+                        invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
+                        autoCalculatedField:
+                          prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
+                      }));
+                    }
                   }}
                   editable={state.mode !== 'continuidad' || state.lockedField !== fieldId}
                   selectTextOnFocus={state.mode !== 'continuidad' || state.lockedField !== fieldId}
@@ -839,7 +932,6 @@
       );
     }, [state, convertValue, navigateToOptions, updateLockedField, themeColors, currentTheme, fontSizeFactor]);
 
-    // Selectores con etiqueta visible traducida SIN depender del texto para la lógica
     const renderPickerContainer = useCallback((
       internalType: 'sectionType' | 'fillType',
       labelDisplay: string,
@@ -867,7 +959,6 @@
       </View>
     ), [navigateToOptions, themeColors, t, fontSizeFactor]);
 
-    // Inputs por modo
     const renderCaudalInputs = useCallback(() => (
       <>
         <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>{t('continuidadCalc.section')}</Text>
@@ -884,7 +975,7 @@
           state.diameter,
           (text) => setState((prev) => ({ ...prev, diameter: text })),
           () => {},
-          undefined,
+          'diameter',
           undefined,
           t('continuidadCalc.labels.diameter')
         )}
@@ -894,7 +985,7 @@
           state.side,
           (text) => setState((prev) => ({ ...prev, side: text })),
           () => {},
-          undefined,
+          'side',
           undefined,
           t('continuidadCalc.labels.side')
         )}
@@ -906,7 +997,7 @@
               state.rectWidth,
               (text) => setState((prev) => ({ ...prev, rectWidth: text })),
               () => {},
-              undefined,
+              'rectWidth',
               undefined,
               t('continuidadCalc.labels.width')
             )}
@@ -915,7 +1006,7 @@
               state.rectHeight,
               (text) => setState((prev) => ({ ...prev, rectHeight: text })),
               () => {},
-              undefined,
+              'rectHeight',
               undefined,
               t('continuidadCalc.labels.height')
             )}
@@ -930,7 +1021,7 @@
           state.velocityCaudal,
           (text) => setState((prev) => ({ ...prev, velocityCaudal: text })),
           () => {},
-          undefined,
+          'velocityCaudal',
           undefined,
           t('continuidadCalc.labels.velocity')
         )}
@@ -947,7 +1038,7 @@
           state.fillHeight,
           (text) => setState((prev) => ({ ...prev, fillHeight: text })),
           () => {},
-          undefined,
+          'fillHeight',
           undefined,
           t('continuidadCalc.labels.fillHeight')
         )}
@@ -982,11 +1073,13 @@
       const showSub = Keyboard.addListener('keyboardDidShow', () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setInputSectionPadding(150);
+        setIsKeyboardVisible(true);   // ⬅️ NUEVO
       });
     
       const hideSub = Keyboard.addListener('keyboardDidHide', () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setInputSectionPadding(100);
+        setIsKeyboardVisible(false);  // ⬅️ NUEVO
       });
     
       return () => {
@@ -1116,7 +1209,11 @@
           <View
             style={[
               styles.inputsSection,
-              { backgroundColor: themeColors.card, paddingBottom: inputSectionPadding }
+              { 
+                backgroundColor: themeColors.card, 
+                paddingBottom: inputSectionPadding,
+                minHeight: isKeyboardVisible ? 900 : 500,
+              }
             ]}
           >
             <View style={styles.buttonContainer}>
@@ -1161,11 +1258,24 @@
     );
   };
 
-// Estilos (SIN CAMBIOS)
 const styles = StyleSheet.create({
   safeArea: { 
     flex: 1, 
     backgroundColor: 'rgba(0, 0, 0, 1)' 
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 5,
+  },
+  valueDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 5,
+    backgroundColor: 'rgb(194, 254, 12)',
+    marginLeft: 0,
+    marginBottom: 1,
   },
   mainContainer: { 
     flex: 1, 
@@ -1334,8 +1444,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 1)', 
     paddingHorizontal: 20, 
     paddingTop: 20, 
-    borderRadius: 25, 
-    paddingBottom: 100 
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    minHeight: 500,
   },
   buttonContainer: { 
     flexDirection: 'row', 

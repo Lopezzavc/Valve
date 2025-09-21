@@ -80,11 +80,11 @@ type ReferenceItemProps = {
   url: string; 
   textColor: string;
   subtitleColor: string;
-  backgroundColor: string;
+  cardGradient: string;   // <— nuevo
   gradient: string;
   fontSizeFactor: number;
 };
-const ReferenceItem = memo(({ title, author, year, url, textColor, subtitleColor, backgroundColor, gradient, fontSizeFactor }: ReferenceItemProps) => {
+const ReferenceItem = memo(({ title, author, year, url, textColor, subtitleColor, cardGradient, gradient, fontSizeFactor }: ReferenceItemProps) => {
   const onPress = useCallback(() => {
     return Linking.openURL(url).catch(() => {
     });
@@ -93,7 +93,10 @@ const ReferenceItem = memo(({ title, author, year, url, textColor, subtitleColor
   return (
     <Pressable onPress={onPress} accessibilityRole="link">
       <View style={[styles.contentBox, { experimental_backgroundImage: gradient }]}>
-        <View style={[styles.innerBox, { backgroundColor }]}>
+        <View style={[
+          styles.innerBox, 
+          { experimental_backgroundImage: cardGradient, backgroundColor: 'transparent' }
+        ]}>
           <View style={styles.cardText}>
             <View style={styles.titleContainerRef}>
               <Text style={[styles.titleText, { color: textColor, fontSize: 16 * fontSizeFactor }]}>{title}</Text>
@@ -128,6 +131,7 @@ const ContinuidadTheory = () => {
         separator: 'rgba(255,255,255,0.12)',
         icon: 'rgb(245,245,245)',
         gradient: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
     return {
@@ -138,6 +142,7 @@ const ContinuidadTheory = () => {
       separator: 'rgb(235, 235, 235)',
       icon: 'rgb(0, 0, 0)',
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
     };
   }, [currentTheme]);
 
@@ -282,7 +287,7 @@ const ContinuidadTheory = () => {
             url={ref.url}
             textColor={themeColors.text}
             subtitleColor={currentTheme === 'dark' ? 'rgb(170, 170, 170)' : 'rgb(170, 170, 170)'}
-            backgroundColor={themeColors.card}
+            cardGradient={themeColors.cardGradient}
             gradient={themeColors.gradient}
             fontSizeFactor={fontSizeFactor}
           />
