@@ -281,6 +281,7 @@ const App = () => {
                         open: { animation: 'timing', config: { duration: 500 } },
                         close: { animation: 'timing', config: { duration: 250 } },
                       },
+                      gestureEnabled: false,
                     }}
                   />
                   <Stack.Screen
@@ -293,6 +294,7 @@ const App = () => {
                         open: { animation: 'timing', config: { duration: 500 } },
                         close: { animation: 'timing', config: { duration: 250 } },
                       },
+                      gestureEnabled: false,
                     }}
                   />
                   <Stack.Screen
@@ -305,6 +307,7 @@ const App = () => {
                         open: { animation: 'timing', config: { duration: 500 } },
                         close: { animation: 'timing', config: { duration: 250 } },
                       },
+                      gestureEnabled: false,
                     }}
                   />
                   <Stack.Screen
@@ -317,6 +320,7 @@ const App = () => {
                         open: { animation: 'timing', config: { duration: 500 } },
                         close: { animation: 'timing', config: { duration: 250 } },
                       },
+                      gestureEnabled: false,
                     }}
                   />
                   <Stack.Screen

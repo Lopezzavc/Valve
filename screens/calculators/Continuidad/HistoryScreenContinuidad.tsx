@@ -198,6 +198,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
         icon: 'rgb(245,245,245)',
         gradient:
           'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
     return {
@@ -208,6 +209,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
       icon: 'rgb(0, 0, 0)',
       gradient:
         'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
 
@@ -341,7 +343,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
         ]}
         {...panResponder.panHandlers}
       >
-        <View style={[styles.optionsContainer, { backgroundColor: themeColors.card }]}>
+        <View style={[styles.optionsContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}>
           <View style={styles.itemContent}>
             <Text style={[styles.resultLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>{t('continuidadCalc.flow')}:</Text>
             <Text style={[styles.resultValue, { color: themeColors.text, fontSize: 24 * fontSizeFactor }]}>{formattedResult} m³/s</Text>
@@ -406,6 +408,7 @@ const HistoryScreenContinuidad = () => {
         icon: 'rgb(245,245,245)',
         gradient:
           'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
     return {
@@ -417,6 +420,7 @@ const HistoryScreenContinuidad = () => {
       icon: 'rgb(0, 0, 0)',
       gradient:
         'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
 
@@ -541,7 +545,7 @@ const HistoryScreenContinuidad = () => {
             <View style={styles.headerContainer}>
               <View style={styles.leftIconsContainer}>
                 <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
-                  <Pressable style={[styles.iconContainer, { backgroundColor: themeColors.card }]} onPress={() => navigation.goBack()}>
+                  <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.goBack()}>
                     <Icon2 name="chevron-left" size={20} color={themeColors.icon} />
                   </Pressable>
                 </View>
@@ -549,7 +553,7 @@ const HistoryScreenContinuidad = () => {
 
               <View style={styles.rightIconsContainer}>
                 <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
-                  <Pressable style={[styles.iconContainer, { backgroundColor: themeColors.card }]} onPress={handleResetPress}>
+                  <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={handleResetPress}>
                     <Icon2 name="trash" size={20} color={themeColors.icon} />
                   </Pressable>
                 </View>

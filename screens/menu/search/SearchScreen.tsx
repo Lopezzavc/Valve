@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
 
-const SearchScreen = () => {
+const SearchScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Buscador</Text>
@@ -9,17 +9,18 @@ const SearchScreen = () => {
   );
 };
 
+export default SearchScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: "center", // centra verticalmente
+    alignItems: "center", // centra horizontalmente
+    backgroundColor: "#fff", // fondo blanco
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+    color: "#333",
   },
 });
-
-export default SearchScreen;

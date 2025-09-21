@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RootStackParamList = {
   MainTabs: undefined;
@@ -23,6 +24,11 @@ const InitialConfigSetup = () => {
 
     const timer = setTimeout(() => {
       navigation.navigate('MainTabs');
+      AsyncStorage.setItem('hasCompletedInitialConfig', 'true')
+        .catch(() => {})
+        .finally(() => {
+          navigation.navigate('MainTabs');
+        });
     }, 5000);
 
     return () => clearTimeout(timer);

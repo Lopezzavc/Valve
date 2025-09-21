@@ -172,8 +172,8 @@
     "cardDesc4": "Relaciona el régimen turbulento de un flujo en tuberías con la rugosidad relativa."
   },
   "home": {
-    "calculatorsTitle": "Calculadoras",
-    "pressureDuctsTitle": "Conductos a Presion"
+    "calculatorsTitle": "Menú Principal",
+    "pressureDuctsTitle": "Calculadoras"
   },
   "bernoulliCalc": {
     "title": "Principio de Bernoulli",
@@ -308,5 +308,10 @@
       "copper": "Cobre",
       "galvanizedSteel": "Acero galvanizado"
     }
+  },
+
+  "mainMenu": {
+    "subtitleEssential": "Essential",
+    "subtitle1": "Mecanica de fluidos"
   }
 }

@@ -129,6 +129,7 @@ const OptionsScreen = () => {
         checkIcon: 'rgb(12,12,12)',
         accentChip: 'rgb(194, 254, 12)',
         gradient: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
     // light
@@ -142,6 +143,7 @@ const OptionsScreen = () => {
       checkIcon: 'rgb(0, 0, 0)',
       accentChip: 'rgb(194, 254, 12)',
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
 
@@ -257,7 +259,7 @@ const OptionsScreen = () => {
             ]}
           >
             <Pressable
-              style={[styles.iconContainer, { backgroundColor: themeColors.card }]}
+              style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
               onPress={handleGoBack}
             >
               <Icon name="chevron-down" size={22} color={themeColors.icon} />
@@ -279,7 +281,7 @@ const OptionsScreen = () => {
           { experimental_backgroundImage: themeColors.gradient },
         ]}
       >
-        <View style={[styles.optionsContainer, { backgroundColor: themeColors.card }]}>
+        <View style={[styles.optionsContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}>
           <FlatList
             data={options}
             keyExtractor={keyExtractor}

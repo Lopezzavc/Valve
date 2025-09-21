@@ -210,6 +210,7 @@ const ColebrookCalc: React.FC = () => {
         icon: 'rgb(245,245,245)',
         gradient: 'linear-gradient(to bottom right, rgba(170, 170, 170, 0.4) 30%, rgba(58, 58, 58, 0.4) 45%, rgba(58, 58, 58, 0.4) 55%, rgba(170, 170, 170, 0.4)) 70%',
         cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
+        blockInput: 'rgba(37, 42, 27, 1)',
       };
     }
     return {
@@ -220,6 +221,7 @@ const ColebrookCalc: React.FC = () => {
       icon: 'rgb(0, 0, 0)',
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
       cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
+      blockInput: 'rgba(247, 255, 223, 1)',
     };
   }, [currentTheme]);
 
@@ -616,6 +618,8 @@ const ColebrookCalc: React.FC = () => {
     const isFieldLocked = isLocked || 
       (fieldId && state.lockedRoughnessField === fieldId);
 
+    const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
+
     return (
       <View style={styles.inputWrapper}>
         <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>{shownLabel}</Text>
@@ -626,7 +630,10 @@ const ColebrookCalc: React.FC = () => {
               { experimental_backgroundImage: themeColors.gradient }
             ]}
           >
-            <View style={[styles.innerWhiteContainer, { backgroundColor: themeColors.card }]}>
+            <View
+              style={[styles.innerWhiteContainer, { backgroundColor: inputContainerBg }]}
+              accessibilityState={{ disabled: !!isFieldLocked }}
+            >
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
                 keyboardType="numeric"

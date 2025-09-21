@@ -5,6 +5,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LanguageContext } from '../../contexts/LanguageContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type WelcomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'WelcomeScreen'>;
 
@@ -16,9 +17,18 @@ const WelcomeScreen = () => {
     navigation.navigate('ThemeInitialConfig');
   };
 
-  // const handleNavigateToMainTabs = () => {
-  //   navigation.navigate('MainTabs');
-  // };
+  const handleStart = async () => {
+    try {
+      const done = await AsyncStorage.getItem('hasCompletedInitialConfig');
+      if (done === 'true') {
+        navigation.navigate('MainTabs');
+      } else {
+        navigation.navigate('ThemeInitialConfig');
+      }
+    } catch {
+      navigation.navigate('ThemeInitialConfig');
+    }
+  };
 
   return (
     <View style={styles.background}>
@@ -45,31 +55,33 @@ const WelcomeScreen = () => {
             </View>
             <View style={styles.buttonContainer}>
               <Pressable onPress={handleNavigatetoMainTabs}>
-                <View style={styles.RedBackgroundSquare} />
-                <MaskedView
-                  style={styles.maskedView}
-                  maskElement={
-                    <View style={styles.TransparentSquare} />
-                  }
-                >
-                  <View style={styles.RedSquare} />
-                </MaskedView>
-                <View style={styles.transparentSquare2}>
-                  <Text style={styles.centeredText}>Comenzar</Text>
-                </View>
-                <View style={styles.transparentSquare3}>
-                  <Text style={{
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    fontSize: 18,
-                    textAlign: 'center',
-                    textAlignVertical: 'center',
-                    flex: 1,
-                    fontFamily: 'SFUIDisplay-Medium',
-                    filter: 'blur(4px)'
-                  }}>
-                    Comenzar
-                  </Text>
-                </View>
+                <Pressable onPress={handleStart}>
+                  <View style={styles.RedBackgroundSquare} />
+                  <MaskedView
+                    style={styles.maskedView}
+                    maskElement={
+                      <View style={styles.TransparentSquare} />
+                    }
+                  >
+                    <View style={styles.RedSquare} />
+                  </MaskedView>
+                  <View style={styles.transparentSquare2}>
+                    <Text style={styles.centeredText}>Comenzar</Text>
+                  </View>
+                  <View style={styles.transparentSquare3}>
+                    <Text style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      fontSize: 18,
+                      textAlign: 'center',
+                      textAlignVertical: 'center',
+                      flex: 1,
+                      fontFamily: 'SFUIDisplay-Medium',
+                      filter: 'blur(4px)'
+                    }}>
+                      Comenzar
+                    </Text>
+                  </View>
+                </Pressable>
               </Pressable>
             </View>
           </View>

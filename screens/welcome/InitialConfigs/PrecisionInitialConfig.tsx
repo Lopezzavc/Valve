@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
     lineHeight: 25,
   },
   lovelaceText: {
-    fontFamily: 'fonnts.com-lovelace-italic',
+    fontFamily: 'lovelace-italic',
   },
   optionsContainer: {
     borderRadius: 24,

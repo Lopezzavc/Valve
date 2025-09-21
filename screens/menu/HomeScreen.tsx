@@ -98,13 +98,12 @@ const HomeScreen = () => {
       } else if (phase === 3) {
         setPhase(4);
       } else if (phase === 5) {
-        setPhase(1);
-        setCurrentText('Valve');
+        setPhase(2);
       }
     }, 5000);
 
-    return () => clearTimeout(timer);
-  }, [phase]);
+  return () => clearTimeout(timer);
+}, [phase]);
 
   useEffect(() => {
     if (phase === 2) {
@@ -506,73 +505,19 @@ const HomeScreen = () => {
         </Text>
       </View>
 
-      <View style={styles.buttonContainer}>
-        <View style={{ width: '100%', paddingHorizontal: 20 }}>
-          <Pressable
-            style={[
-              stylesRef.contentBox,
-              { experimental_backgroundImage: themeColors.gradient },
-            ]}
-            onPress={toggleCard4}
-          >
-            <View
-              style={[
-                stylesRef.innerBox,
-                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
-              ]}
-              onLayout={onLayoutInner4}
-            >
-              <Animated.View
-                style={[stylesRef.textsContainer, { transform: [{ translateX: translateX4 }] }]}
-              >
-                <View>
-                  <View style={stylesRef.titleContainerRef}>
-                    <Text
-                      style={[
-                        stylesRef.titleText,
-                        { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardTitle4')}
-                    </Text>
-                  </View>
-                  <View style={stylesRef.descContainer}>
-                    <Text
-                      style={[
-                        stylesRef.subtitleText,
-                        { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardDesc4')}
-                    </Text>
-                  </View>
-                </View>
-
-                {boxW4 > 0 && (
-                  <View
-                    style={[
-                      stylesRef.helloPane,
-                      { left: -barToLeftDelta4, width: contentW4 },
-                    ]}
-                  >
-                    <View style={stylesRef.containerEq4}>
-                      <MathView
-                        math={`\\frac{1}{\\sqrt{f}} = -2\\log_{10}\\!\\left(\\frac{\\varepsilon/D}{3.7} + \\frac{2.51}{Re\\,\\sqrt{f}}\\right)`}
-                        style={{ color: themeColors.text }}
-                      />
-                    </View>
-                  </View>
-                )}
-              </Animated.View>
-
-              <Animated.View
-                key={`bar4-${focusKey4}`}
-                style={[stylesRef.verticalBar, { transform: [{ translateX: translateX4 }] }]}
-              />
-            </View>
-          </Pressable>
-        </View>
+      <View style={styles.preCardSubtitleWrap}>
+        <Text
+          style={[
+            styles.preCardSubtitleBase,
+            { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
+          ]}
+        >
+          <Text style={[styles.preCardEssential, { fontSize: 18 * fontSizeFactor }]}>{t('mainMenu.subtitleEssential')}</Text>
+          <Text> - </Text>
+          <Text style={[styles.preCardMF, { fontSize: 18 * fontSizeFactor }]}>{t('mainMenu.subtitle1')}</Text>
+        </Text>
       </View>
+
 
       <View style={styles.buttonContainer}>
         <View style={{ width: '100%', paddingHorizontal: 20 }}>
@@ -707,6 +652,8 @@ const HomeScreen = () => {
         </View>
       </View>
 
+      <View style={styles.SEPARATOR}></View>
+
       <View style={styles.buttonContainer}>
         <View style={{ width: '100%', paddingHorizontal: 20 }}>
           <Pressable
@@ -775,6 +722,75 @@ const HomeScreen = () => {
         </View>
       </View>
 
+      <View style={styles.buttonContainer}>
+        <View style={{ width: '100%', paddingHorizontal: 20 }}>
+          <Pressable
+            style={[
+              stylesRef.contentBox,
+              { experimental_backgroundImage: themeColors.gradient },
+            ]}
+            onPress={toggleCard4}
+          >
+            <View
+              style={[
+                stylesRef.innerBox,
+                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
+              ]}
+              onLayout={onLayoutInner4}
+            >
+              <Animated.View
+                style={[stylesRef.textsContainer, { transform: [{ translateX: translateX4 }] }]}
+              >
+                <View>
+                  <View style={stylesRef.titleContainerRef}>
+                    <Text
+                      style={[
+                        stylesRef.titleText,
+                        { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor },
+                      ]}
+                    >
+                      {t('calc.cardTitle4')}
+                    </Text>
+                  </View>
+                  <View style={stylesRef.descContainer}>
+                    <Text
+                      style={[
+                        stylesRef.subtitleText,
+                        { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor },
+                      ]}
+                    >
+                      {t('calc.cardDesc4')}
+                    </Text>
+                  </View>
+                </View>
+
+                {boxW4 > 0 && (
+                  <View
+                    style={[
+                      stylesRef.helloPane,
+                      { left: -barToLeftDelta4, width: contentW4 },
+                    ]}
+                  >
+                    <View style={stylesRef.containerEq4}>
+                      <MathView
+                        math={`\\frac{1}{\\sqrt{f}} = -2\\log_{10}\\!\\left(\\frac{\\varepsilon/D}{3.7} + \\frac{2.51}{Re\\,\\sqrt{f}}\\right)`}
+                        style={{ color: themeColors.text }}
+                      />
+                    </View>
+                  </View>
+                )}
+              </Animated.View>
+
+              <Animated.View
+                key={`bar4-${focusKey4}`}
+                style={[stylesRef.verticalBar, { transform: [{ translateX: translateX4 }] }]}
+              />
+            </View>
+          </Pressable>
+        </View>
+      </View>
+
+
     </View>
   );
 };
@@ -783,6 +799,25 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: 'rgb(255, 255, 255)',
+  },
+  SEPARATOR: {
+    width: '100%',
+    height: 30,
+  },
+  preCardSubtitleWrap: {
+    backgroundColor: 'transparent',
+    paddingHorizontal: 20,
+    marginTop: 15,
+    marginBottom: -2,
+  },
+  preCardSubtitleBase: {
+    lineHeight: 22,
+  },
+  preCardEssential: {
+    fontFamily: 'SFUIDisplay-Medium',
+  },
+  preCardMF: {
+    fontFamily: 'SFUIDisplay-Medium',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -878,7 +913,7 @@ const styles = StyleSheet.create({
   },
   titlesContainerCalc: {
     backgroundColor: 'transparent',
-    marginTop: 20,
+    marginTop: 10,
     paddingHorizontal: 20,
   },
   subtitleCalc: {
@@ -889,9 +924,9 @@ const styles = StyleSheet.create({
   titleCalc: {
     color: 'rgb(0, 0, 0)',
     fontSize: 30,
-    fontFamily: 'fonnts.com-lovelace-mediumitalic',
-    marginTop: -7,
-    marginBottom: 7,
+    fontFamily: 'lovelace-medium-italic',
+    marginTop: -45,
+    marginBottom: -45,
   },
   container: {
     flex: 1,
