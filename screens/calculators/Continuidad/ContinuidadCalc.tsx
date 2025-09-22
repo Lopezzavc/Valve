@@ -1072,14 +1072,14 @@
     useEffect(() => {
       const showSub = Keyboard.addListener('keyboardDidShow', () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setInputSectionPadding(150);
-        setIsKeyboardVisible(true);   // ⬅️ NUEVO
+        setInputSectionPadding(100);
+        setIsKeyboardVisible(true);
       });
     
       const hideSub = Keyboard.addListener('keyboardDidHide', () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setInputSectionPadding(100);
-        setIsKeyboardVisible(false);  // ⬅️ NUEVO
+        setIsKeyboardVisible(false);
       });
     
       return () => {
