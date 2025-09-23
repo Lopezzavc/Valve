@@ -142,7 +142,7 @@ const ContinuidadTheory = () => {
       separator: 'rgb(235, 235, 235)',
       icon: 'rgb(0, 0, 0)',
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
-      cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
 

@@ -802,13 +802,13 @@ const styles = StyleSheet.create({
   },
   SEPARATOR: {
     width: '100%',
-    height: 30,
+    height: 100,
   },
   preCardSubtitleWrap: {
     backgroundColor: 'transparent',
     paddingHorizontal: 20,
-    marginTop: 15,
-    marginBottom: -2,
+    marginTop: 22,
+    marginBottom: -3,
   },
   preCardSubtitleBase: {
     lineHeight: 22,

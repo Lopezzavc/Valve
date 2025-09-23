@@ -1,4 +1,3 @@
-// HistoryScreenContinuidad.tsx
 import React, { useState, useCallback, useRef, useMemo, useEffect, useContext } from 'react';
 import {
   View,
@@ -13,6 +12,11 @@ import {
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Icon2 from 'react-native-vector-icons/Feather';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import ExcelJS from 'exceljs';
+import RNFS from 'react-native-fs';
+import Share from 'react-native-share';
+import { encode as base64FromArrayBuffer } from 'base64-arraybuffer';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 
@@ -71,7 +75,6 @@ const { width } = Dimensions.get('window');
 const ORIGINAL_WIDTH = width - 40;
 const BUTTON_SIZE = 45;
 
-// Desplazamiento horizontal para revelar botones
 const REVEAL_OFFSET = -(BUTTON_SIZE + 20);
 
 const formatDate = (timestamp: number) => {
@@ -84,7 +87,6 @@ const formatDate = (timestamp: number) => {
 
 type ParsedInputs = Record<string, any>;
 
-// Utilidades de traducción para valores internos guardados ===
 const translateSectionValue = (value: string, t: (k: string, vars?: any) => string) => {
   switch (value) {
     case 'Circular':
@@ -183,10 +185,8 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
   const { t } = useContext(LanguageContext);
 
-  // factor de fuente para escalar textos dentro de la tarjeta
   const { fontSizeFactor } = useContext(FontSizeContext);
 
-  // tema para pintar tarjeta y textos
   const { currentTheme } = useTheme();
   const themeColors = useMemo(() => {
     if (currentTheme === 'dark') {
@@ -389,13 +389,10 @@ const HistoryScreenContinuidad = () => {
   const dbRef = useRef<any>(null);
   const navigation = useNavigation();
 
-  // i18n
   const { t } = useContext(LanguageContext);
 
-  // factor de fuente a nivel de pantalla (igual que en SettingsScreen)
   const { fontSizeFactor } = useContext(FontSizeContext);
 
-  // tema para contenedor general y cabecera
   const { currentTheme } = useTheme();
   const themeColors = useMemo(() => {
     if (currentTheme === 'dark') {
@@ -508,6 +505,224 @@ const HistoryScreenContinuidad = () => {
     );
   }, [history.length, t]);
 
+  const handleExportExcel = useCallback(async () => {
+    try {
+      if (history.length === 0) {
+        Toast.show({
+          type: 'error',
+          text1: t('common.error'),
+          text2: 'No hay historial para exportar',
+        });
+        return;
+      }
+
+      const caudalItems = history.filter(h => h.calculation_type === 'caudal');
+      const contItems   = history.filter(h => h.calculation_type === 'continuidad');
+
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'App Hidráulica';
+      wb.created = new Date();
+
+      const wsCaudal = wb.addWorksheet('Caudal');
+
+      const caudalHeaders = [
+        'Fecha/Hora',
+        'Caudal (m³/s)',
+        'Tipo de sección',
+        'Diámetro',
+        'Lado',
+        'Ancho (rect)',
+        'Alto (rect)',
+        'Velocidad',
+        'Tipo de llenado',
+        'Altura de llenado',
+      ];
+      wsCaudal.addRow(caudalHeaders);
+
+      const caudalHeaderRow = wsCaudal.getRow(1);
+      caudalHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
+      caudalHeaderRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFC2FE0C' },
+        };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+
+      const caudalMaxLen = caudalHeaders.map(h => h.length);
+
+      caudalItems.forEach(it => {
+        let inputs: any = {};
+        try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
+
+        const q   = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
+        const dia = inputs.diameter != null ? parseFloat(String(inputs.diameter).replace(',', '.')) : null;
+        const lad = inputs.side != null ? parseFloat(String(inputs.side).replace(',', '.')) : null;
+        const rw  = inputs.rectWidth != null ? parseFloat(String(inputs.rectWidth).replace(',', '.')) : null;
+        const rh  = inputs.rectHeight != null ? parseFloat(String(inputs.rectHeight).replace(',', '.')) : null;
+        const vel = inputs.velocityCaudal != null ? parseFloat(String(inputs.velocityCaudal).replace(',', '.')) : null;
+        const fh  = inputs.fillHeight != null ? parseFloat(String(inputs.fillHeight).replace(',', '.')) : null;
+
+        const row = wsCaudal.addRow([
+          formatDate(it.timestamp),
+          isFinite(q as number) ? q : null,
+          inputs.sectionType ?? '',
+          isFinite(dia as number) ? dia : null,
+          isFinite(lad as number) ? lad : null,
+          isFinite(rw  as number) ? rw  : null,
+          isFinite(rh  as number) ? rh  : null,
+          isFinite(vel as number) ? vel : null,
+          inputs.fillType ?? '',
+          isFinite(fh  as number) ? fh  : null,
+        ]);
+
+        const fmtWithUnit = (unit?: string) =>
+          unit && String(unit).trim().length > 0 ? `General "${unit}"` : 'General';
+
+        if (isFinite(q as number)) {
+          row.getCell(2).numFmt = `General "m³/s"`;
+        }
+        if (isFinite(dia as number)) {
+          row.getCell(4).numFmt = fmtWithUnit(inputs.diameterUnit);
+        }
+        if (isFinite(lad as number)) {
+          row.getCell(5).numFmt = fmtWithUnit(inputs.sideUnit);
+        }
+        if (isFinite(rw as number)) {
+          row.getCell(6).numFmt = fmtWithUnit(inputs.rectWidthUnit);
+        }
+        if (isFinite(rh as number)) {
+          row.getCell(7).numFmt = fmtWithUnit(inputs.rectHeightUnit);
+        }
+        if (isFinite(vel as number)) {
+          row.getCell(8).numFmt = fmtWithUnit(inputs.velocityCaudalUnit);
+        }
+        if (isFinite(fh as number)) {
+          row.getCell(10).numFmt = fmtWithUnit(inputs.fillHeightUnit);
+        }
+        caudalMaxLen[0] = Math.max(caudalMaxLen[0], String(row.getCell(1).value ?? '').length);
+        if (isFinite(q as number)) {
+          const s = `${q} m³/s`;
+          caudalMaxLen[1] = Math.max(caudalMaxLen[1], s.length);
+        }
+        caudalMaxLen[2] = Math.max(caudalMaxLen[2], String(inputs.sectionType ?? '').length);
+        const lensWithUnits: Array<[number, any, string | undefined]> = [
+          [3, dia, inputs.diameterUnit],
+          [4, lad, inputs.sideUnit],
+          [5, rw, inputs.rectWidthUnit],
+          [6, rh, inputs.rectHeightUnit],
+        ];
+        lensWithUnits.forEach(([idx, val, unit]) => {
+          const s = isFinite(val as number) ? `${val}${unit ? ` ${unit}` : ''}` : '';
+          caudalMaxLen[idx] = Math.max(caudalMaxLen[idx], s.length);
+        });
+        {
+          const s = isFinite(vel as number) ? `${vel}${inputs.velocityCaudalUnit ? ` ${inputs.velocityCaudalUnit}` : ''}` : '';
+          caudalMaxLen[7] = Math.max(caudalMaxLen[7], s.length);
+        }
+        caudalMaxLen[8] = Math.max(caudalMaxLen[8], String(inputs.fillType ?? '').length);
+        {
+          const s = isFinite(fh as number) ? `${fh}${inputs.fillHeightUnit ? ` ${inputs.fillHeightUnit}` : ''}` : '';
+          caudalMaxLen[9] = Math.max(caudalMaxLen[9], s.length);
+        }
+      });
+
+      caudalMaxLen.forEach((len, i) => {
+        wsCaudal.getColumn(i + 1).width = Math.min(Math.max(len + 2, 10), 60);
+      });
+      const wsCont = wb.addWorksheet('Continuidad');
+
+      const contHeaders = [
+        'Fecha/Hora',
+        'Caudal (m³/s)',
+        'A1',
+        'v1',
+        'A2',
+        'v2',
+      ];
+      wsCont.addRow(contHeaders);
+
+      const contHeaderRow = wsCont.getRow(1);
+      contHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
+      contHeaderRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFC2FE0C' },
+        };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+
+      const contMaxLen = contHeaders.map(h => h.length);
+
+      contItems.forEach(it => {
+        let inputs: any = {};
+        try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
+
+        const q  = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
+        const A1 = inputs.A1 != null ? parseFloat(String(inputs.A1).replace(',', '.')) : null;
+        const v1 = inputs.v1 != null ? parseFloat(String(inputs.v1).replace(',', '.')) : null;
+        const A2 = inputs.A2 != null ? parseFloat(String(inputs.A2).replace(',', '.')) : null;
+        const v2 = inputs.v2 != null ? parseFloat(String(inputs.v2).replace(',', '.')) : null;
+
+        const row = wsCont.addRow([
+          formatDate(it.timestamp),
+          isFinite(q  as number) ? q  : null,
+          isFinite(A1 as number) ? A1 : null,
+          isFinite(v1 as number) ? v1 : null,
+          isFinite(A2 as number) ? A2 : null,
+          isFinite(v2 as number) ? v2 : null,
+        ]);
+
+        row.getCell(2).numFmt = `General "m³/s"`;
+        if (isFinite(A1 as number)) row.getCell(3).numFmt = (inputs.A1Unit && inputs.A1Unit.trim()) ? `General "${inputs.A1Unit}"` : 'General';
+        if (isFinite(v1 as number)) row.getCell(4).numFmt = (inputs.v1Unit && inputs.v1Unit.trim()) ? `General "${inputs.v1Unit}"` : 'General';
+        if (isFinite(A2 as number)) row.getCell(5).numFmt = (inputs.A2Unit && inputs.A2Unit.trim()) ? `General "${inputs.A2Unit}"` : 'General';
+        if (isFinite(v2 as number)) row.getCell(6).numFmt = (inputs.v2Unit && inputs.v2Unit.trim()) ? `General "${inputs.v2Unit}"` : 'General';
+
+        // Longitudes visibles para auto ancho
+        contMaxLen[0] = Math.max(contMaxLen[0], String(row.getCell(1).value ?? '').length);
+        contMaxLen[1] = Math.max(contMaxLen[1], isFinite(q as number) ? String(`${q} m³/s`).length : 0);
+        contMaxLen[2] = Math.max(contMaxLen[2], isFinite(A1 as number) ? String(`${A1}${inputs.A1Unit ? `${inputs.A1Unit}` : ''}`).length : 0);
+        contMaxLen[3] = Math.max(contMaxLen[3], isFinite(v1 as number) ? String(`${v1}${inputs.v1Unit ? `${inputs.v1Unit}` : ''}`).length : 0);
+        contMaxLen[4] = Math.max(contMaxLen[4], isFinite(A2 as number) ? String(`${A2}${inputs.A2Unit ? `${inputs.A2Unit}` : ''}`).length : 0);
+        contMaxLen[5] = Math.max(contMaxLen[5], isFinite(v2 as number) ? String(`${v2}${inputs.v2Unit ? `${inputs.v2Unit}` : ''}`).length : 0);
+      });
+
+      contMaxLen.forEach((len, i) => {
+        wsCont.getColumn(i + 1).width = Math.min(Math.max(len + 2, 10), 60);
+      });
+
+      const buffer = await wb.xlsx.writeBuffer();
+      const base64 = base64FromArrayBuffer(buffer);
+      const fileName = `Valve_Historial_Continuidad.xlsx`;
+      const path = `${RNFS.CachesDirectoryPath}/${fileName}`;
+      await RNFS.writeFile(path, base64, 'base64');
+
+      await Share.open({
+        title: 'Exportar historial',
+        url: 'file://' + path,
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        failOnCancel: false,
+        showAppsToView: true,
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: t('common.success'),
+        text2: 'Historial exportado correctamente',
+      });
+    } catch (e) {
+      console.error('Export error:', e);
+      Toast.show({
+        type: 'error',
+        text1: t('common.error'),
+        text2: 'Ocurrió un error al exportar',
+      });
+    }
+  }, [history, t]);
+
   const renderHistoryItem = useCallback(
     ({ item, index }: { item: HistoryItem; index: number }) => (
       <HistoryCard item={item} isFirst={index === 0} onDelete={handleDeleteItem} />
@@ -546,16 +761,32 @@ const HistoryScreenContinuidad = () => {
               <View style={styles.leftIconsContainer}>
                 <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
                   <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.goBack()}>
-                    <Icon2 name="chevron-left" size={20} color={themeColors.icon} />
+                    <Icon2 name="chevron-left" size={22} color={themeColors.icon} />
                   </Pressable>
                 </View>
               </View>
 
               <View style={styles.rightIconsContainer}>
-                <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
-                  <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={handleResetPress}>
-                    <Icon2 name="trash" size={20} color={themeColors.icon} />
-                  </Pressable>
+                <View style={styles.rightIconsContainer}>
+                  <View style={[styles.iconWrapper2, { experimental_backgroundImage: themeColors.gradient }]}>
+                    <Pressable
+                      style={[
+                        styles.iconContainer,
+                        { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }
+                      ]}
+                      onPress={handleExportExcel}
+                    >
+                      <MCIcon name="export-variant" size={20} color={themeColors.icon} />
+                    </Pressable>
+                  </View>
+                  <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
+                    <Pressable
+                      style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                      onPress={handleResetPress}
+                    >
+                      <Icon2 name="trash" size={20} color={themeColors.icon} />
+                    </Pressable>
+                  </View>
                 </View>
               </View>
             </View>
@@ -573,7 +804,6 @@ const HistoryScreenContinuidad = () => {
   );
 };
 
-// Styles ORIGINALES (sin cambios). Los colores se sobreescriben dinámicamente arriba.
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -602,12 +832,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 10,
     padding: 0,
-    gap: 8,
+    gap: 5,
   },
   iconWrapper: {
     experimental_backgroundImage:
       'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     width: 60,
+    height: 40,
+    borderRadius: 30,
+    marginHorizontal: 0,
+    padding: 1,
+  },
+  iconWrapper2: {
+    experimental_backgroundImage:
+      'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    width: 40,
     height: 40,
     borderRadius: 30,
     marginHorizontal: 0,

@@ -2,6 +2,7 @@
   "infoScreen": {
     "creadoPor": "Creado por"
   },
+  
   "settings": {
     "title": "Configuración",
     "language": "Idioma",
@@ -47,7 +48,8 @@
     "history": "Historial",
     "success": "Éxito",
     "error": "Error",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "inputs": "Entradas"
   },
   "continuidadCalc": {
     "calculator": "Calculadora",
@@ -71,7 +73,8 @@
       "A1": "Área de la sección (A₁)",
       "v1": "Velocidad en la sección (v₁)",
       "A2": "Área de la sección (A₂)",
-      "v2": "Velocidad en la sección (v₂)"
+      "v2": "Velocidad en la sección (v₂)",
+      "mode": "Modo"
     },
     "mode": {
       "flow": "Caudal",
@@ -124,7 +127,12 @@
     "delete": {
       "successTitle": "Cálculo eliminado",
       "successMsg": "El cálculo ha sido borrado del historial"
-    }
+    },
+    "export": {
+      "success": "Historial exportado como Excel",
+      "error": "No se pudo exportar el historial",
+      "noHistory": "No hay historial para exportar"
+  }
   },
   "theoryContinuity": {
     "subtitle": "¿Qué es?",

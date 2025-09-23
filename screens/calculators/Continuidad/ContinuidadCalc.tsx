@@ -829,7 +829,7 @@
           
             let dotColor = 'rgb(200,200,200)';
             if (isInvalid) dotColor = 'rgb(254, 12, 12)';
-            else if (isAuto) dotColor = 'rgb(66, 133, 244)';
+            else if (isAuto) dotColor = 'rgba(62, 136, 255, 1)';
             else if (hasUserValue) dotColor = 'rgb(194, 254, 12)';
           
             return <View style={[styles.valueDot, { backgroundColor: dotColor }]} />;
