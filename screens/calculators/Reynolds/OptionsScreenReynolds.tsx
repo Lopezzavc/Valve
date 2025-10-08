@@ -8,6 +8,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -25,13 +26,35 @@ type RootStackParamList = {
   };
 };
 
-// ---- Datos estáticos (con valores internos SIN traducir para no romper la lógica) ----
 const OPTIONS_DATA: Record<string, string[]> = {
   velocity: ['m/s', 'km/h', 'ft/s', 'mph', 'kn', 'cm/s', 'in/s'],
   length: ['m', 'mm', 'cm', 'km', 'in', 'ft', 'yd', 'mi'],
   density: ['kg/m³', 'g/cm³', 'lb/ft³', 'g/L', 'kg/L'],
   dynamicViscosity: ['Pa·s', 'cP', 'P', 'mPa·s', 'kg/(m·s)', 'lb/(ft·s)', 'lb/(ft·h)'],
   kinematicViscosity: ['m²/s', 'cSt', 'St', 'mm²/s', 'cm²/s', 'ft²/s', 'ft²/h'],
+  presetFluids: [
+    'Personalizado',
+    'Agua (0 °C)',
+    'Agua (4 °C)',
+    'Agua (5 °C)',
+    'Agua (10 °C)',
+    'Agua (15 °C)',
+    'Agua (20 °C)',
+    'Agua (25 °C)',
+    'Agua (30 °C)',
+    'Agua (35 °C)',
+    'Agua (40 °C)',
+    'Agua (50 °C)',
+    'Agua (60 °C)',
+    'Agua (70 °C)',
+    'Agua (80 °C)',
+    'Agua (90 °C)',
+    'Acetona (20 °C)',
+    'Etanol (20 °C)',
+    'Glicerina (20 °C)',
+    'Mercurio (20 °C)',
+    'Aceite SAE 10 (20 °C)'
+  ],
 };
 
 const TITLE_I18N_KEY: Record<string, string> = {
@@ -40,6 +63,7 @@ const TITLE_I18N_KEY: Record<string, string> = {
   density: 'reynoldsCalc.labels.density',
   dynamicViscosity: 'reynoldsCalc.labels.dynamicViscosity',
   kinematicViscosity: 'reynoldsCalc.labels.kinematicViscosity',
+  presetFluids: 'reynoldsCalc.labels.presetFluids',
 };
 const SUBTITLE_I18N_KEY: Record<string, string> = {
   velocity: 'optionsScreen.subtitles.units',
@@ -47,11 +71,12 @@ const SUBTITLE_I18N_KEY: Record<string, string> = {
   density: 'optionsScreen.subtitles.units',
   dynamicViscosity: 'optionsScreen.subtitles.units',
   kinematicViscosity: 'optionsScreen.subtitles.units',
+  presetFluids: 'optionsScreen.subtitles.generic',
 };
 
 type OptionItemProps = {
-  option: string;               // valor interno (no traducido)
-  displayLabel: string;         // texto visible traducido
+  option: string;
+  displayLabel: string;
   isSelected: boolean;
   onPress: (option: string) => void;
   textColor: string;
@@ -114,7 +139,6 @@ const OptionsScreenReynolds = () => {
   const { t, selectedLanguage } = useContext(LanguageContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
 
-  // Paleta mínima dependiente de tema (solo colores)
   const themeColors = useMemo(() => {
     if (currentTheme === 'dark') {
       return {
@@ -124,9 +148,10 @@ const OptionsScreenReynolds = () => {
         textStrong: 'rgb(250,250,250)',
         separator: 'rgba(255,255,255,0.12)',
         icon: 'rgb(245,245,245)',
-        checkIcon: 'rgb(12,12,12)', // sobre el chip lima
+        checkIcon: 'rgb(12,12,12)',
         accentChip: 'rgb(194, 254, 12)',
         gradient: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
     // light
@@ -140,6 +165,7 @@ const OptionsScreenReynolds = () => {
       checkIcon: 'rgb(0, 0, 0)',
       accentChip: 'rgb(194, 254, 12)',
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
 
@@ -147,7 +173,6 @@ const OptionsScreenReynolds = () => {
   const onSelectOption = params.onSelectOption;
   const selectedFromParams = params.selectedOption;
 
-  // Habilitar LayoutAnimation en Android
   useEffect(() => {
     if (
       Platform.OS === 'android' &&
@@ -159,30 +184,26 @@ const OptionsScreenReynolds = () => {
 
   const options = useMemo(() => OPTIONS_DATA[category] ?? [], [category]);
 
-  // Título/subtítulo traducidos
   const title = useMemo(() => t(TITLE_I18N_KEY[category] ?? 'optionsScreen.titles.generic'), [category, t]);
   const subtitle = useMemo(() => t(SUBTITLE_I18N_KEY[category] ?? 'optionsScreen.subtitles.generic'), [category, t]);
 
-  // Estado de selección (sin cambios en la lógica)
   const [selectedOptionState, setSelectedOption] = useState<string>(
     selectedFromParams && options.includes(selectedFromParams)
       ? selectedFromParams
       : options[0] ?? ''
   );
 
-  // Mantener selección válida si cambia la categoría
   useEffect(() => {
     if (selectedOptionState && !options.includes(selectedOptionState)) {
       setSelectedOption(options[0] ?? '');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   const handleOptionSelect = useCallback(
     (option: string) => {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setSelectedOption(option);
-      onSelectOption?.(option);    // devuelve el VALOR INTERNO (sin traducir)
+      onSelectOption?.(option);
       navigation.goBack();
     },
     [navigation, onSelectOption]
@@ -192,7 +213,6 @@ const OptionsScreenReynolds = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // Mapea el valor interno -> etiqueta traducida solo para mostrar
   const getDisplayLabel = useCallback((cat: string, value: string): string => {
     return value;
   }, []);
@@ -228,8 +248,12 @@ const OptionsScreenReynolds = () => {
   );
 
   return (
-    <View style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
-      {/* Header sin texto; botón alineado a la derecha */}
+    <ScrollView
+      style={[styles.safeArea, { backgroundColor: themeColors.background }]}
+      contentContainerStyle={{ flexGrow: 1 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.rightIconsContainer}>
           <View
@@ -239,7 +263,13 @@ const OptionsScreenReynolds = () => {
             ]}
           >
             <Pressable
-              style={[styles.iconContainer, { backgroundColor: themeColors.card }]}
+              style={[
+                styles.iconContainer,
+                {
+                  backgroundColor: 'transparent',
+                  experimental_backgroundImage: themeColors.cardGradient,
+                },
+              ]}
               onPress={handleGoBack}
             >
               <Icon name="chevron-down" size={22} color={themeColors.icon} />
@@ -248,10 +278,26 @@ const OptionsScreenReynolds = () => {
         </View>
       </View>
 
-      {/* Contenedor de títulos */}
+      {/* Títulos */}
       <View style={styles.titlesContainer}>
-        <Text style={[styles.subtitle, { color: themeColors.text }, { fontSize: 18 * fontSizeFactor }]}>{subtitle}</Text>
-        <Text style={[styles.title, { color: themeColors.textStrong }, { fontSize: 30 * fontSizeFactor }]}>{title}</Text>
+        <Text
+          style={[
+            styles.subtitle,
+            { color: themeColors.text },
+            { fontSize: 18 * fontSizeFactor },
+          ]}
+        >
+          {subtitle}
+        </Text>
+        <Text
+          style={[
+            styles.title,
+            { color: themeColors.textStrong },
+            { fontSize: 30 * fontSizeFactor },
+          ]}
+        >
+          {title}
+        </Text>
       </View>
 
       {/* Lista de opciones */}
@@ -261,7 +307,15 @@ const OptionsScreenReynolds = () => {
           { experimental_backgroundImage: themeColors.gradient },
         ]}
       >
-        <View style={[styles.optionsContainer, { backgroundColor: themeColors.card }]}>
+        <View
+          style={[
+            styles.optionsContainer,
+            {
+              backgroundColor: 'transparent',
+              experimental_backgroundImage: themeColors.cardGradient,
+            },
+          ]}
+        >
           <FlatList
             data={options}
             keyExtractor={keyExtractor}
@@ -274,18 +328,24 @@ const OptionsScreenReynolds = () => {
             updateCellsBatchingPeriod={16}
             removeClippedSubviews
             getItemLayout={getItemLayout}
+            scrollEnabled={false}
           />
         </View>
       </View>
-    </View>
+      <View style={styles.spaceEndPage} />
+    </ScrollView>
   );
 };
 
-// ---- Styles (sin cambios funcionales) ----
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 1)',
+  },
+  spaceEndPage: {
+    width: '100%',
+    height: 100,
+    backgroundColor: 'transparent'
   },
   headerContainer: {
     flexDirection: 'row',
@@ -393,8 +453,7 @@ const styles = StyleSheet.create({
   },
   iconSelected: {
     backgroundColor: 'rgb(194, 254, 12)',
-    borderRadius: 10,
-    padding: 2,
+    borderRadius: 0,
   },
 });
 

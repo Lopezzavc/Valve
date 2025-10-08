@@ -23,7 +23,7 @@ const InfoScreen = () => {
               <Icon
                 name="chevron-left"
                 size={22}
-                color="rgba(255, 255, 255, 0.5)"
+                color="rgba(255, 255, 255, 0.4)"
                 style={{
                   position: 'absolute',
                   filter: 'blur(4px)',
@@ -42,7 +42,7 @@ const InfoScreen = () => {
           </View>
         </View>
         <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Alpha 1.0.0 [Build 42]</Text>
+          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Alpha 1.0.0 [Build 43]</Text>
         </View>
         <View style={{ height: 150 }} />
       </ScrollView>

@@ -2,7 +2,6 @@
   "infoScreen": {
     "creadoPor": "Creado por"
   },
-  
   "settings": {
     "title": "Configuración",
     "language": "Idioma",
@@ -12,8 +11,8 @@
     "sepInfo": "Configura el separador decimal utilizado en la visualización de números. Esto no afectará el separador decimal usado en los archivos exportados ni en los resultados copiados al portapapeles.",
     "pre": "Precisión decimal",
     "preInfo1": "Normal: Muestra hasta 10 decimales de precisión, eliminando ceros innecesarios al final.",
-    "preInfo2": "Fix: Muestra siempre la misma cantidad de decimales fijos, según lo configurado por el usuario.",
-    "preInfo3": "Científica: Representa el número en notación científica, usando potencias de 10 y exponente en superíndice.",
+    "preInfo2": "Fix: Muestra siempre la misma cantidad de decimales fijos, según lo configurado.",
+    "preInfo3": "Científica: Representa el número en notación científica, usando potencias de 10.",
     "preInfo4": "Ingeniería: Similar a la notación científica, pero el exponente siempre es múltiplo de 3, lo que facilita la lectura en contextos técnicos.",
     "themeSystem": "Sistema",
     "themeLight": "Claro",
@@ -40,6 +39,25 @@
       "message": "¿Estás seguro de que quieres restablecer todos los ajustes a su configuración predeterminada?",
       "confirm": "Restablecer"
     }
+  },
+  "search": {
+    "title": "Calculadoras",
+    "title2": "Buscar",
+    "placeholder": "Buscar...",
+    "emptyPrefix": "No se encontraron calculadoras para",
+    "sort": {
+      "toastTitle": "Orden aplicado",
+      "az": "Orden alfabético A-Z",
+      "za": "Orden alfabético Z-A",
+      "reset": "Orden original restaurado"
+    }
+  },
+  "profile": {
+    "title": "Perfil"
+  },
+  "profileScreen": {
+    "oops": "Oops...",
+    "desc": "Esta válvula aún está cerrada, pero pronto la abriremos."
   },
   "common": {
     "calculate": "Calcular",
@@ -108,7 +126,8 @@
     },
     "subtitles": {
       "selection": "Selección",
-      "units": "Unidades"
+      "units": "Unidades",
+      "generic": "Opciones"
     }
   },
   "history": {
@@ -258,7 +277,8 @@
       "dimension": "Dimensión Característica",
       "density": "Densidad",
       "dynamicViscosity": "Viscosidad Dinámica",
-      "kinematicViscosity": "Viscosidad Cinemática"
+      "kinematicViscosity": "Viscosidad Cinemática",
+      "presetFluids": "Fluidos predeterminados"
     },
     "toasts": {
       "velocityDimensionRequired": "Velocidad y dimensión requeridas",
@@ -268,6 +288,11 @@
       "nothingToSave": "No hay resultados para guardar",
       "saved": "Cálculo guardado en el historial",
       "saveError": "Error al guardar en el historial"
+    },
+    "regime": {
+      "laminar": "Laminar",
+      "transitional": "Transicional",
+      "turbulent": "Turbulento"
     }
   },
   "colebrookCalc": {

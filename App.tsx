@@ -53,6 +53,8 @@ import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
 import HistoryScreenColebrook from './screens/calculators/Ffactor/HistoryScreenColebrook';
 
+import { KeyboardProvider, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+
 enableScreens(true);
 
 export type RootStackParamList = {
@@ -239,277 +241,279 @@ const TabNavigator = () => {
 
 const App = () => {
   return (
-    <LanguageProvider>
-      <ThemeProvider>
-        <FontSizeProvider>
-          <DecimalSeparatorProvider>
-            <PrecisionDecimalProvider>
-              <NavigationContainer>
-                <StatusBar hidden/>
-                <Stack.Navigator 
-                  initialRouteName="SplashScreen"
-                  screenOptions={{
-                    transitionSpec: {
-                      open: { animation: 'timing', config: { duration: 250 } },
-                      close: { animation: 'timing', config: { duration: 250 } },
-                    },
-                  }}
-                >
-                  <Stack.Screen
-                    name="SplashScreen"
-                    component={SplashScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: forFade,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="WelcomeScreen"
-                    component={WelcomeScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: forFade,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="ThemeInitialConfig"
-                    component={ThemeInitialConfig}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: forFade,
+    <KeyboardProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <FontSizeProvider>
+            <DecimalSeparatorProvider>
+              <PrecisionDecimalProvider>
+                <NavigationContainer>
+                  <StatusBar hidden/>
+                  <Stack.Navigator 
+                    initialRouteName="SplashScreen"
+                    screenOptions={{
                       transitionSpec: {
-                        open: { animation: 'timing', config: { duration: 500 } },
+                        open: { animation: 'timing', config: { duration: 250 } },
                         close: { animation: 'timing', config: { duration: 250 } },
                       },
-                      gestureEnabled: false,
                     }}
-                  />
-                  <Stack.Screen
-                    name="SeparatorInitialConfig"
-                    component={SeparatorInitialConfig}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: forFade,
-                      transitionSpec: {
-                        open: { animation: 'timing', config: { duration: 500 } },
-                        close: { animation: 'timing', config: { duration: 250 } },
-                      },
-                      gestureEnabled: false,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="PrecisionInitialConfig"
-                    component={PrecisionInitialConfig}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: forFade,
-                      transitionSpec: {
-                        open: { animation: 'timing', config: { duration: 500 } },
-                        close: { animation: 'timing', config: { duration: 250 } },
-                      },
-                      gestureEnabled: false,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="InitialConfigSetup"
-                    component={InitialConfigSetup}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: forFade,
-                      transitionSpec: {
-                        open: { animation: 'timing', config: { duration: 500 } },
-                        close: { animation: 'timing', config: { duration: 250 } },
-                      },
-                      gestureEnabled: false,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="MainTabs"
-                    component={TabNavigator}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forScaleFromCenterAndroid,
-                      transitionSpec: {
-                        open: { animation: 'timing', config: { duration: 500 } },
-                        close: { animation: 'timing', config: { duration: 500 } },
-                      },
-                    }}
-                  />
-                  <Stack.Screen
-                    name="InfoScreen"
-                    component={InfoScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="SearchScreen"
-                    component={SearchScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="IdiomaScreen"
-                    component={IdiomaScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="TemaScreen"
-                    component={TemaScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="FuenteScreen"
-                    component={FuenteScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="SeparadorDecimalScreen"
-                    component={SeparadorDecimalScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="PrecisionDecimalScreen"
-                    component={PrecisionDecimalScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="ContinuidadCalc"
-                    component={ContinuidadCalc}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="OptionsScreen"
-                    component={OptionsScreen}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="HistoryScreenContinuidad"
-                    component={HistoryScreenContinuidad}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="ContinuidadTheory"
-                    component={ContinuidadTheory}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="BernoulliCalc"
-                    component={BernoulliCalc}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="ReynoldsCalc"
-                    component={ReynoldsCalc}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="OptionsScreenBernoulli"
-                    component={OptionsScreenBernoulli}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="HistoryScreenBernoulli"
-                    component={HistoryScreenBernoulli}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="BernoulliTheory"
-                    component={BernoulliTheory}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="OptionsScreenReynolds"
-                    component={OptionsScreenReynolds}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="HistoryScreenReynolds"
-                    component={HistoryScreenReynolds}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="ColebrookCalc"
-                    component={ColebrookCalc}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="OptionsScreenColebrook"
-                    component={OptionsScreenColebrook}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="HistoryScreenColebrook"
-                    component={HistoryScreenColebrook}
-                    options={{
-                      headerShown: false,
-                      cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                    }}
-                  />
-                </Stack.Navigator>
-              </NavigationContainer>
-            </PrecisionDecimalProvider>           
-          </DecimalSeparatorProvider>
-        </FontSizeProvider>
-      </ThemeProvider>
-    </LanguageProvider>
+                  >
+                    <Stack.Screen
+                      name="SplashScreen"
+                      component={SplashScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: forFade,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="WelcomeScreen"
+                      component={WelcomeScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: forFade,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="ThemeInitialConfig"
+                      component={ThemeInitialConfig}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: forFade,
+                        transitionSpec: {
+                          open: { animation: 'timing', config: { duration: 500 } },
+                          close: { animation: 'timing', config: { duration: 250 } },
+                        },
+                        gestureEnabled: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="SeparatorInitialConfig"
+                      component={SeparatorInitialConfig}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: forFade,
+                        transitionSpec: {
+                          open: { animation: 'timing', config: { duration: 500 } },
+                          close: { animation: 'timing', config: { duration: 250 } },
+                        },
+                        gestureEnabled: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="PrecisionInitialConfig"
+                      component={PrecisionInitialConfig}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: forFade,
+                        transitionSpec: {
+                          open: { animation: 'timing', config: { duration: 500 } },
+                          close: { animation: 'timing', config: { duration: 250 } },
+                        },
+                        gestureEnabled: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="InitialConfigSetup"
+                      component={InitialConfigSetup}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: forFade,
+                        transitionSpec: {
+                          open: { animation: 'timing', config: { duration: 500 } },
+                          close: { animation: 'timing', config: { duration: 250 } },
+                        },
+                        gestureEnabled: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="MainTabs"
+                      component={TabNavigator}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forScaleFromCenterAndroid,
+                        transitionSpec: {
+                          open: { animation: 'timing', config: { duration: 500 } },
+                          close: { animation: 'timing', config: { duration: 500 } },
+                        },
+                      }}
+                    />
+                    <Stack.Screen
+                      name="InfoScreen"
+                      component={InfoScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="SearchScreen"
+                      component={SearchScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="IdiomaScreen"
+                      component={IdiomaScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="TemaScreen"
+                      component={TemaScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="FuenteScreen"
+                      component={FuenteScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="SeparadorDecimalScreen"
+                      component={SeparadorDecimalScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="PrecisionDecimalScreen"
+                      component={PrecisionDecimalScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="ContinuidadCalc"
+                      component={ContinuidadCalc}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="OptionsScreen"
+                      component={OptionsScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="HistoryScreenContinuidad"
+                      component={HistoryScreenContinuidad}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="ContinuidadTheory"
+                      component={ContinuidadTheory}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="BernoulliCalc"
+                      component={BernoulliCalc}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="ReynoldsCalc"
+                      component={ReynoldsCalc}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="OptionsScreenBernoulli"
+                      component={OptionsScreenBernoulli}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="HistoryScreenBernoulli"
+                      component={HistoryScreenBernoulli}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="BernoulliTheory"
+                      component={BernoulliTheory}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="OptionsScreenReynolds"
+                      component={OptionsScreenReynolds}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="HistoryScreenReynolds"
+                      component={HistoryScreenReynolds}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="ColebrookCalc"
+                      component={ColebrookCalc}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="OptionsScreenColebrook"
+                      component={OptionsScreenColebrook}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="HistoryScreenColebrook"
+                      component={HistoryScreenColebrook}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                  </Stack.Navigator>
+                </NavigationContainer>
+              </PrecisionDecimalProvider>           
+            </DecimalSeparatorProvider>
+          </FontSizeProvider>
+        </ThemeProvider>
+      </LanguageProvider>
+    </KeyboardProvider>
   );
 };
 

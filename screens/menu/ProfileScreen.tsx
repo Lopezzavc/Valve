@@ -1,9 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { LanguageContext } from '../../contexts/LanguageContext';
+import { FontSizeContext } from '../../contexts/FontSizeContext';
 
 const ProfileScreen = () => {
   const { currentTheme } = useTheme();
+  const { t } = useContext(LanguageContext);
+  const { fontSizeFactor } = useContext(FontSizeContext);
 
   const themeColors = useMemo(() => {
     if (currentTheme === 'dark') {
@@ -31,22 +35,91 @@ const ProfileScreen = () => {
   }, [currentTheme]);
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <Text style={[styles.title, { color: themeColors.textStrong }]}>Profile</Text>
+    <View style={[styles.screen, { backgroundColor: themeColors.background }]}>
+      <View style={styles.favTitlesContainer}>
+        <Text style={[styles.favSubtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>
+          Valve
+        </Text>
+        <Text
+          style={[
+            styles.favTitle,
+            { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor },
+          ]}
+        >
+          {t('profile.title')}
+        </Text>
+      </View>
+
+      <View style={styles.container}>
+        <View style={styles.subtitleContainer}>
+          <Text
+            accessibilityRole="header"
+            style={[styles.title]}
+          >
+            {t('profileScreen.oops')}
+          </Text>
+        </View>
+        <View>
+          <Text style={[styles.subtitle, { color: themeColors.text }]}>
+            {t('profileScreen.desc')}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  container: {
     alignItems: 'center',
-    backgroundColor: 'rgb(255, 255, 255)',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    backgroundColor: 'transparent',
+    marginTop: 10,
+    marginBottom: 70,
+    flex: 1,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 40,
+    fontFamily: 'HomeVideo-BLG6G',
+    letterSpacing: 0,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontFamily: 'SFUIDisplay-Regular',
+    opacity: 0.8,
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 300,
+    marginTop: 10,
+  },
+  subtitleContainer: {
+    backgroundColor: 'rgb(194, 254, 12)',
+    padding: 5,
+    paddingHorizontal: 10,
+  },
+  favTitlesContainer: {
+    backgroundColor: 'transparent',
+    marginVertical: 0,
+    paddingHorizontal: 20,
+    marginBottom: -10,
+    marginTop: 75,
+  },
+  favSubtitle: {
+    color: 'rgb(0, 0, 0)',
+    fontSize: 18,
+    fontFamily: 'SFUIDisplay-Bold',
+  },
+  favTitle: {
+    color: 'rgb(0, 0, 0)',
+    fontSize: 30,
+    fontFamily: 'SFUIDisplay-Bold',
+    marginTop: -10,
   },
 });
 

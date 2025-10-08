@@ -14,21 +14,17 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import Icon2 from 'react-native-vector-icons/Feather';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
-
 import { getDBConnection, getHistory, deleteHistory } from '../../../src/services/database';
-
-// Contextos de formato para igualar ReynoldsCalc
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
-
-// Tema (misma paleta que ReynoldsCalc)
 import { useTheme } from '../../../contexts/ThemeContext';
-
-// i18n
 import { LanguageContext } from '../../../contexts/LanguageContext';
-
-// Tamaño de fuente
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
+import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import ExcelJS from 'exceljs';
+import RNFS from 'react-native-fs';
+import Share from 'react-native-share';
+import { encode as base64FromArrayBuffer } from 'base64-arraybuffer';
 
 const toastConfig = {
   success: (props: BaseToastProps) => (
@@ -67,7 +63,7 @@ interface HistoryItem {
   id: number;
   calculation_type: 'reynolds';
   inputs: string;
-  result: string; // almacenado sin formato de usuario
+  result: string;
   timestamp: number;
 }
 
@@ -75,7 +71,6 @@ const { width } = Dimensions.get('window');
 const ORIGINAL_WIDTH = width - 40;
 const BUTTON_SIZE = 45;
 
-// Desplazamiento horizontal para revelar botones
 const REVEAL_OFFSET = -(BUTTON_SIZE + 20);
 
 const formatDate = (timestamp: number) => {
@@ -103,8 +98,6 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
   } = parsedInputs;
 
   let inputString = '';
-  
-  // Parámetros de flujo
   inputString += `${t('reynoldsCalc.flowParameters') || 'Parámetros de Flujo'}:\n`;
   if (velocity && velocity !== 'N/A') {
     inputString += `  ${t('reynoldsCalc.labels.velocity') || 'Velocidad'}: ${velocity} ${velocityUnit || ''}\n`;
@@ -112,8 +105,6 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
   if (dimension && dimension !== 'N/A') {
     inputString += `  ${t('reynoldsCalc.labels.dimension') || 'Dimensión Característica'}: ${dimension} ${dimensionUnit || ''}\n`;
   }
-  
-  // Propiedades del fluido
   inputString += `${t('reynoldsCalc.fluidProperties') || 'Propiedades del Fluido'}:\n`;
   if (density && density !== 'N/A') {
     inputString += `  ${t('reynoldsCalc.labels.density') || 'Densidad'}: ${density} ${densityUnit || ''}\n`;
@@ -143,8 +134,6 @@ const buildCopyText = (item: HistoryItem, parsedInputs: ParsedInputs, formattedR
   } = parsedInputs;
 
   let textToCopy = `${t('reynoldsCalc.reynolds') || 'Reynolds'}: ${formattedResult}\n`;
-  
-  // Parámetros de flujo
   if ((velocity && velocity !== 'N/A') || (dimension && dimension !== 'N/A')) {
     textToCopy += `${t('reynoldsCalc.flowParameters') || 'Parámetros de Flujo'}:\n`;
     if (velocity && velocity !== 'N/A') {
@@ -154,8 +143,6 @@ const buildCopyText = (item: HistoryItem, parsedInputs: ParsedInputs, formattedR
       textToCopy += `  ${t('reynoldsCalc.labels.dimension') || 'Dimensión Característica'}: ${dimension} ${dimensionUnit || ''}\n`;
     }
   }
-  
-  // Propiedades del fluido
   textToCopy += `${t('reynoldsCalc.fluidProperties') || 'Propiedades del Fluido'}:\n`;
   if (density && density !== 'N/A') {
     textToCopy += `  ${t('reynoldsCalc.labels.density') || 'Densidad'}: ${density} ${densityUnit || ''}\n`;
@@ -180,15 +167,12 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
   const { formatNumber } = useContext(PrecisionDecimalContext);
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
   const { t } = useContext(LanguageContext);
-
-  // Factor de fuente para escalar textos dentro de la tarjeta
   const { fontSizeFactor } = useContext(FontSizeContext);
-
-  // Tema para pintar tarjeta y textos
   const { currentTheme } = useTheme();
   const themeColors = useMemo(() => {
     if (currentTheme === 'dark') {
       return {
+        background: 'rgb(12,12,12)',
         card: 'rgb(24,24,24)',
         text: 'rgb(235,235,235)',
         textStrong: 'rgb(250,250,250)',
@@ -196,9 +180,12 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
         icon: 'rgb(245,245,245)',
         gradient:
           'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
+        
       };
     }
     return {
+      background: 'rgba(255, 255, 255, 1)',
       card: 'rgba(255, 255, 255, 1)',
       text: 'rgb(0, 0, 0)',
       textStrong: 'rgb(0, 0, 0)',
@@ -206,6 +193,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
       icon: 'rgb(0, 0, 0)',
       gradient:
         'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
 
@@ -327,7 +315,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
         ]}
         {...panResponder.panHandlers}
       >
-        <View style={[styles.optionsContainer, { backgroundColor: themeColors.card }]}>
+        <View style={[styles.optionsContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}>
           <View style={styles.itemContent}>
             <Text style={[styles.resultLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>{t('reynoldsCalc.reynolds') || 'Reynolds'}:</Text>
             <Text style={[styles.resultValue, { color: themeColors.text, fontSize: 24 * fontSizeFactor }]}>{formattedResult}</Text>
@@ -372,14 +360,8 @@ const HistoryScreenReynolds = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const dbRef = useRef<any>(null);
   const navigation = useNavigation();
-
-  // i18n
   const { t } = useContext(LanguageContext);
-
-  // Factor de fuente a nivel de pantalla
   const { fontSizeFactor } = useContext(FontSizeContext);
-
-  // Tema para contenedor general y cabecera
   const { currentTheme } = useTheme();
   const themeColors = useMemo(() => {
     if (currentTheme === 'dark') {
@@ -392,6 +374,7 @@ const HistoryScreenReynolds = () => {
         icon: 'rgb(245,245,245)',
         gradient:
           'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))', // <-- NUEVO
       };
     }
     return {
@@ -403,6 +386,7 @@ const HistoryScreenReynolds = () => {
       icon: 'rgb(0, 0, 0)',
       gradient:
         'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))', // <-- NUEVO
     };
   }, [currentTheme]);
 
@@ -477,7 +461,6 @@ const HistoryScreenReynolds = () => {
           onPress: async () => {
             const db = dbRef.current;
             if (db) {
-              // Eliminar solo los cálculos de Reynolds
               for (const item of history) {
                 await deleteHistory(db, item.id);
               }
@@ -493,6 +476,123 @@ const HistoryScreenReynolds = () => {
       ],
       { cancelable: false }
     );
+  }, [history, t]);
+
+  const handleExportExcel = useCallback(async () => {
+    try {
+      if (history.length === 0) {
+        Toast.show({
+          type: 'error',
+          text1: t('common.error'),
+          text2: 'No hay historial para exportar',
+        });
+        return;
+      }
+
+      const reynoldsItems = history.filter(h => h.calculation_type === 'reynolds');
+
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'App Hidráulica';
+      wb.created = new Date();
+
+      const ws = wb.addWorksheet('Reynolds');
+
+      const headers = [
+        'Fecha/Hora',
+        'Reynolds',
+        'Velocidad',
+        'Dimensión característica',
+        'Densidad',
+        'Viscosidad dinámica',
+        'Viscosidad cinemática',
+      ];
+      ws.addRow(headers);
+
+      const headerRow = ws.getRow(1);
+      headerRow.font = { bold: true, color: { argb: 'FF000000' } };
+      headerRow.eachCell(cell => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+
+      const maxLen = headers.map(h => h.length);
+
+      reynoldsItems.forEach(it => {
+        let inputs: any = {};
+        try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
+
+        const reynolds = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
+
+        const velocity = inputs.velocity != null ? parseFloat(String(inputs.velocity).replace(',', '.')) : null;
+        const dimension = inputs.dimension != null ? parseFloat(String(inputs.dimension).replace(',', '.')) : null;
+        const density = inputs.density != null ? parseFloat(String(inputs.density).replace(',', '.')) : null;
+        const mu = inputs.dynamicViscosity != null ? parseFloat(String(inputs.dynamicViscosity).replace(',', '.')) : null;
+        const nu = inputs.kinematicViscosity != null ? parseFloat(String(inputs.kinematicViscosity).replace(',', '.')) : null;
+
+        const row = ws.addRow([
+          formatDate(it.timestamp),
+          isFinite(reynolds as number) ? reynolds : null,
+          isFinite(velocity as number) ? velocity : null,
+          isFinite(dimension as number) ? dimension : null,
+          isFinite(density as number) ? density : null,
+          isFinite(mu as number) ? mu : null,
+          isFinite(nu as number) ? nu : null,
+        ]);
+
+        row.eachCell(cell => {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+
+        const fmtWithUnit = (unit?: string) =>
+          unit && String(unit).trim().length > 0 ? `General "${unit}"` : 'General';
+
+        if (isFinite(velocity as number))  row.getCell(3).numFmt = fmtWithUnit(inputs.velocityUnit);
+        if (isFinite(dimension as number)) row.getCell(4).numFmt = fmtWithUnit(inputs.dimensionUnit);
+        if (isFinite(density as number))   row.getCell(5).numFmt = fmtWithUnit(inputs.densityUnit);
+        if (isFinite(mu as number))        row.getCell(6).numFmt = fmtWithUnit(inputs.dynamicViscosityUnit);
+        if (isFinite(nu as number))        row.getCell(7).numFmt = fmtWithUnit(inputs.kinematicViscosityUnit);
+
+        const withUnit = (val: any, u?: string) => (isFinite(val) ? `${val}${u ? ` ${u}` : ''}` : '');
+        maxLen[0] = Math.max(maxLen[0], String(row.getCell(1).value ?? '').length);
+        maxLen[1] = Math.max(maxLen[1], isFinite(reynolds as number) ? String(reynolds).length : 0);
+        maxLen[2] = Math.max(maxLen[2], withUnit(velocity, inputs.velocityUnit).length);
+        maxLen[3] = Math.max(maxLen[3], withUnit(dimension, inputs.dimensionUnit).length);
+        maxLen[4] = Math.max(maxLen[4], withUnit(density, inputs.densityUnit).length);
+        maxLen[5] = Math.max(maxLen[5], withUnit(mu, inputs.dynamicViscosityUnit).length);
+        maxLen[6] = Math.max(maxLen[6], withUnit(nu, inputs.kinematicViscosityUnit).length);
+      });
+
+      maxLen.forEach((len, i) => {
+        ws.getColumn(i + 1).width = Math.min(Math.max(len + 2, 10), 60);
+      });
+
+      const buffer = await wb.xlsx.writeBuffer();
+      const base64 = base64FromArrayBuffer(buffer);
+      const fileName = `Valve_Historial_Reynolds.xlsx`;
+      const path = `${RNFS.CachesDirectoryPath}/${fileName}`;
+      await RNFS.writeFile(path, base64, 'base64');
+
+      await Share.open({
+        title: 'Exportar historial',
+        url: 'file://' + path,
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        failOnCancel: false,
+        showAppsToView: true,
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: t('common.success'),
+        text2: 'Historial exportado correctamente',
+      });
+    } catch (e) {
+      console.error('Export error:', e);
+      Toast.show({
+        type: 'error',
+        text1: t('common.error'),
+        text2: 'Ocurrió un error al exportar',
+      });
+    }
   }, [history, t]);
 
   const renderHistoryItem = useCallback(
@@ -532,15 +632,30 @@ const HistoryScreenReynolds = () => {
             <View style={styles.headerContainer}>
               <View style={styles.leftIconsContainer}>
                 <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
-                  <Pressable style={[styles.iconContainer, { backgroundColor: themeColors.card }]} onPress={() => navigation.goBack()}>
+                  <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.goBack()}>
                     <Icon2 name="chevron-left" size={20} color={themeColors.icon} />
                   </Pressable>
                 </View>
               </View>
 
               <View style={styles.rightIconsContainer}>
+                <View style={[styles.iconWrapper2, { experimental_backgroundImage: themeColors.gradient }]}>
+                  <Pressable
+                    style={[
+                      styles.iconContainer,
+                      { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }
+                    ]}
+                    onPress={handleExportExcel}
+                  >
+                    <MCIcon name="export-variant" size={20} color={themeColors.icon} />
+                  </Pressable>
+                </View>
+                  
                 <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
-                  <Pressable style={[styles.iconContainer, { backgroundColor: themeColors.card }]} onPress={handleResetPress}>
+                  <Pressable
+                    style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                    onPress={handleResetPress}
+                  >
                     <Icon2 name="trash" size={20} color={themeColors.icon} />
                   </Pressable>
                 </View>
@@ -555,12 +670,11 @@ const HistoryScreenReynolds = () => {
         }
       />
 
-      <Toast config={toastConfig} />
+      <Toast config={toastConfig} position="bottom" />
     </View>
   );
 };
 
-// Styles idénticos a HistoryScreenContinuidad (los colores se sobreescriben dinámicamente arriba)
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -589,7 +703,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 10,
     padding: 0,
-    gap: 8,
+    gap: 5,
+  },
+  iconWrapper2: {
+    experimental_backgroundImage:
+      'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    width: 40,
+    height: 40,
+    borderRadius: 30,
+    marginHorizontal: 0,
+    padding: 1,
   },
   iconWrapper: {
     experimental_backgroundImage:

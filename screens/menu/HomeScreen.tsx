@@ -518,6 +518,75 @@ const HomeScreen = () => {
         </Text>
       </View>
 
+      <View style={styles.buttonContainer}>
+        <View style={{ width: '100%', paddingHorizontal: 20 }}>
+          <Pressable
+            style={[
+              stylesRef.contentBox,
+              { experimental_backgroundImage: themeColors.gradient },
+            ]}
+            onPress={toggleCard3}
+          >
+            <View
+              style={[
+                stylesRef.innerBox,
+                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
+              ]}
+              onLayout={onLayoutInner3}
+            >
+              <Animated.View
+                style={[stylesRef.textsContainer, { transform: [{ translateX: translateX3 }] }]}
+              >
+                <View>
+                  <View style={stylesRef.titleContainerRef}>
+                    <Text
+                      style={[
+                        stylesRef.titleText,
+                        { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor },
+                      ]}
+                    >
+                      {t('calc.cardTitle3')}
+                    </Text>
+                  </View>
+                  <View style={stylesRef.descContainer}>
+                    <Text
+                      style={[
+                        stylesRef.subtitleText,
+                        { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor },
+                      ]}
+                    >
+                      {t('calc.cardDesc3')}
+                    </Text>
+                  </View>
+                </View>
+
+                {boxW3 > 0 && (
+                  <View
+                    style={[
+                      stylesRef.helloPane,
+                      { left: -barToLeftDelta3, width: contentW3 },
+                    ]}
+                  >
+                    <View style={stylesRef.containerEq3}>
+                      <MathView
+                        math="Re = \frac{\rho v D}{\mu}"
+                        style={{ color: themeColors.text }}
+                      />
+                    </View>
+                  </View>
+                )}
+              </Animated.View>
+
+              <Animated.View
+                key={`bar3-${focusKey3}`}
+                style={[stylesRef.verticalBar, { transform: [{ translateX: translateX3 }] }]}
+              />
+            </View>
+          </Pressable>
+        </View>
+      </View>
+
+      <View style={styles.SEPARATOR}></View>
 
       <View style={styles.buttonContainer}>
         <View style={{ width: '100%', paddingHorizontal: 20 }}>
@@ -652,75 +721,9 @@ const HomeScreen = () => {
         </View>
       </View>
 
-      <View style={styles.SEPARATOR}></View>
+      
 
-      <View style={styles.buttonContainer}>
-        <View style={{ width: '100%', paddingHorizontal: 20 }}>
-          <Pressable
-            style={[
-              stylesRef.contentBox,
-              { experimental_backgroundImage: themeColors.gradient },
-            ]}
-            onPress={toggleCard3}
-          >
-            <View
-              style={[
-                stylesRef.innerBox,
-                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
-              ]}
-              onLayout={onLayoutInner3}
-            >
-              <Animated.View
-                style={[stylesRef.textsContainer, { transform: [{ translateX: translateX3 }] }]}
-              >
-                <View>
-                  <View style={stylesRef.titleContainerRef}>
-                    <Text
-                      style={[
-                        stylesRef.titleText,
-                        { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardTitle3')}
-                    </Text>
-                  </View>
-                  <View style={stylesRef.descContainer}>
-                    <Text
-                      style={[
-                        stylesRef.subtitleText,
-                        { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardDesc3')}
-                    </Text>
-                  </View>
-                </View>
-
-                {boxW3 > 0 && (
-                  <View
-                    style={[
-                      stylesRef.helloPane,
-                      { left: -barToLeftDelta3, width: contentW3 },
-                    ]}
-                  >
-                    <View style={stylesRef.containerEq3}>
-                      <MathView
-                        math="Re = \frac{\rho v D}{\mu}"
-                        style={{ color: themeColors.text }}
-                      />
-                    </View>
-                  </View>
-                )}
-              </Animated.View>
-
-              <Animated.View
-                key={`bar3-${focusKey3}`}
-                style={[stylesRef.verticalBar, { transform: [{ translateX: translateX3 }] }]}
-              />
-            </View>
-          </Pressable>
-        </View>
-      </View>
+      
 
       <View style={styles.buttonContainer}>
         <View style={{ width: '100%', paddingHorizontal: 20 }}>
@@ -789,8 +792,6 @@ const HomeScreen = () => {
           </Pressable>
         </View>
       </View>
-
-
     </View>
   );
 };
@@ -802,7 +803,7 @@ const styles = StyleSheet.create({
   },
   SEPARATOR: {
     width: '100%',
-    height: 100,
+    height: 50, // SEPARADOR ENTRE CALCULADORAS
   },
   preCardSubtitleWrap: {
     backgroundColor: 'transparent',
@@ -814,10 +815,10 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   preCardEssential: {
-    fontFamily: 'SFUIDisplay-Medium',
+    fontFamily: 'SFUIDisplay-Regular',
   },
   preCardMF: {
-    fontFamily: 'SFUIDisplay-Medium',
+    fontFamily: 'SFUIDisplay-Regular',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -913,7 +914,7 @@ const styles = StyleSheet.create({
   },
   titlesContainerCalc: {
     backgroundColor: 'transparent',
-    marginTop: 10,
+    marginTop: 10, // NO SE SI DEJARLO EN 10 PERO SE PIERDE LA COHERENCIA CON EL RESTO DE PANTALLAS, O DEJARLO EN 0 PERO SE VE RARO
     paddingHorizontal: 20,
   },
   subtitleCalc: {
