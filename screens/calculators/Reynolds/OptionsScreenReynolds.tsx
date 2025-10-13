@@ -33,27 +33,10 @@ const OPTIONS_DATA: Record<string, string[]> = {
   dynamicViscosity: ['Pa·s', 'cP', 'P', 'mPa·s', 'kg/(m·s)', 'lb/(ft·s)', 'lb/(ft·h)'],
   kinematicViscosity: ['m²/s', 'cSt', 'St', 'mm²/s', 'cm²/s', 'ft²/s', 'ft²/h'],
   presetFluids: [
-    'Personalizado',
-    'Agua (0 °C)',
-    'Agua (4 °C)',
-    'Agua (5 °C)',
-    'Agua (10 °C)',
-    'Agua (15 °C)',
-    'Agua (20 °C)',
-    'Agua (25 °C)',
-    'Agua (30 °C)',
-    'Agua (35 °C)',
-    'Agua (40 °C)',
-    'Agua (50 °C)',
-    'Agua (60 °C)',
-    'Agua (70 °C)',
-    'Agua (80 °C)',
-    'Agua (90 °C)',
-    'Acetona (20 °C)',
-    'Etanol (20 °C)',
-    'Glicerina (20 °C)',
-    'Mercurio (20 °C)',
-    'Aceite SAE 10 (20 °C)'
+    'custom',
+    'water_0C','water_4C','water_5C','water_10C','water_15C','water_20C','water_25C','water_30C',
+    'water_35C','water_40C','water_50C','water_60C','water_70C','water_80C','water_90C',
+    'acetone_20C','ethanol_20C','glycerin_20C','mercury_20C','sae10_20C'
   ],
 };
 
@@ -190,7 +173,7 @@ const OptionsScreenReynolds = () => {
   const [selectedOptionState, setSelectedOption] = useState<string>(
     selectedFromParams && options.includes(selectedFromParams)
       ? selectedFromParams
-      : options[0] ?? ''
+      : (options[0] ?? 'custom')
   );
 
   useEffect(() => {
@@ -214,8 +197,11 @@ const OptionsScreenReynolds = () => {
   }, [navigation]);
 
   const getDisplayLabel = useCallback((cat: string, value: string): string => {
+    if (cat === 'presetFluids') {
+      return t(`reynoldsCalc.fluids.${value}`) || value;
+    }
     return value;
-  }, []);
+  }, [t]);
 
   const renderItem = useCallback(
     ({ item }: { item: string }) => (
