@@ -8,6 +8,7 @@ import { FontSizeContext } from '../../contexts/FontSizeContext';
 import { getDBConnection } from '../../src/services/database';
 import { LanguageContext } from '../../contexts/LanguageContext';
 import MathView from 'react-native-math-view';
+import { calculatorsDef } from '../../src/data/calculators';
 
 type RootStackParamList = {
   ContinuidadCalc: undefined;
@@ -134,43 +135,25 @@ const FavScreen = () => {
   }, [clearAllFavorites]);
 
   const getCardData = (route: string) => {
-    switch (route) {
-      case 'ContinuidadCalc':
-        return {
-          title: t('calc.cardTitle1'),
-          desc: t('calc.cardDesc1'),
-          equation: 'A_{1} v_{1} = A_{2} v_{2}',
-          containerStyle: styles.containerEq,
-        };
-      case 'BernoulliCalc':
-        return {
-          title: t('calc.cardTitle2'),
-          desc: t('calc.cardDesc2'),
-          equation: 'P + \\frac{1}{2}\\rho v^{2} + \\rho g h = \\text{cte}',
-          containerStyle: styles.containerEq2,
-        };
-      case 'ReynoldsCalc':
-        return {
-          title: t('calc.cardTitle3'),
-          desc: t('calc.cardDesc3'),
-          equation: 'Re = \\frac{\\rho v D}{\\mu}',
-          containerStyle: styles.containerEq3,
-        };
-      case 'ColebrookCalc':
-        return {
-          title: t('calc.cardTitle4'),
-          desc: t('calc.cardDesc4'),
-          equation: '\\frac{1}{\\sqrt{f}} = -2\\log_{10}\\!\\left(\\frac{\\varepsilon/D}{3.7} + \\frac{2.51}{Re\\,\\sqrt{f}}\\right)',
-          containerStyle: styles.containerEq4,
-        };
-      default:
-        return {
-          title: 'Unknown',
-          desc: 'Unknown calculator',
-          equation: '',
-          containerStyle: styles.containerEq,
-        };
+    const calc = calculatorsDef.find(
+      (c: any) => c.route === route || c.id === route
+    );
+  
+    if (calc) {
+      return {
+        title: t(calc.titleKey) ?? calc.id ?? route,
+        desc: t(calc.descKey) ?? calc.desc ?? '',
+        equation: calc.math ?? '',
+        containerStyle: styles.containerEq,
+      };
     }
+  
+    return {
+      title: 'Unknown',
+      desc: 'Unknown calculator',
+      equation: '',
+      containerStyle: styles.containerEq,
+    };
   };
 
   const FavoriteCard = ({ item }: { item: Favorite }) => {

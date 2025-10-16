@@ -36,10 +36,10 @@ import InfoScreen from './screens/menu/info/InfoScreen';
 import SearchScreen from './screens/menu/search/SearchScreen';
 
 // DE MOMENTO ESTO NO
-import ContinuidadCalc from './screens/calculators/Continuidad/ContinuidadCalc';
-import OptionsScreen from './screens/calculators/Continuidad/OptionsScreen';
-import HistoryScreenContinuidad from './screens/calculators/Continuidad/HistoryScreenContinuidad';
-import ContinuidadTheory from './screens/calculators/Continuidad/ContinuidadTheory'
+import ContinuidadCalc from './screens/calculators/3_Continuidad/ContinuidadCalc';
+import OptionsScreen from './screens/calculators/3_Continuidad/OptionsScreen';
+import HistoryScreenContinuidad from './screens/calculators/3_Continuidad/HistoryScreenContinuidad';
+import ContinuidadTheory from './screens/calculators/3_Continuidad/ContinuidadTheory'
 
 import BernoulliCalc from './screens/calculators/Bernoulli/BernoulliCalc';
 import OptionsScreenBernoulli from './screens/calculators/Bernoulli/OptionsScreenBernoulli';
@@ -54,6 +54,8 @@ import ReynoldsTheory from './screens/calculators/1_Reynolds/ReynoldsTheory';
 
 // 2_FROUDE
 import FroudeCalc from './screens/calculators/2_Froude/FroudeCalc';
+import OptionsScreenFroude from './screens/calculators/2_Froude/OptionsScreenFroude';
+import HistoryScreenFroude from './screens/calculators/2_Froude/HistoryScreenFroude';
 
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
@@ -94,6 +96,8 @@ export type RootStackParamList = {
   InitialConfigSetup: undefined;
   ReynoldsTheory: undefined;
   FroudeCalc: undefined;
+  OptionsScreenFroude: undefined;
+  HistoryScreenFroude: undefined;
 };
 
 export type RootTabParamList = {
@@ -528,6 +532,22 @@ const App = () => {
                       options={{
                         headerShown: false,
                         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="OptionsScreenFroude"
+                      component={OptionsScreenFroude}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="HistoryScreenFroude"
+                      component={HistoryScreenFroude}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
                       }}
                     />
                   </Stack.Navigator>

@@ -392,9 +392,8 @@ const styles = StyleSheet.create({
   },
   containerEquation: {
     backgroundColor: 'transparent',
-    paddingVertical: 30,
     paddingHorizontal: '0%',
-    marginBottom: -20,
+    marginTop: 20,
   },
   containerEquationShorter: {
     backgroundColor: 'transparent',

@@ -26,6 +26,7 @@
   import { useTheme } from '../../../contexts/ThemeContext';
   import { LanguageContext } from '../../../contexts/LanguageContext';
   import { FontSizeContext } from '../../../contexts/FontSizeContext';
+  import { KeyboardAwareScrollView, KeyboardToolbar } from 'react-native-keyboard-controller';
 
   // Tipos de navegación
   type RootStackParamList = {
@@ -1069,32 +1070,12 @@
       setButtonMetrics((prev) => ({ ...prev, continuidad: width }));
     }, []);
 
-    useEffect(() => {
-      const showSub = Keyboard.addListener('keyboardDidShow', () => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setInputSectionPadding(100);
-        setIsKeyboardVisible(true);
-      });
-    
-      const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setInputSectionPadding(100);
-        setIsKeyboardVisible(false);
-      });
-    
-      return () => {
-        showSub.remove();
-        hideSub.remove();
-      };
-    }, []);
-
     return (
       <View style={styles.safeArea}>
-        <ScrollView
+        <KeyboardAwareScrollView
+          bottomOffset={50}
           style={styles.mainContainer}
           contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-          removeClippedSubviews
         >
           {/* Header */}
           <View style={styles.headerContainer}>
@@ -1210,9 +1191,7 @@
             style={[
               styles.inputsSection,
               { 
-                backgroundColor: themeColors.card, 
-                paddingBottom: inputSectionPadding,
-                minHeight: isKeyboardVisible ? 900 : 500,
+                backgroundColor: themeColors.card,
               }
             ]}
           >
@@ -1252,7 +1231,7 @@
               {state.mode === 'caudal' ? renderCaudalInputs() : renderContinuityInputs()}
             </View>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
         <Toast config={toastConfig} position="bottom" />
       </View>
     );
@@ -1446,7 +1425,7 @@ const styles = StyleSheet.create({
     paddingTop: 20, 
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    minHeight: 500,
+    paddingBottom: 70,
   },
   buttonContainer: { 
     flexDirection: 'row', 

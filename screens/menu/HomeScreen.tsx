@@ -172,7 +172,7 @@ const HomeScreen = () => {
     if (preloadOnceRef.current) return;
     preloadOnceRef.current = (async () => {
       try {
-        await import('../calculators/Continuidad/ContinuidadCalc');
+        await import('../calculators/3_Continuidad/ContinuidadCalc');
 
         const { default: FastImage } = await import('@d11/react-native-fast-image');
         const bg = Image.resolveAssetSource(require('../../../assets/CardsCalcs/cardbg.png')).uri;

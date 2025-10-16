@@ -192,7 +192,7 @@ const ReynoldsCalc: React.FC = () => {
         icon: 'rgb(245,245,245)',
         gradient: 'linear-gradient(to bottom right, rgba(170, 170, 170, 0.4) 30%, rgba(58, 58, 58, 0.4) 45%, rgba(58, 58, 58, 0.4) 55%, rgba(170, 170, 170, 0.4)) 70%',
         cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
-        blockInput: 'rgba(37, 42, 27, 1)',
+        blockInput: 'rgba(30, 30, 30, 1)',
       };
     }
     return {
@@ -203,7 +203,7 @@ const ReynoldsCalc: React.FC = () => {
       icon: 'rgb(0, 0, 0)',
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
       cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
-      blockInput: 'rgba(247, 255, 223, 1)',
+      blockInput: 'rgba(240, 240, 240, 1)',
     };
   }, [currentTheme]);
 
@@ -919,7 +919,7 @@ const styles = StyleSheet.create({
   title: { 
     color: 'rgb(255, 255, 255)', 
     fontSize: 30, 
-    fontFamily: 'SFUIDisplay-Bold', 
+    fontFamily: 'SFUIDisplay-Bold',
     marginTop: -10 
   },
   resultsMain: { 

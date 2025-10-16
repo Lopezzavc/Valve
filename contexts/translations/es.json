@@ -401,5 +401,35 @@
   "froude": {
     "title": "Número de Froude",
     "desc": "Calcula el número de Froude que relaciona la inercia con la gravedad en el movimiento de un fluido."
+  },
+  "froudeCalc": {
+    "calculator": "Calculadora",
+    "title": "Número de Froude",
+    "froudeNumber": "Número de Froude",
+    "froude": "Froude",
+    "saveToHistory": "Guardar en historial",
+    "flowParameters": "Parámetros de Flujo",
+    "geometryParameters": "Parámetros Geométricos",
+    "regime": {
+      "subcritical": "Subcrítico",
+      "critical": "Crítico",
+      "supercritical": "Supercrítico"
+    },
+    "labels": {
+      "area": "Área de Sección Transversal",
+      "width": "Ancho del Canal",
+      "hydraulicDepth": "Profundidad Hidráulica Media",
+      "velocity": "Velocidad de Flujo",
+      "gravity": "Aceleración de la Gravedad"
+    },
+    "toasts": {
+      "velocityGravityRequired": "Se requieren velocidad y gravedad",
+      "geometryRequired": "Se requieren al menos 2 parámetros geométricos",
+      "noResultsToCopy": "No hay resultados para copiar",
+      "copied": "Resultados copiados al portapapeles",
+      "nothingToSave": "No hay resultados para guardar",
+      "saved": "Cálculo guardado en el historial",
+      "saveError": "Error al guardar en el historial"
+    }
   }
 }
