@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     marginBottom: 2
   },
   cardTitle: {
-    fontFamily: 'SFUIDisplay-Bold'
+    fontFamily: 'Alliance No.2 SemiBold'
   },
   cardDesc: {
     fontFamily: 'SFUIDisplay-Regular'

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
@@ -185,6 +185,15 @@ const FroudeCalc: React.FC = () => {
   const dbRef = useRef<any>(null);
   const [isFav, setIsFav] = useState(false);
 
+  const heartScale = useRef(new Animated.Value(1)).current;
+
+  const bounceHeart = useCallback(() => {
+    Animated.sequence([
+      Animated.spring(heartScale, { toValue: 1.15, useNativeDriver: true, bounciness: 8, speed: 40 }),
+      Animated.spring(heartScale, { toValue: 1.0, useNativeDriver: true, bounciness: 8, speed: 40 }),
+    ]).start();
+  }, [heartScale]);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -232,6 +241,12 @@ const FroudeCalc: React.FC = () => {
   useEffect(() => {
     updateLockedGeometryField();
   }, [state.area, state.width, state.hydraulicDepth]);
+
+  useEffect(() => {
+    if (isFav) {
+      bounceHeart();
+    }
+  }, [isFav, bounceHeart]);
 
   const formatResult = useCallback((num: number): string => {
     if (isNaN(num)) return '';
@@ -584,12 +599,20 @@ const FroudeCalc: React.FC = () => {
           </View>
           <View style={styles.rightIconsContainer}>
             <View style={styles.iconWrapper2}>
-              <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={toggleFavorite}>
-                <IconFavorite
-                  name={isFav ? "heart" : "heart-o"}
-                  size={20}
-                  color={isFav ? "rgba(255, 63, 63, 1)" : "rgb(255, 255, 255)"}
-                />
+              <Pressable
+                style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                onPress={() => {
+                  bounceHeart();
+                  toggleFavorite();
+                }}
+              >
+                <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+                  <IconFavorite
+                    name={isFav ? "heart" : "heart-o"}
+                    size={20}
+                    color={isFav ? "rgba(255, 63, 63, 1)" : "rgb(255, 255, 255)"}
+                  />
+                </Animated.View>
               </Pressable>
             </View>
             <View style={styles.iconWrapper2}>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
@@ -209,6 +209,8 @@ const ReynoldsCalc: React.FC = () => {
 
   const [state, setState] = useState<CalculatorState>(initialState);
 
+  const heartScale = useRef(new Animated.Value(1)).current;
+
   const regimeKey = React.useMemo(() => {
     const Re = state.resultReynolds;
     if (!Re || !isFinite(Re)) {
@@ -265,6 +267,13 @@ const ReynoldsCalc: React.FC = () => {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('common.genericError') });
     }
   }, [t]);
+
+  const bounceHeart = useCallback(() => {
+    Animated.sequence([
+      Animated.spring(heartScale, { toValue: 1.15, useNativeDriver: true, bounciness: 8, speed: 40 }),
+      Animated.spring(heartScale, { toValue: 1.0, useNativeDriver: true, bounciness: 8, speed: 40 }),
+    ]).start();
+  }, [heartScale]);
 
   useEffect(() => {
     updateLockedFluidField();
@@ -664,12 +673,14 @@ const ReynoldsCalc: React.FC = () => {
           </View>
           <View style={styles.rightIconsContainer}>
             <View style={styles.iconWrapper2}>
-              <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={toggleFavorite}>
-                <IconFavorite
-                  name={isFav ? "heart" : "heart-o"}
-                  size={20}
-                  color={isFav ? "rgba(255, 63, 63, 1)" : "rgb(255, 255, 255)"}
-                />
+              <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => { bounceHeart(); toggleFavorite(); }}>
+                <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+                  <IconFavorite
+                    name={isFav ? "heart" : "heart-o"}
+                    size={20}
+                    color={isFav ? "rgba(255, 63, 63, 1)" : "rgb(255, 255, 255)"}
+                  />
+                </Animated.View>
               </Pressable>
             </View>
             <View style={styles.iconWrapper2}>

@@ -42,7 +42,7 @@ const InfoScreen = () => {
           </View>
         </View>
         <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Alpha 1.0.0 [Build 43]</Text>
+          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Alpha 1.1.9.0 [Build 60]</Text>
         </View>
         <View style={{ height: 150 }} />
       </ScrollView>
@@ -59,7 +59,7 @@ const InfoScreen = () => {
           <Text style={styles.boldText}>VALVE Mobile App</Text>
         </Text>
         <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
-          Andrés Felipe López <Text style={styles.boldText}>Developer</Text>
+          Andrés Felipe López <Text style={styles.boldText}>App Developer</Text>
         </Text>
         <View style={styles.separation}/>
 

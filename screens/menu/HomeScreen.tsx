@@ -602,7 +602,7 @@ const stylesRef = StyleSheet.create({
   titleText: {
     color: 'rgb(0, 0, 0)',
     fontSize: 16,
-    fontFamily: 'SFUIDisplay-Bold',
+    fontFamily: 'Alliance No.2 SemiBold',
   },
   subtitleText: {
     color: 'rgb(120, 120, 120)',

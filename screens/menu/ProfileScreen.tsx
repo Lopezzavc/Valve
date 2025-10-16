@@ -3,11 +3,21 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { LanguageContext } from '../../contexts/LanguageContext';
 import { FontSizeContext } from '../../contexts/FontSizeContext';
+import { Pressable } from 'react-native';
+import Icon2 from 'react-native-vector-icons/Feather';
+import Toast from 'react-native-toast-message';
 
 const ProfileScreen = () => {
   const { currentTheme } = useTheme();
   const { t } = useContext(LanguageContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
+
+  const handleLogoutPress = () => {
+    Toast.show({
+      type: 'info',
+      text1: 'Sin funcionalidad :(',
+    });
+  };
 
   const themeColors = useMemo(() => {
     if (currentTheme === 'dark') {
@@ -20,6 +30,7 @@ const ProfileScreen = () => {
         icon: 'rgb(245,245,245)',
         gradient:
           'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
     return {
@@ -31,11 +42,24 @@ const ProfileScreen = () => {
       icon: 'rgb(0, 0, 0)',
       gradient:
         'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
 
   return (
     <View style={[styles.screen, { backgroundColor: themeColors.background }]}>
+      <View style={styles.headerContainer}>
+        <View style={styles.rightIconsContainer}>
+          <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
+            <Pressable
+              style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+            >
+              <Icon2 name="log-out" size={20} color={themeColors.icon} />
+            </Pressable>
+          </View>
+        </View>
+      </View>
+
       <View style={styles.favTitlesContainer}>
         <Text style={[styles.favSubtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>
           Valve
@@ -108,7 +132,7 @@ const styles = StyleSheet.create({
     marginVertical: 0,
     paddingHorizontal: 20,
     marginBottom: -10,
-    marginTop: 75,
+    marginTop: 0,
   },
   favSubtitle: {
     color: 'rgb(0, 0, 0)',
@@ -120,6 +144,39 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontFamily: 'SFUIDisplay-Bold',
     marginTop: -10,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    minHeight: 45,
+    marginTop: 30,
+    backgroundColor: 'transparent',
+  },
+  rightIconsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    padding: 0,
+    gap: 8,
+  },
+  iconWrapper: {
+    experimental_backgroundImage:
+      'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    width: 60,
+    height: 40,
+    borderRadius: 30,
+    marginHorizontal: 0,
+    padding: 1,
+  },
+  iconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
   },
 });
 
