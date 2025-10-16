@@ -35,6 +35,7 @@ import PrecisionDecimalScreen from './screens/menu/settings/settingsScreens/Prec
 import InfoScreen from './screens/menu/info/InfoScreen';
 import SearchScreen from './screens/menu/search/SearchScreen';
 
+// DE MOMENTO ESTO NO
 import ContinuidadCalc from './screens/calculators/Continuidad/ContinuidadCalc';
 import OptionsScreen from './screens/calculators/Continuidad/OptionsScreen';
 import HistoryScreenContinuidad from './screens/calculators/Continuidad/HistoryScreenContinuidad';
@@ -45,9 +46,14 @@ import OptionsScreenBernoulli from './screens/calculators/Bernoulli/OptionsScree
 import HistoryScreenBernoulli from './screens/calculators/Bernoulli/HistoryScreenBernoulli';
 import BernoulliTheory from './screens/calculators/Bernoulli/BernoulliTheory';
 
-import ReynoldsCalc from './screens/calculators/Reynolds/ReynoldsCalc';
-import OptionsScreenReynolds from './screens/calculators/Reynolds/OptionsScreenReynolds';
-import HistoryScreenReynolds from './screens/calculators/Reynolds/HistoryScreenReynolds';
+// 1_REYNOLDS
+import ReynoldsCalc from './screens/calculators/1_Reynolds/ReynoldsCalc';
+import OptionsScreenReynolds from './screens/calculators/1_Reynolds/OptionsScreenReynolds';
+import HistoryScreenReynolds from './screens/calculators/1_Reynolds/HistoryScreenReynolds';
+import ReynoldsTheory from './screens/calculators/1_Reynolds/ReynoldsTheory';
+
+// 2_FROUDE
+import FroudeCalc from './screens/calculators/2_Froude/FroudeCalc';
 
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
@@ -86,6 +92,8 @@ export type RootStackParamList = {
   SeparatorInitialConfig: undefined;
   PrecisionInitialConfig: undefined;
   InitialConfigSetup: undefined;
+  ReynoldsTheory: undefined;
+  FroudeCalc: undefined;
 };
 
 export type RootTabParamList = {
@@ -504,6 +512,22 @@ const App = () => {
                       options={{
                         headerShown: false,
                         cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="ReynoldsTheory"
+                      component={ReynoldsTheory}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="FroudeCalc"
+                      component={FroudeCalc}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                       }}
                     />
                   </Stack.Navigator>

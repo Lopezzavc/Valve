@@ -320,7 +320,7 @@ const PrecisionInitialConfig = () => {
 
   useEffect(() => {
     if (initialLoad) return;
-    const animationTimers: NodeJS.Timeout[] = [];
+    const animationTimers: ReturnType<typeof setTimeout>[] = [];
     Object.keys(animatingItems).forEach(precisionKey => {
       const item = animatingItems[precisionKey];
       const label = getPrecisionLabel(precisionKey);
@@ -440,17 +440,6 @@ const PrecisionInitialConfig = () => {
         <View style={[styles.topContainer, { experimental_backgroundImage: themeNow.gradient }]}>
           <View style={styles.ContainerApp}>
             <View style={styles.bg}>
-              <View style={styles.header}>
-                <View style={styles.headerLeft}></View>
-                  <View style={styles.headerRightContainer}>
-                    <View style={styles.headerRight}></View>
-                    <View style={styles.headerRight}></View>
-                  </View>
-                </View>
-              <View style={styles.titles}>
-                <View style={styles.subtitle}/>
-                <View style={styles.title}/>
-              </View>
               <View style={styles.results}>
                 <View style={styles.resultsMain}>
                   <Animated.View style={[styles.resultsPhoto, { backgroundColor: animatedResultsPhotoColor }]}>
@@ -517,7 +506,7 @@ const PrecisionInitialConfig = () => {
 
         <View style={styles.languageContainer}>
           <Animated.Text style={[styles.languageText, { color: animatedTextColor }]}>
-            Selecciona la <Text style={styles.lovelaceText}>precisión decimal</Text> de los valores
+            Selecciona la <Text style={styles.lovelaceText}>PRECISIÓN DECIMAL</Text> de los valores
           </Animated.Text>
         </View>
 
@@ -645,18 +634,19 @@ const styles = StyleSheet.create({
   },
   languageContainer: {
     backgroundColor: 'transparent',
-    marginVertical: 30,
-    marginHorizontal: 20,
+    marginBottom: 30,
+    marginTop: 30,
+    marginHorizontal: 30,
   },
   languageText: {
     fontFamily: 'SFUIDisplay-Regular',
-    fontSize: 26,
+    fontSize: 20,
     textAlign: 'center',
     marginVertical: 0,
     lineHeight: 25,
   },
   lovelaceText: {
-    fontFamily: 'lovelace-italic',
+    fontFamily: 'Alliance No.2 Regular',
   },
   optionsContainer: {
     borderRadius: 24,
@@ -743,6 +733,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     marginVertical: 24,
     marginHorizontal: 20,
+    marginTop: 40,
   },
   resultsMain: {
     backgroundColor: 'rgba(60, 60, 60, 1)',
@@ -760,7 +751,7 @@ const styles = StyleSheet.create({
   },
   circularButtons: {
     backgroundColor: 'transparent',
-    marginHorizontal: 62,
+    marginHorizontal: '15%',
     marginTop: -4,
     flexDirection: 'row',
     justifyContent: 'space-between',

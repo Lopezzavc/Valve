@@ -293,6 +293,31 @@
       "laminar": "Laminar",
       "transitional": "Transicional",
       "turbulent": "Turbulento"
+    },
+    "fluids": {
+      "custom": "Personalizado",
+      "water_0C": "Agua (0 °C)",
+      "water_4C": "Agua (4 °C)",
+      "water_5C": "Agua (5 °C)",
+      "water_10C": "Agua (10 °C)",
+      "water_15C": "Agua (15 °C)",
+      "water_20C": "Agua (20 °C)",
+      "water_25C": "Agua (25 °C)",
+      "water_30C": "Agua (30 °C)",
+      "water_35C": "Agua (35 °C)",
+      "water_40C": "Agua (40 °C)",
+      "water_50C": "Agua (50 °C)",
+      "water_60C": "Agua (60 °C)",
+      "water_70C": "Agua (70 °C)",
+      "water_80C": "Agua (80 °C)",
+      "water_90C": "Agua (90 °C)",
+      "air_0C": "Aire (0 °C)",
+      "air_20C": "Aire (20 °C)",
+      "acetone_20C": "Acetona (20 °C)",
+      "ethanol_20C": "Etanol (20 °C)",
+      "glycerin_20C": "Glicerina (20 °C)",
+      "mercury_20C": "Mercurio (20 °C)",
+      "sae10_20C": "Aceite SAE 10 (20 °C)"
     }
   },
   "colebrookCalc": {
@@ -346,5 +371,35 @@
   "mainMenu": {
     "subtitleEssential": "Essential",
     "subtitle1": "Mecanica de fluidos"
+  },
+  "theoryReynolds": {
+    "subtitle": "¿Qué es?",
+    "titles": {
+      "mainTitle": "Número de Reynolds",
+      "references": "Referencias",
+      "title2": "Fundamento Teórico y Origen en las Ecuaciones de la Dinámica de Fluidos",
+      "title3": "Aplicaciones e Importancia Práctica",
+      "title4": "Extensión Matemática: Número de Reynolds Generalizado",
+      "title5": "Historia y Origen"
+    },
+    "paragraphs": {
+      "paragraph1": "El Número de Reynolds (Re) es un número adimensional fundamental en la mecánica de fluidos, utilizado para caracterizar el régimen de flujo dentro de un conducto o alrededor de un cuerpo sumergido. Representa la relación entre las fuerzas inerciales y las fuerzas viscosas que actúan sobre un fluido en movimiento, siendo un parámetro clave para determinar si el flujo es laminar, transitorio o turbulento. \nMatemáticamente, el número de Reynolds se expresa como:",
+      "paragraph2": "o de forma equivalente, en términos de la viscosidad cinemática:",
+      "paragraph3": "En esta expresión, ρ representa la densidad del fluido y se mide en kilogramos por metro cúbico (kg/m³). El término v corresponde a la velocidad media del flujo expresada en metros por segundo (m/s). La variable D indica el diámetro hidráulico o la característica lineal del sistema, medido en metros (m). La letra μ representa la viscosidad dinámica del fluido, cuyas unidades son pascal-segundo o newton-segundo por metro cuadrado (Pa·s o N·s/m²). Finalmente, ν es la viscosidad cinemática del fluido, definida como el cociente entre la viscosidad dinámica y la densidad, es decir, ν = μ / ρ, y se mide en metros cuadrados por segundo (m²/s).\nEl número de Reynolds no depende de las unidades empleadas, ya que es una magnitud adimensional. Su valor permite determinar el comportamiento del flujo: cuando Re es menor que 2000, el flujo se considera laminar; si el valor de Re está entre 2000 y 4000, el flujo se encuentra en un régimen transitorio o de transición; y cuando Re es mayor que 4000, el flujo es turbulento.",
+      "paragraph4": "El número de Reynolds se deriva de la ecuación de Navier–Stokes, que describe el movimiento de un fluido newtoniano en términos de conservación de momento:",
+      "paragraph5": "En esta formulación, v representa el vector de velocidad del fluido, p corresponde a la presión, ρ denota la densidad, μ es la viscosidad dinámica y g representa el vector de aceleración gravitacional.\nPara obtener el número de Reynolds, se adimensionaliza esta ecuación introduciendo variables características:",
+      "paragraph6": "Al sustituirlas en la ecuación de Navier–Stokes, se obtiene la forma adimensional:",
+      "paragraph7": "donde aparece naturalmente el término:",
+      "paragraph8": "Este parámetro controla el equilibrio entre las fuerzas inerciales, que están representadas por el término de aceleración, y las fuerzas viscosas, representadas por el término del gradiente de viscosidad. Cuando el número de Reynolds es grande, las fuerzas inerciales predominan sobre las viscosas, lo que favorece el desarrollo de un flujo turbulento caracterizado por movimientos caóticos y mezclas intensas dentro del fluido. En cambio, cuando el número de Reynolds es pequeño, la viscosidad tiene un efecto dominante que amortigua las perturbaciones del movimiento, permitiendo que el flujo se mantenga ordenado, estable y con trayectorias bien definidas, típicas de un régimen laminar.",
+      "paragraph9": "El número de Reynolds desempeña un papel esencial en diversos campos de la ingeniería y la ciencia aplicada. En el diseño de sistemas hidráulicos, permite determinar el régimen de flujo que se desarrolla dentro de tuberías, canales, válvulas y bombas, siendo fundamental para garantizar el correcto dimensionamiento y funcionamiento de estos sistemas. En el ámbito del análisis aerodinámico e hidrodinámico, el número de Reynolds facilita el establecimiento de similitudes dinámicas entre modelos reducidos y sistemas reales, lo cual es especialmente útil en ensayos realizados en túneles de viento o canales de prueba para estudiar el comportamiento del flujo alrededor de cuerpos o estructuras.\nEn la ingeniería civil y ambiental, este parámetro se utiliza para evaluar las pérdidas de carga en conducciones, calcular el tamaño adecuado de los conductos y estimar los coeficientes de fricción, a menudo mediante herramientas como el diagrama de Moody. Asimismo, en el estudio del transporte de partículas y la sedimentología, el número de Reynolds resulta indispensable para predecir los procesos de deposición o suspensión de sólidos dentro de un flujo líquido, permitiendo modelar con precisión fenómenos naturales y sistemas de transporte de sedimentos.\nEn la práctica, el cálculo del número de Reynolds constituye el punto de partida previo a la aplicación de ecuaciones empíricas como las de Darcy–Weisbach, Colebrook–White o Hazen–Williams, ya que todas ellas dependen directamente del régimen de flujo que se identifique a partir de este número adimensional.",
+      "paragraph10": "En sistemas no circulares o con geometrías complejas, se utiliza el diámetro hidráulico 𝐷ℎ:",
+      "paragraph11": "donde 𝐴 es el área transversal y 𝑃 el perímetro mojado.\nDe este modo, el número de Reynolds generalizado es:",
+      "paragraph12": "Asimismo, en flujos externos (por ejemplo, alrededor de una esfera o un perfil alar) se usa una longitud característica específica (como el diámetro o la cuerda del perfil).",
+      "paragraph13": "El concepto del número de Reynolds fue introducido por el ingeniero y físico Osborne Reynolds (1842–1912), profesor en la Universidad de Mánchester. En 1883, realizó un experimento clásico en el que inyectó un filamento de tinta en una tubería transparente con agua en movimiento, observando la transición del flujo laminar al turbulento al aumentar la velocidad.\nA partir de estos experimentos, estableció un parámetro adimensional —posteriormente denominado en su honor— que relacionaba las fuerzas inerciales con las viscosas. Este descubrimiento permitió unificar el estudio de la dinámica de fluidos y es considerado uno de los fundamentos experimentales y teóricos más importantes de la ingeniería moderna."
+    }
+  },
+  "froude": {
+    "title": "Número de Froude",
+    "desc": "Calcula el número de Froude que relaciona la inercia con la gravedad en el movimiento de un fluido."
   }
 }

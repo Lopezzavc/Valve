@@ -191,7 +191,7 @@ const SeparatorInitialConfig = () => {
 
   useEffect(() => {
     if (initialLoad) return;
-    const animationTimers: NodeJS.Timeout[] = [];
+    const animationTimers: ReturnType<typeof setTimeout>[] = [];
     Object.keys(animatingItems).forEach(separatorKey => {
       const item = animatingItems[separatorKey];
       const label = getSeparatorLabel(separatorKey);
@@ -379,7 +379,7 @@ const SeparatorInitialConfig = () => {
 
         <View style={styles.languageContainer}>
           <Animated.Text style={[styles.languageText, { color: animatedTextColor }]}>
-            Selecciona el <Text style={styles.lovelaceText}>separador decimal</Text> de los valores
+            Selecciona el <Text style={styles.lovelaceText}>SEPARADOR DECIMAL</Text> de los valores
           </Animated.Text>
         </View>
 
@@ -460,18 +460,19 @@ const styles = StyleSheet.create({
   },
   languageContainer: {
     backgroundColor: 'transparent',
-    marginVertical: 30,
-    marginHorizontal: 20,
+    marginBottom: 30,
+    marginTop: 30,
+    marginHorizontal: 30,
   },
   languageText: {
     fontFamily: 'SFUIDisplay-Regular',
-    fontSize: 26,
+    fontSize: 20,
     textAlign: 'center',
     marginVertical: 0,
     lineHeight: 25,
   },
   lovelaceText: {
-    fontFamily: 'lovelace-italic',
+    fontFamily: 'Alliance No.2 Regular',
   },
   optionsContainer: {
     borderRadius: 24,
@@ -572,7 +573,7 @@ const styles = StyleSheet.create({
   },
   circularButtons: {
     backgroundColor: 'transparent',
-    marginHorizontal: 62,
+    marginHorizontal: '15%',
     marginTop: -4,
     flexDirection: 'row',
     justifyContent: 'space-between',

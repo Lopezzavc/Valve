@@ -21,7 +21,7 @@ const WelcomeScreen = () => {
     try {
       const done = await AsyncStorage.getItem('hasCompletedInitialConfig');
       if (done === 'true') {
-        navigation.navigate('MainTabs');
+        navigation.navigate('InitialConfigSetup');
       } else {
         navigation.navigate('ThemeInitialConfig');
       }

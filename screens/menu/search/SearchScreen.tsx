@@ -11,6 +11,8 @@ import { ThemeContext } from '../../../contexts/ThemeContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 
+import { calculatorsDef } from '../../../src/data/calculators';
+
 type Nav = StackNavigationProp<RootStackParamList>;
 
 const toastConfig = {
@@ -83,36 +85,16 @@ const SearchScreen = () => {
 
   const colors = themeColors[currentTheme === 'dark' ? 'dark' : 'light'];
 
-  const calculators = useMemo(() => ([
-    {
-      id: 'continuidad',
-      title: t('calc.cardTitle1'),
-      desc: t('calc.cardDesc1'),
-      route: 'ContinuidadCalc' as const,
-      icon: 'git-merge',
-    },
-    {
-      id: 'bernoulli',
-      title: t('calc.cardTitle2'),
-      desc: t('calc.cardDesc2'),
-      route: 'BernoulliCalc' as const,
-      icon: 'activity',
-    },
-    {
-      id: 'reynolds',
-      title: t('calc.cardTitle3'),
-      desc: t('calc.cardDesc3'),
-      route: 'ReynoldsCalc' as const,
-      icon: 'wind',
-    },
-    {
-      id: 'colebrook',
-      title: t('calc.cardTitle4'),
-      desc: t('calc.cardDesc4'),
-      route: 'ColebrookCalc' as const,
-      icon: 'slash',
-    },
-  ]), [t]);
+  const calculators = useMemo(() => {
+    return calculatorsDef.map(c => ({
+      id: c.id,
+      title: t(c.titleKey) ?? c.id,
+      desc: t(c.descKey) ?? '',
+      route: c.route,
+      icon: c.icon,
+      math: c.math,
+    }));
+  }, [t]);
 
   const [query, setQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('none');
@@ -140,7 +122,7 @@ const SearchScreen = () => {
 
   const renderItem = ({ item }: { item: typeof calculators[number] }) => (
     <Pressable
-      onPress={() => navigation.navigate(item.route)}
+      onPress={() => navigation.navigate(item.route as any)}
       style={[styles.cardWrapper, { experimental_backgroundImage: colors.gradient }]}
     >
       <View style={[styles.cardInner, { backgroundColor: colors.card, experimental_backgroundImage: colors.cardGradient }]}>

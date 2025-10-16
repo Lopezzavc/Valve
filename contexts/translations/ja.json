@@ -1,142 +1,381 @@
 {
   "infoScreen": {
-    "creadoPor": "作成者"
+    "creadoPor": "Creado por"
   },
   "settings": {
-    "title": "設定",
-    "language": "言語",
-    "theme": "テーマ",
-    "font": "フォント",
-    "sep": "小数点の区切り",
-    "sepInfo": "数値の表示で使用される小数点の区切りを設定します。これはエクスポートされたファイルやクリップボードにコピーされた結果には影響しません。",
-    "pre": "小数精度",
-    "preInfo1": "通常: 最大8桁の小数を表示し、不要な末尾のゼロは削除します。",
-    "preInfo2": "固定: ユーザーが設定した固定の小数桁数を常に表示します。",
-    "preInfo3": "科学: 数値を科学的記法で表し、10の累乗と上付きの指数を使用します。",
-    "preInfo4": "工学: 科学的記法に似ていますが、指数は常に3の倍数となり、技術的な文脈での読みやすさが向上します。",
-    "themeSystem": "システム",
-    "themeLight": "ライト",
-    "themeDark": "ダーク",
-    "langSpanish": "スペイン語",
-    "langEnglish": "英語",
-    "langFrench": "フランス語",
-    "langGerman": "ドイツ語",
-    "langChinese": "中国語",
-    "langJapanese": "日本語",
-    "fontVerySmall": "極小",
-    "fontSmall": "小",
-    "fontNormal": "標準",
-    "fontLarge": "大",
-    "fontVeryLarge": "特大",
-    "sepDot": "点",
-    "sepComma": "カンマ",
-    "preNormal": "通常",
-    "preFix": "固定",
-    "preScientific": "科学",
-    "preEngineering": "工学",
+    "title": "Configuración",
+    "language": "Idioma",
+    "theme": "Tema",
+    "font": "Fuente",
+    "sep": "Separador decimal",
+    "sepInfo": "Configura el separador decimal utilizado en la visualización de números. Esto no afectará el separador decimal usado en los archivos exportados ni en los resultados copiados al portapapeles.",
+    "pre": "Precisión decimal",
+    "preInfo1": "Normal: Muestra hasta 10 decimales de precisión, eliminando ceros innecesarios al final.",
+    "preInfo2": "Fix: Muestra siempre la misma cantidad de decimales fijos, según lo configurado.",
+    "preInfo3": "Científica: Representa el número en notación científica, usando potencias de 10.",
+    "preInfo4": "Ingeniería: Similar a la notación científica, pero el exponente siempre es múltiplo de 3, lo que facilita la lectura en contextos técnicos.",
+    "themeSystem": "Sistema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "langSpanish": "Español",
+    "langEnglish": "Inglés",
+    "langFrench": "Francés",
+    "langGerman": "Alemán",
+    "langChinese": "Chino",
+    "langJapanese": "Japonés",
+    "fontVerySmall": "Muy Pequeña",
+    "fontSmall": "Pequeña",
+    "fontNormal": "Normal",
+    "fontLarge": "Grande",
+    "fontVeryLarge": "Muy Grande",
+    "sepDot": "Punto",
+    "sepComma": "Coma",
+    "preNormal": "Normal",
+    "preFix": "Fix",
+    "preScientific": "Científica",
+    "preEngineering": "Ingeniería",
     "resetAlert": {
-      "title": "設定のリセット",
-      "message": "すべての設定を初期状態にリセットしてもよろしいですか？",
-      "confirm": "リセット"
+      "title": "Restablecer ajustes",
+      "message": "¿Estás seguro de que quieres restablecer todos los ajustes a su configuración predeterminada?",
+      "confirm": "Restablecer"
     }
   },
+  "search": {
+    "title": "Calculadoras",
+    "title2": "Buscar",
+    "placeholder": "Buscar...",
+    "emptyPrefix": "No se encontraron calculadoras para",
+    "sort": {
+      "toastTitle": "Orden aplicado",
+      "az": "Orden alfabético A-Z",
+      "za": "Orden alfabético Z-A",
+      "reset": "Orden original restaurado"
+    }
+  },
+  "profile": {
+    "title": "Perfil"
+  },
+  "profileScreen": {
+    "oops": "Oops...",
+    "desc": "Esta válvula aún está cerrada, pero pronto la abriremos."
+  },
   "common": {
-    "calculate": "計算",
-    "copy": "コピー",
-    "clear": "クリア",
-    "history": "履歴",
-    "success": "成功",
-    "error": "エラー",
-    "cancel": "キャンセル"
+    "calculate": "Calcular",
+    "copy": "Copiar",
+    "clear": "Limpiar",
+    "history": "Historial",
+    "success": "Éxito",
+    "error": "Error",
+    "cancel": "Cancelar",
+    "inputs": "Entradas"
   },
   "continuidadCalc": {
-    "calculator": "計算機",
-    "title": "連続の方程式",
-    "saveToHistory": "履歴に保存",
-    "flow": "流量",
-    "section": "断面",
-    "section1": "断面1",
-    "section2": "断面2",
-    "fluidProps": "流体特性",
-    "fill": "充填",
+    "calculator": "Calculadora",
+    "title": "Ecuación de continuidad",
+    "saveToHistory": "Guardar en el historial",
+    "flow": "Caudal",
+    "section": "Sección",
+    "section1": "Sección 1",
+    "section2": "Sección 2",
+    "fluidProps": "Propiedades del fluido",
+    "fill": "Llenado",
     "labels": {
-      "sectionType": "断面の種類",
-      "fillType": "充填状態",
-      "diameter": "直径",
-      "side": "辺",
-      "width": "幅",
-      "height": "高さ",
-      "velocity": "速度",
-      "fillHeight": "水深",
-      "A1": "断面積 (A₁)",
-      "v1": "断面の速度 (v₁)",
-      "A2": "断面積 (A₂)",
-      "v2": "断面の速度 (v₂)"
+      "sectionType": "Tipo de sección",
+      "fillType": "Llenado",
+      "diameter": "Diámetro",
+      "side": "Lado",
+      "width": "Ancho",
+      "height": "Alto",
+      "velocity": "Velocidad",
+      "fillHeight": "Altura de lámina",
+      "A1": "Área de la sección (A₁)",
+      "v1": "Velocidad en la sección (v₁)",
+      "A2": "Área de la sección (A₂)",
+      "v2": "Velocidad en la sección (v₂)",
+      "mode": "Modo"
     },
     "mode": {
-      "flow": "流量",
-      "continuity": "連続性"
+      "flow": "Caudal",
+      "continuity": "Continuidad"
     },
     "options": {
       "sectionType": {
-        "circular": "円形",
-        "square": "正方形",
-        "rectangular": "長方形"
+        "circular": "Circular",
+        "square": "Cuadrada",
+        "rectangular": "Rectangular"
       },
       "fillType": {
-        "total": "全体",
-        "partial": "部分"
+        "total": "Total",
+        "partial": "Parcial"
       }
     },
     "toasts": {
-      "noFlowToCopy": "コピーする計算済みの流量がありません。",
-      "noContinuityToCopy": "コピーする計算済みの流量や連続値がありません。",
-      "copied": "計算がクリップボードにコピーされました。",
-      "nothingToSave": "保存する結果がありません。",
-      "saved": "計算が履歴に保存されました。",
-      "saveError": "計算を保存できませんでした。"
+      "noFlowToCopy": "No hay caudal calculado para copiar.",
+      "noContinuityToCopy": "No hay caudal o valores de continuidad calculados para copiar.",
+      "copied": "Cálculo copiado al portapapeles.",
+      "nothingToSave": "No hay resultados para guardar.",
+      "saved": "Cálculo guardado en el historial.",
+      "saveError": "No se pudo guardar el cálculo."
     }
   },
   "optionsScreen": {
     "titles": {
-      "length": "長さ",
-      "area": "面積"
+      "length": "Longitud",
+      "area": "Área",
+      "pressure": "Presión"
     },
     "subtitles": {
-      "selection": "選択",
-      "units": "単位"
+      "selection": "Selección",
+      "units": "Unidades",
+      "generic": "Opciones"
     }
   },
   "history": {
-    "title": "計算履歴",
-    "savedOn": "保存日時",
-    "empty": "履歴は空です"
+    "title": "Historial de cálculos",
+    "savedOn": "Guardado el",
+    "empty": "Historial vacío",
+    "deleteAll": {
+      "title": "Eliminar historial",
+      "message": "¿Desea eliminar todo el historial de cálculos?",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "successTitle": "Historial eliminado",
+      "successMsg": "El historial ha sido eliminado con éxito",
+      "noHistory": "No hay cálculos para eliminar"
+    },
+    "delete": {
+      "successTitle": "Cálculo eliminado",
+      "successMsg": "El cálculo ha sido borrado del historial"
+    },
+    "export": {
+      "success": "Historial exportado como Excel",
+      "error": "No se pudo exportar el historial",
+      "noHistory": "No hay historial para exportar"
+  }
   },
   "theoryContinuity": {
-    "subtitle": "概要",
+    "subtitle": "¿Qué es?",
     "titles": {
-      "mainTitle": "連続の方程式",
-      "title1": "積分形と微分形の比較",
-      "title2": "非圧縮性流れ（水力学への応用）",
-      "title3": "圧縮性流れと質量の連続性",
-      "title4": "水理計算および土木工学における重要性",
-      "references": "参考文献"
+      "mainTitle": "Ecuación de continuidad",
+      "title1": "Formulaciones Integral vs. Diferencial de la Ecuación",
+      "title2": "Flujos Incompresibles (Aplicación a Hidráulica del Agua)",
+      "title3": "Flujos Compresibles y la Continuidad de la Masa",
+      "title4": "Relevancia en Cálculos Hidráulicos e Ingeniería Civil",
+      "references": "Referencias"
     },
     "paragraphs": {
-      "paragraph1": "連続の方程式は、流体の運動における質量保存の法則を数学的に表現したものです。簡単に言えば、この法則は閉じた系内で質量は生成も消滅もしないと述べています。流体が流れる場合、（供給源や吸収源がない限り）ある領域に入る質量は、その領域から出る質量と等しくなければなりません。固定された制御体積を考えると、その内部の質量が変化するのは境界を通る質量流れによるものです。",
-      "paragraph2": "数学的には、体積Vとその表面Sにおける質量収支は、連続の方程式の積分形で表されます。",
-      "paragraph3": "ここでρ(x,t)は流体の密度、v(x,t)は各点での流速ベクトルです。この積分方程式は、体積内での質量の蓄積速度（第一項）と、表面を通過する質量の純流出（第二項）の和がゼロであることを示しています。つまり、体積内の質量増加は流入によるものであり、減少は流出によるものであり、質量保存が保証されます。",
-      "paragraph4": "発散定理を適用することで、この積分方程式は微分形（局所形）に書き換えることができます。",
-      "paragraph5": "この表現は、ある点での密度の時間変化率と、質量流束の発散（つまり体積当たりの純流出）の和がゼロであることを意味します。これは、質量が空間と時間の各点で連続的に保存されることを示しています。微分形は流体内の点ごとの挙動を記述できるため特に有用であり、実際にはオイラーが理想流体の方程式で提示した形です。この連続の方程式は、運動量保存と（圧縮性流れの場合は）エネルギー保存と並ぶオイラーの三大基本方程式の一つです。ラグランジュ的（移動する流体粒子を追跡する）な形では、次のように表せます。",
-      "paragraph6": "これは、流体要素の密度変化が周囲の流れの発散（膨張または圧縮）によるものであることを強調しています。もし流体が移動中に密度を一定に保つなら、この式からただちに∇·v=0が導かれます。",
-      "paragraph7": "積分形は空間に固定されたマクロな体積を考え、その体積の質量変化が境界を通る流れによってのみ生じることを示します。一方、微分形は無限小の体積を考え、流れ場の各点での局所的な質量保存を示します。積分形があらゆる制御体積について成り立つなら、その被積分関数が各点でゼロでなければならず、微分形が導かれます。",
-      "paragraph8": "水力学の多くの場合、流体は非圧縮性と見なせ、密度ρはほぼ一定です。このとき、連続の方程式は簡略化されます。",
-      "paragraph9": "閉じた管内での定常一次元流れの場合、次の関係が得られます。",
-      "paragraph10": "ここでAは断面積、vはその断面における流体の平均速度です。",
-      "paragraph11": "圧縮性流れでは、流体の密度ρを一定とみなすことはできません。この場合、質量流量は次のように保存されます。",
-      "paragraph12": "これは非圧縮性流れの場合の一般化であり、航空力学、ノズル設計、ガスタービン、高速管路において重要です。",
-      "paragraph13": "土木工学において、連続の方程式は、ある区間に流入する流量と流出する流量が等しいことを保証し、配水網のバランス、開水路解析、流れのプロファイル計算を可能にします。ノズル、ディフューザー、ポンプ、タービンといった水力機器では、処理される流体の量が保存されることを保証します。水撃のような過渡現象においても、連続性は依然として有効であり、モデル化に不可欠です。"
+      "paragraph1": "La ecuación de continuidad es esencialmente la manifestación matemática de la ley de conservación de la masa aplicada a un fluido en movimiento. En palabras sencillas, esta ley establece que la masa no puede crearse ni destruirse dentro de un sistema cerrado. Para un fluido que fluye, esto implica que (en ausencia de fuentes o sumideros) la masa que entra a una región debe ser igual a la masa que sale de ella en cualquier intervalo de tiempo dado. Si consideramos un volumen de control fijo en el espacio (una porción imaginaria de fluido delimitada por una superficie cerrada), la masa total dentro de ese volumen solo cambia si hay flujo de masa a través de sus fronteras.",
+      "paragraph2": "Matemáticamente, el balance de masa sobre un volumen de control V con una superficie S se expresa con la forma integral de la ecuación de continuidad:",
+      "paragraph3": "donde ρ(x,t) es la densidad del fluido y v(x,t) es el vector velocidad del fluido en cada punto del volumen. Esta ecuación integral indica que la tasa de acumulación de masa dentro del volumen (primer término) más el flujo neto de masa que atraviesa la superficie (segundo término) es cero. En otras palabras, cualquier aumento de masa dentro del volumen debe deberse a flujo entrante, y cualquier disminución, a flujo saliente, garantizando la conservación de la masa.",
+      "paragraph4": "Aplicando el teorema de la divergencia a la integral de superficie, la ecuación anterior puede reformularse en su forma diferencial (local):",
+      "paragraph5": "Esta expresión compacta significa que la razón de cambio local de densidad en un punto dado más la divergencia del flujo de masa (es decir, la salida neta de masa por unidad de volumen) suman cero. Equivale a decir que la masa se conserva en cada punto del fluido de forma continua en el espacio y el tiempo. La forma diferencial es especialmente útil porque describe el comportamiento punto a punto dentro del fluido, y de hecho fue la formulación presentada por Euler en sus ecuaciones para el fluido ideal. Cabe notar que esta ecuación de continuidad es una de las tres ecuaciones fundamentales de Euler para fluidos (junto con la conservación de momentum y – en flujos compresibles – de energía). En forma Lagrangiana (siguiendo a una partícula fluida en movimiento), la misma condición se puede expresar como",
+      "paragraph6": "lo que enfatiza que cualquier cambio e n la densidad de un elemento de fluido se debe a la divergencia (expansión o compresión) del flujo circundante. Si el fluido mantiene su densidad constante a lo largo de su movimiento, esta última ecuación implica inmediatamente ∇ · v=0, como veremos a continuación.",
+      "paragraph7": "La forma integral considera un volumen macroscópico fijo en el espacio y establece que la masa en ese volumen solo cambia por el flujo que atraviesa sus superficies. La forma diferencial, en cambio, considera un volumen infinitesimal y establece localmente la conservación de masa en cada punto del campo de flujo. Si la ecuación integral se cumple para todo volumen de control imaginable, la única forma de satisfacerla es que el integrando sea cero en cada punto, conduciendo a la forma diferencial:",
+      "paragraph8": "En muchos casos de interés en hidráulica, el fluido puede considerarse incompresible, lo que significa que su densidad ρ permanece prácticamente constante. Cuando esto ocurre, la ecuación de continuidad se simplifica:",
+      "paragraph9": "Para un flujo unidimensional estacionario de un fluido incompresible en un conducto cerrado, se obtiene la relación:",
+      "paragraph10": "donde A es el área de la sección transversal y v la velocidad media del fluido en esa sección.",
+      "paragraph11": "Cuando tratamos con flujos compresibles, la densidad ρ del fluido no puede considerarse constante. En este caso, el flujo másico se conserva según:",
+      "paragraph12": "Esto generaliza el caso de los fluidos incompresibles y es crucial en aerodinámica, diseño de toberas, turbinas de gas y conductos de alta velocidad.",
+      "paragraph13": "En la ingeniería civil, la ecuación de continuidad asegura que el caudal que entra en un tramo es igual al que sale, permitiendo balancear redes de distribución, analizar canales abiertos y calcular perfiles de flujo. En dispositivos hidráulicos como boquillas, difusores, bombas y turbinas, garantiza que la cantidad de fluido procesada se conserve. Incluso en transitorios como el golpe de ariete, la continuidad sigue siendo válida y necesaria para la modelación."
     }
   },
-  "welcomeText": "精度とシンプルさで、水力計算を最適化する計算機。"
+  "welcomeText": "La calculadora que optimiza cálculos hidráulicos, con precisión y simplicidad",
+  "favorites": {
+    "title": "Calculadoras favoritas",
+    "noFavorites": "No hay calculadoras guardadas",
+    "success": "Guardada",
+    "successDesc": "La calculadora ha sido guardada en favoritos",
+    "deleted": "Eliminada",
+    "deletedDesc": "La calculadora ha sido eliminada de favoritos"
+  },
+  "calc": {
+    "cardTitle1": "Ecuación de continuidad",
+    "cardDesc1": "Calcula la conservación del caudal en un fluido a través de una sección.",
+    "cardTitle2": "Principio de Bernoulli",
+    "cardDesc2": "Equilibra presión, energía cinética y potencial a lo largo de una corriente.",
+    "cardTitle3": "Número de Reynolds",
+    "cardDesc3": "Indica el régimen de flujo (laminar o turbulento).",
+    "cardTitle4": "Factor de fricción / Colebrook-White",
+    "cardDesc4": "Relaciona el régimen turbulento de un flujo en tuberías con la rugosidad relativa."
+  },
+  "home": {
+    "calculatorsTitle": "Menú Principal",
+    "pressureDuctsTitle": "Calculadoras"
+  },
+  "bernoulliCalc": {
+    "title": "Principio de Bernoulli",
+    "calculator": "Calculadora",
+    "saveToHistory": "Guardar en historial",
+    "energy": "Energía",
+    "totalEnergy": "Energía Total",
+    "fluidProperties": "Propiedades del Fluido",
+    "position1": "Parámetros Posición 1",
+    "position2": "Parámetros Posición 2",
+    "flowSection": "Caudal",
+    "flowParameters": "Parámetros de Caudal",
+    "labels": {
+      "density": "Densidad",
+      "P1": "Presión P₁",
+      "h1": "Altura h₁",
+      "v1": "Velocidad v₁",
+      "P2": "Presión P₂",
+      "h2": "Altura h₂",
+      "v2": "Velocidad v₂",
+      "pressureChange": "Cambio de Presión",
+      "diameter1": "Diámetro Posición 1",
+      "diameter2": "Diámetro Posición 2",
+      "flowRate": "Caudal Volumétrico"
+    },
+    "toasts": {
+      "densityRequired": "Debes ingresar la densidad del fluido",
+      "noResultsToCopy": "No hay resultados para copiar",
+      "copied": "Resultados copiados al portapapeles",
+      "nothingToSave": "No hay resultados para guardar",
+      "saved": "Cálculo guardado en el historial",
+      "saveError": "Error al guardar en el historial"
+    }
+  },
+  "theoryBernoulli": {
+    "subtitle": "¿Qué es?",
+    "titles": {
+      "mainTitle": "Principio de Bernoulli",
+      "title1": "Consideraciones Avanzadas",
+      "title2": "Aplicaciones en Ingeniería Civil",
+      "references": "Referencias"
+    },
+    "paragraphs": {
+      "paragraph1": "El principio de Bernoulli establece que, para un flujo estable, incompresible y no viscoso, la suma de la presión, la energía cinética y la energía potencial por unidad de volumen se conserva a lo largo de una línea de corriente. En términos prácticos, un aumento en la velocidad del fluido implica una disminución en la presión estática (y viceversa), de modo que la energía mecánica total permanece constante. Este principio se deriva de la conservación de la energía: el trabajo realizado por las fuerzas de presión y la gravedad sobre un elemento de fluido equivale a su cambio en energía cinética.",
+      "paragraph2": "En forma de ecuación, para dos puntos en la misma línea de corriente, la ecuación de Bernoulli se expresa como:",
+      "paragraph3": "De manera más general:",
+      "paragraph4": "Aquí, la presión estática, la velocidad, la altura sobre un nivel de referencia, la densidad y la gravedad se combinan de forma que cualquier aumento en la presión dinámica debe compensarse con una disminución en la presión estática o en la energía potencial, para que la suma se mantenga constante.",
+      "paragraph5": "Términos de energía (cargas): Cada término en la ecuación de Bernoulli puede interpretarse como energía por unidad de peso. La carga de presión corresponde a la altura de una columna de fluido que genera la presión. La carga de velocidad representa la energía cinética. La carga de elevación representa la energía potencial gravitatoria. En la práctica de la ingeniería, estos términos se llaman carga de presión, carga de velocidad y carga de elevación.\nDe este modo, la ecuación de Bernoulli establece que la carga total es constante:",
+      "paragraph6": "En otras palabras, la energía mecánica del fluido por unidad de peso se conserva a lo largo del flujo.",
+      "paragraph7": "Balance de energía: La ecuación de Bernoulli puede interpretarse como un balance entre formas de energía en el fluido. Si una forma de energía, como la cinética, aumenta, las otras (presión o energía potencial) deben disminuir para que la suma se mantenga constante. Matemáticamente, la ecuación de Bernoulli es una expresión de la conservación de la energía mecánica para un fluido ideal.",
+      "paragraph8": "En una tubería horizontal, la ecuación se simplifica y muestra que cuando la velocidad en un punto es mayor que en otro, la presión en ese punto será menor. En el caso opuesto, en fluidos estáticos donde la velocidad es nula, la ecuación se reduce a la relación hidrostática clásica que expresa que la presión aumenta con la profundidad.",
+      "paragraph9": "Pérdidas de carga y adiciones de energía: En los flujos reales existen fricción y bombas. En la hidráulica práctica, la ecuación de Bernoulli se amplía para incluir pérdidas de energía (pérdida de carga) y energía añadida (carga de bomba). La forma extendida de la ecuación es:",
+      "paragraph10": "En esta expresión, la pérdida de carga representa la energía disipada por fricción y la carga de bomba representa la energía añadida al sistema. Esta forma generalizada sigue expresando la conservación de la energía total, ya que las pérdidas se transforman en calor y el trabajo de las bombas añade energía mecánica. Con esta versión extendida, la ecuación de Bernoulli puede aplicarse a sistemas complejos de tuberías, tanto en serie como en paralelo, considerando siempre las ganancias y pérdidas de energía.",
+      "paragraph11": "Condiciones de validez: La ecuación de Bernoulli en su forma simple asume flujo estable, incompresible, sin viscosidad y a lo largo de una sola línea de corriente. También supone ausencia de trabajo mecánico de ejes o transferencia de calor en el fluido. Bajo estas condiciones, la energía mecánica se conserva. En fluidos reales, la turbulencia y la viscosidad disipan energía, y estos efectos deben incluirse como pérdidas de carga en la ecuación extendida. Además, la ecuación de Bernoulli se aplica a lo largo de líneas de corriente; diferentes líneas pueden tener distintas cargas totales, salvo que el flujo sea irrotacional.",
+      "paragraph12": "Flujo compresible y energía generalizada: Para flujos a alta velocidad o compresibles, debe considerarse la energía interna del fluido o entalpía. En esos casos, la ecuación de Bernoulli adopta una forma en la que interviene la entalpía específica, en lugar de la carga de presión. Por ejemplo, en un flujo estable, adiabático e inviscido, la suma de la entalpía, la energía cinética y la energía potencial gravitatoria permanece constante:",
+      "paragraph13": "Esta generalización se deriva de la primera ley de la termodinámica aplicada a un volumen de control. Sin embargo, para la mayoría de los flujos hidráulicos en ingeniería civil, donde el número de Mach es bajo, la versión incompresible resulta suficiente.",
+      "paragraph14": "Función de corriente y flujo potencial: La ecuación de Bernoulli también puede derivarse de las ecuaciones de Euler del movimiento de fluidos o de la ecuación de cantidad de movimiento a lo largo de una línea de corriente. En la teoría de flujo potencial, la ecuación se expresa como:",
+      "paragraph15": "donde el potencial de velocidad 𝜙 representa el campo de flujo. En el caso de flujo estable, esta forma se reduce a la ecuación clásica de Bernoulli.",
+      "paragraph16": "El principio de Bernoulli es fundamental en muchos análisis de ingeniería civil e hidráulica, aunque en la práctica se modifique para incluir pérdidas. El diseño de tuberías y redes de distribución de agua utiliza la ecuación de energía para calcular caídas de presión y requerimientos de bombeo. La línea piezométrica y la línea de energía en una red de tuberías son representaciones gráficas de las cargas definidas por la ecuación de Bernoulli.",
+      "paragraph17": "El análisis de sistemas de tuberías en serie o en paralelo se basa en igualar la carga total entre puntos y sumar las pérdidas de carga en cada tramo. Dispositivos como medidores Venturi, placas de orificio y tubos de Pitot, empleados para medir caudales, se fundamentan en esta relación: permiten inferir la velocidad o el caudal a partir de diferencias de presión.",
+      "paragraph18": "El principio de Bernoulli también se aplica en hidráulica de canales abiertos y en sistemas de bombeo con sifones, donde la conservación de energía gobierna el comportamiento del flujo. En todos estos casos, la ecuación teórica de Bernoulli proporciona el balance energético que los ingenieros utilizan para dimensionar tuberías, bombas y canales."
+    }
+  },
+  "reynoldsCalc": {
+    "title": "Número de Reynolds",
+    "calculator": "Calculadora",
+    "reynolds": "Reynolds",
+    "saveToHistory": "Guardar en historial",
+    "reynoldsNumber": "Número de Reynolds",
+    "flowParameters": "Parámetros de Flujo",
+    "fluidProperties": "Propiedades del Fluido",
+    "labels": {
+      "velocity": "Velocidad",
+      "dimension": "Dimensión Característica",
+      "density": "Densidad",
+      "dynamicViscosity": "Viscosidad Dinámica",
+      "kinematicViscosity": "Viscosidad Cinemática",
+      "presetFluids": "Fluidos predeterminados"
+    },
+    "toasts": {
+      "velocityDimensionRequired": "Velocidad y dimensión requeridas",
+      "fluidPropsRequired": "Se requieren al menos 2 propiedades del fluido",
+      "noResultsToCopy": "No hay resultados para copiar",
+      "copied": "Resultados copiados al portapapeles",
+      "nothingToSave": "No hay resultados para guardar",
+      "saved": "Cálculo guardado en el historial",
+      "saveError": "Error al guardar en el historial"
+    },
+    "regime": {
+      "laminar": "Laminar",
+      "transitional": "Transicional",
+      "turbulent": "Turbulento"
+    },
+    "fluids": {
+      "custom": "Personalizado",
+      "water_0C": "Agua (0 °C)",
+      "water_4C": "Agua (4 °C)",
+      "water_5C": "Agua (5 °C)",
+      "water_10C": "Agua (10 °C)",
+      "water_15C": "Agua (15 °C)",
+      "water_20C": "Agua (20 °C)",
+      "water_25C": "Agua (25 °C)",
+      "water_30C": "Agua (30 °C)",
+      "water_35C": "Agua (35 °C)",
+      "water_40C": "Agua (40 °C)",
+      "water_50C": "Agua (50 °C)",
+      "water_60C": "Agua (60 °C)",
+      "water_70C": "Agua (70 °C)",
+      "water_80C": "Agua (80 °C)",
+      "water_90C": "Agua (90 °C)",
+      "air_0C": "Aire (0 °C)",
+      "air_20C": "Aire (20 °C)",
+      "acetone_20C": "Acetona (20 °C)",
+      "ethanol_20C": "Etanol (20 °C)",
+      "glycerin_20C": "Glicerina (20 °C)",
+      "mercury_20C": "Mercurio (20 °C)",
+      "sae10_20C": "Aceite SAE 10 (20 °C)"
+    }
+  },
+  "colebrookCalc": {
+    "title": "Ecuación de Colebrook",
+    "calculator": "Calculadora",
+    "frictionFactor": "Factor de Fricción",
+    "saveToHistory": "Guardar en historial",
+    
+    "pipeCharacteristics": "Características de la Tubería",
+    "fluidCharacteristics": "Características del Fluido",
+
+    "labels": {
+      "material": "Material",
+      "roughness": "Rugosidad Absoluta (ε)",
+      "diameter": "Diámetro Interno (D)",
+      "relativeRoughness": "Rugosidad Relativa (ε/D)",
+      "reynolds": "Número de Reynolds (Re)",
+      "density": "Densidad (ρ)",
+      "velocity": "Velocidad (v)",
+      "dynamicViscosity": "Viscosidad Dinámica (μ)",
+      "reynoldsCalculated": "Reynolds Calculado"
+    },
+
+    "mode": {
+      "label": "Modo",
+      "simple": "Simple",
+      "advanced": "Avanzado"
+    },
+
+    "toasts": {
+      "reynoldsRequired": "Número de Reynolds requerido",
+      "roughnessRequired": "Datos de rugosidad requeridos",
+      "calculationError": "Error en el cálculo",
+      "noResultsToCopy": "No hay resultados para copiar",
+      "copied": "Resultados copiados al portapapeles",
+      "nothingToSave": "No hay resultados para guardar",
+      "saved": "Cálculo guardado en el historial",
+      "saveError": "Error al guardar en el historial"
+    },
+    "materials": {
+      "custom": "Personalizado",
+      "commercialSteel": "Acero comercial",
+      "castIron": "Hierro fundido",
+      "concrete": "Concreto",
+      "pvc": "PVC",
+      "copper": "Cobre",
+      "galvanizedSteel": "Acero galvanizado"
+    }
+  },
+
+  "mainMenu": {
+    "subtitleEssential": "Essential",
+    "subtitle1": "Mecanica de fluidos"
+  },
+  "theoryReynolds": {
+    "subtitle": "¿Qué es?",
+    "titles": {
+      "mainTitle": "Número de Reynolds"
+    }
+  }
 }

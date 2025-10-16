@@ -182,7 +182,7 @@ const ThemeInitialConfig = () => {
 
   useEffect(() => {
     if (initialLoad) return;
-    const animationTimers: NodeJS.Timeout[] = [];
+    const animationTimers: ReturnType<typeof setTimeout>[] = [];
     Object.keys(animatingItems).forEach(themeKey => {
       const item = animatingItems[themeKey];
       const label = getThemeLabel(themeKey);
@@ -354,7 +354,7 @@ const ThemeInitialConfig = () => {
 
         <View style={styles.languageContainer}>
           <Animated.Text style={[styles.languageText, { color: animatedTextColor }]}>
-            Selecciona el <Text style={styles.lovelaceText}>tema</Text> de la aplicación
+            Selecciona el <Text style={styles.lovelaceText}>TEMA</Text> de la aplicación
           </Animated.Text>
         </View>
 
@@ -437,18 +437,19 @@ const styles = StyleSheet.create({
   },
   languageContainer: {
     backgroundColor: 'transparent',
-    marginVertical: 30,
-    marginHorizontal: 20,
+    marginBottom: 30,
+    marginTop: 30,
+    marginHorizontal: 30,
   },
   languageText: {
     fontFamily: 'SFUIDisplay-Regular',
-    fontSize: 26,
+    fontSize: 20,
     textAlign: 'center',
     marginVertical: 0,
     lineHeight: 25,
   },
   lovelaceText: {
-    fontFamily: 'lovelace-italic',
+    fontFamily: 'Alliance No.2 Regular',
   },
   optionsContainer: {
     borderRadius: 24,
@@ -545,7 +546,7 @@ const styles = StyleSheet.create({
   },
   circularButtons: {
     backgroundColor: 'transparent',
-    marginHorizontal: 62,
+    marginHorizontal: '15%',
     marginTop: -4,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -553,7 +554,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 10,
+    gap: 15,
   },
   Buttons: {
     height: 53,

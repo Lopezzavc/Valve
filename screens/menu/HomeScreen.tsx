@@ -9,6 +9,8 @@ import { useTheme } from '../../contexts/ThemeContext';
 import MathView from 'react-native-math-view';
 import { LanguageContext } from '../../contexts/LanguageContext';
 import { FontSizeContext } from '../../contexts/FontSizeContext';
+import { useIsFocused } from '@react-navigation/native';
+import { calculatorsDef } from '../../src/data/calculators';
 
 type RootStackParamList = {
   InfoScreen: undefined;
@@ -22,6 +24,143 @@ type RootStackParamList = {
 const BAR_WIDTH = 4;
 const RIGHT_OFFSET = 7;
 const LEFT_TARGET = 7;
+
+type CalcCardProps = {
+  title: string;
+  desc: string;
+  math: string;
+  route: keyof RootStackParamList | string;
+  navigation: any;
+  themeColors: any;
+  fontSizeFactor: number;
+};
+
+const CalcCard: React.FC<CalcCardProps> = ({ title, desc, math, route, navigation, themeColors, fontSizeFactor }) => {
+  const [boxW, setBoxW] = useState(0);
+  const [open, setOpen] = useState(false);
+  const translateX = useRef(new Animated.Value(0)).current;
+  const animListenerIdRef = useRef<string | null>(null);
+  const hasNavigatedRef = useRef(false);
+
+  const isFocused = useIsFocused();
+
+  const barToLeftDelta = useMemo(() => {
+    if (boxW <= 0) return 0;
+    return LEFT_TARGET - (boxW - RIGHT_OFFSET - BAR_WIDTH);
+  }, [boxW]);
+
+  const contentW = useMemo(() => Math.max(0, boxW - 40), [boxW]);
+
+  const onLayoutInner = (e: LayoutChangeEvent) => {
+    setBoxW(e.nativeEvent.layout.width);
+  };
+
+  const removeAnimListener = () => {
+    if (animListenerIdRef.current) {
+      translateX.removeListener(animListenerIdRef.current);
+      animListenerIdRef.current = null;
+    }
+  };
+
+  const toggleCard = () => {
+    const toValue = open ? 0 : barToLeftDelta;
+    const isOpening = !open;
+
+    if (isOpening) {
+      hasNavigatedRef.current = false;
+      removeAnimListener();
+
+      const threshold = Math.abs(toValue) * 0.98;
+      animListenerIdRef.current = translateX.addListener(({ value }) => {
+        if (!hasNavigatedRef.current && Math.abs(value) >= Math.abs(threshold)) {
+          hasNavigatedRef.current = true;
+          removeAnimListener();
+          navigation.navigate(route as any);
+        }
+      });
+    } else {
+      removeAnimListener();
+      hasNavigatedRef.current = false;
+    }
+
+    Animated.spring(translateX, {
+      toValue,
+      useNativeDriver: true,
+      friction: 15,
+      tension: 30,
+    }).start();
+
+    setOpen(isOpening);
+  };
+
+  useEffect(() => {
+    return () => {
+      removeAnimListener();
+      translateX.stopAnimation?.(() => {
+        translateX.setValue(0);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isFocused) {
+      removeAnimListener();
+      hasNavigatedRef.current = false;
+
+      Animated.spring(translateX, {
+        toValue: 0,
+        useNativeDriver: true,
+        friction: 15,
+        tension: 30,
+      }).start();
+
+      setOpen(false);
+    }
+  }, [isFocused]);
+
+  return (
+    <View style={styles.buttonContainer}>
+      <View style={{ width: '100%', paddingHorizontal: 20 }}>
+        <Pressable
+          style={[
+            stylesRef.contentBox,
+            { experimental_backgroundImage: themeColors.gradient },
+          ]}
+          onPress={toggleCard}
+        >
+          <View
+            style={[
+              stylesRef.innerBox,
+              { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
+            ]}
+            onLayout={onLayoutInner}
+          >
+            <Animated.View style={[stylesRef.textsContainer, { transform: [{ translateX }] }]}>
+              <View>
+                <View style={stylesRef.titleContainerRef}>
+                  <Text style={[stylesRef.titleText, { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor }]}>{title}</Text>
+                </View>
+                <View style={stylesRef.descContainer}>
+                  <Text style={[stylesRef.subtitleText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>{desc}</Text>
+                </View>
+              </View>
+
+              {boxW > 0 && (
+                <View style={[stylesRef.helloPane, { left: -barToLeftDelta, width: contentW }]}>
+                  <View style={stylesRef.containerEq}>
+                    <MathView math={math} style={{ color: themeColors.text }} />
+                  </View>
+                </View>
+              )}
+            </Animated.View>
+
+            <Animated.View style={[stylesRef.verticalBar, { transform: [{ translateX }] }]} />
+          </View>
+        </Pressable>
+      </View>
+    </View>
+  );
+};
 
 const HomeScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -147,303 +286,41 @@ const HomeScreen = () => {
     }
   }, [currentText, phase]);
 
-  const [boxW, setBoxW] = useState(0);
-  const [open, setOpen] = useState(false);
-  const translateX = useRef(new Animated.Value(0)).current;
-
-  const animListenerIdRef = useRef<string | null>(null);
-  const hasNavigatedRef = useRef(false);
-
-  const barToLeftDelta = useMemo(() => {
-    if (boxW <= 0) return 0;
-    return LEFT_TARGET - (boxW - RIGHT_OFFSET - BAR_WIDTH);
-  }, [boxW]);
-
-  const contentW = useMemo(() => Math.max(0, boxW - 40), [boxW]);
-
-  const onLayoutInner = (e: LayoutChangeEvent) => {
-    setBoxW(e.nativeEvent.layout.width);
-  };
-
-  const removeAnimListener = () => {
-    if (animListenerIdRef.current) {
-      translateX.removeListener(animListenerIdRef.current);
-      animListenerIdRef.current = null;
-    }
-  };
-
-  const toggleCard = () => {
-    const toValue = open ? 0 : barToLeftDelta;
-    const isOpening = !open;
-
-    if (isOpening) {
-      startPreloadContinuidad
-      hasNavigatedRef.current = false;
-      removeAnimListener();
-
-      const threshold = Math.abs(toValue) * 0.98;
-      animListenerIdRef.current = translateX.addListener(({ value }) => {
-        if (!hasNavigatedRef.current && Math.abs(value) >= Math.abs(threshold)) {
-          hasNavigatedRef.current = true;
-          removeAnimListener();
-          navigation.navigate('ContinuidadCalc');
-        }
-      });
-    } else {
-      removeAnimListener();
-      hasNavigatedRef.current = false;
-    }
-
-    Animated.spring(translateX, {
-      toValue,
-      useNativeDriver: true,
-      friction: 15,
-      tension: 30,
-    }).start();
-
-    setOpen(isOpening);
-  };
-
-  const [boxW2, setBoxW2] = useState(0);
-  const [open2, setOpen2] = useState(false);
-  const translateX2 = useRef(new Animated.Value(0)).current;
-
-  const animListenerIdRef2 = useRef<string | null>(null);
-  const hasNavigatedRef2 = useRef(false);
-
-  const barToLeftDelta2 = useMemo(() => {
-    if (boxW2 <= 0) return 0;
-    return LEFT_TARGET - (boxW2 - RIGHT_OFFSET - BAR_WIDTH);
-  }, [boxW2]);
-
-  const contentW2 = useMemo(() => Math.max(0, boxW2 - 40), [boxW2]);
-
-  const onLayoutInner2 = (e: LayoutChangeEvent) => {
-    setBoxW2(e.nativeEvent.layout.width);
-  };
-
-  const removeAnimListener2 = () => {
-    if (animListenerIdRef2.current) {
-      translateX2.removeListener(animListenerIdRef2.current);
-      animListenerIdRef2.current = null;
-    }
-  };
-
-  const toggleCard2 = () => {
-    const toValue = open2 ? 0 : barToLeftDelta2;
-    const isOpening = !open2;
-
-    if (isOpening) {
-      hasNavigatedRef2.current = false;
-      removeAnimListener2();
-
-      const threshold = Math.abs(toValue) * 0.98;
-      animListenerIdRef2.current = translateX2.addListener(({ value }) => {
-        if (!hasNavigatedRef2.current && Math.abs(value) >= Math.abs(threshold)) {
-          hasNavigatedRef2.current = true;
-          removeAnimListener2();
-          navigation.navigate('BernoulliCalc');
-        }
-      });
-    } else {
-      removeAnimListener2();
-      hasNavigatedRef2.current = false;
-    }
-
-    Animated.spring(translateX2, {
-      toValue,
-      useNativeDriver: true,
-      friction: 15,
-      tension: 30,
-    }).start();
-
-    setOpen2(isOpening);
-  };
-
-  const [boxW3, setBoxW3] = useState(0);
-  const [open3, setOpen3] = useState(false);
-  const translateX3 = useRef(new Animated.Value(0)).current;
-
-  const animListenerIdRef3 = useRef<string | null>(null);
-  const hasNavigatedRef3 = useRef(false);
-
-  const barToLeftDelta3 = useMemo(() => {
-    if (boxW3 <= 0) return 0;
-    return LEFT_TARGET - (boxW3 - RIGHT_OFFSET - BAR_WIDTH);
-  }, [boxW3]);
-
-  const contentW3 = useMemo(() => Math.max(0, boxW3 - 40), [boxW3]);
-
-  const onLayoutInner3 = (e: LayoutChangeEvent) => {
-    setBoxW3(e.nativeEvent.layout.width);
-  };
-
-  const removeAnimListener3 = () => {
-    if (animListenerIdRef3.current) {
-      translateX3.removeListener(animListenerIdRef3.current);
-      animListenerIdRef3.current = null;
-    }
-  };
-
-  const toggleCard3 = () => {
-    const toValue = open3 ? 0 : barToLeftDelta3;
-    const isOpening = !open3;
-
-    if (isOpening) {
-      hasNavigatedRef3.current = false;
-      removeAnimListener3();
-
-      const threshold = Math.abs(toValue) * 0.98;
-      animListenerIdRef3.current = translateX3.addListener(({ value }) => {
-        if (!hasNavigatedRef3.current && Math.abs(value) >= Math.abs(threshold)) {
-          hasNavigatedRef3.current = true;
-          removeAnimListener3();
-          navigation.navigate('ReynoldsCalc');
-        }
-      });
-    } else {
-      removeAnimListener3();
-      hasNavigatedRef3.current = false;
-    }
-
-    Animated.spring(translateX3, {
-      toValue,
-      useNativeDriver: true,
-      friction: 15,
-      tension: 30,
-    }).start();
-
-    setOpen3(isOpening);
-  };
-
-  const [boxW4, setBoxW4] = useState(0);
-  const [open4, setOpen4] = useState(false);
-  const translateX4 = useRef(new Animated.Value(0)).current;
-
-  const animListenerIdRef4 = useRef<string | null>(null);
-  const hasNavigatedRef4 = useRef(false);
-
-  const barToLeftDelta4 = useMemo(() => {
-    if (boxW4 <= 0) return 0;
-    return LEFT_TARGET - (boxW4 - RIGHT_OFFSET - BAR_WIDTH);
-  }, [boxW4]);
-
-  const contentW4 = useMemo(() => Math.max(0, boxW4 - 40), [boxW4]);
-
-  const onLayoutInner4 = (e: LayoutChangeEvent) => {
-    setBoxW4(e.nativeEvent.layout.width);
-  };
-
-  const removeAnimListener4 = () => {
-    if (animListenerIdRef4.current) {
-      translateX4.removeListener(animListenerIdRef4.current);
-      animListenerIdRef4.current = null;
-    }
-  };
-
-  const toggleCard4 = () => {
-    const toValue = open4 ? 0 : barToLeftDelta4;
-    const isOpening = !open4;
-
-    if (isOpening) {
-      hasNavigatedRef4.current = false;
-      removeAnimListener4();
-
-      const threshold = Math.abs(toValue) * 0.98;
-      animListenerIdRef4.current = translateX4.addListener(({ value }) => {
-        if (!hasNavigatedRef4.current && Math.abs(value) >= Math.abs(threshold)) {
-          hasNavigatedRef4.current = true;
-          removeAnimListener4();
-          navigation.navigate('ColebrookCalc');
-        }
-      });
-    } else {
-      removeAnimListener4();
-      hasNavigatedRef4.current = false;
-    }
-
-    Animated.spring(translateX4, {
-      toValue,
-      useNativeDriver: true,
-      friction: 15,
-      tension: 30,
-    }).start();
-
-    setOpen4(isOpening);
-  };
-
-  const [focusKey, setFocusKey] = useState(0);
-  const [focusKey2, setFocusKey2] = useState(0);
-  const [focusKey3, setFocusKey3] = useState(0);
-  const [focusKey4, setFocusKey4] = useState(0);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (animListenerIdRef.current) {
-        translateX.removeListener(animListenerIdRef.current);
-        animListenerIdRef.current = null;
-      }
-      hasNavigatedRef.current = false;
-      setOpen(false);
-
-      translateX.stopAnimation?.(() => {
-        translateX.setValue(0);
-      });
-      setFocusKey((k) => k + 1);
-
-      if (animListenerIdRef2.current) {
-        translateX2.removeListener(animListenerIdRef2.current);
-        animListenerIdRef2.current = null;
-      }
-      hasNavigatedRef2.current = false;
-      setOpen2(false);
-      translateX2.stopAnimation?.(() => {
-        translateX2.setValue(0);
-      });
-      setFocusKey2((k) => k + 1);
-
-      if (animListenerIdRef3.current) {
-        translateX3.removeListener(animListenerIdRef3.current);
-        animListenerIdRef3.current = null;
-      }
-      hasNavigatedRef3.current = false;
-      setOpen3(false);
-      translateX3.stopAnimation?.(() => {
-        translateX3.setValue(0);
-      });
-      setFocusKey3((k) => k + 1);
-
-      if (animListenerIdRef4.current) {
-        translateX4.removeListener(animListenerIdRef4.current);
-        animListenerIdRef4.current = null;
-      }
-      hasNavigatedRef4.current = false;
-      setOpen4(false);
-      translateX4.stopAnimation?.(() => {
-        translateX4.setValue(0);
-      });
-      setFocusKey4((k) => k + 1);
-
-      return () => {
-
-      };
-    }, [translateX, translateX2, translateX3, translateX4])
-  );
+  const cards = useMemo(() =>
+    calculatorsDef.map(c => ({
+      key: c.id,
+      title: t(c.titleKey) ?? c.id,
+      desc: t(c.descKey) ?? '',
+      math: c.math ?? '',
+      route: c.route,
+    }))
+  , [t]);
 
   return (
     <View style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
       <View style={styles.headerContainer}>
         <View style={styles.valveTextPlaceholder}>
-          {currentText.length > 0 && (
-            <Text
-              style={[
-                styles.valveText,
-                { fontFamily: currentFont, color: themeColors.textStrong },
-              ]}
-            >
-              {currentText}
-            </Text>
-          )}
+          <View style={styles.logoAndTextContainer}>
+            <Image
+              source={
+                currentTheme === 'dark'
+                  ? require('../../assets/icon/iconwhite.webp')
+                  : require('../../assets/icon/iconblack.webp')
+              }
+              style={styles.headerIcon}
+              resizeMode="contain"
+            />
+            {currentText.length > 0 && (
+              <Text
+                style={[
+                  styles.valveText,
+                  { fontFamily: currentFont, color: themeColors.textStrong },
+                ]}
+              >
+                {currentText}
+              </Text>
+            )}
+          </View>
         </View>
         <View style={styles.rightIconsContainer}>
           <Pressable
@@ -512,286 +389,24 @@ const HomeScreen = () => {
             { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
           ]}
         >
-          <Text style={[styles.preCardEssential, { fontSize: 18 * fontSizeFactor }]}>{t('mainMenu.subtitleEssential')}</Text>
+          <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitleEssential')}</Text>
           <Text> - </Text>
-          <Text style={[styles.preCardMF, { fontSize: 18 * fontSizeFactor }]}>{t('mainMenu.subtitle1')}</Text>
+          <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle1')}</Text>
         </Text>
       </View>
 
-      <View style={styles.buttonContainer}>
-        <View style={{ width: '100%', paddingHorizontal: 20 }}>
-          <Pressable
-            style={[
-              stylesRef.contentBox,
-              { experimental_backgroundImage: themeColors.gradient },
-            ]}
-            onPress={toggleCard3}
-          >
-            <View
-              style={[
-                stylesRef.innerBox,
-                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
-              ]}
-              onLayout={onLayoutInner3}
-            >
-              <Animated.View
-                style={[stylesRef.textsContainer, { transform: [{ translateX: translateX3 }] }]}
-              >
-                <View>
-                  <View style={stylesRef.titleContainerRef}>
-                    <Text
-                      style={[
-                        stylesRef.titleText,
-                        { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardTitle3')}
-                    </Text>
-                  </View>
-                  <View style={stylesRef.descContainer}>
-                    <Text
-                      style={[
-                        stylesRef.subtitleText,
-                        { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardDesc3')}
-                    </Text>
-                  </View>
-                </View>
-
-                {boxW3 > 0 && (
-                  <View
-                    style={[
-                      stylesRef.helloPane,
-                      { left: -barToLeftDelta3, width: contentW3 },
-                    ]}
-                  >
-                    <View style={stylesRef.containerEq3}>
-                      <MathView
-                        math="Re = \frac{\rho v D}{\mu}"
-                        style={{ color: themeColors.text }}
-                      />
-                    </View>
-                  </View>
-                )}
-              </Animated.View>
-
-              <Animated.View
-                key={`bar3-${focusKey3}`}
-                style={[stylesRef.verticalBar, { transform: [{ translateX: translateX3 }] }]}
-              />
-            </View>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.SEPARATOR}></View>
-
-      <View style={styles.buttonContainer}>
-        <View style={{ width: '100%', paddingHorizontal: 20 }}>
-          <Pressable
-            style={[
-              stylesRef.contentBox,
-              { experimental_backgroundImage: themeColors.gradient },
-            ]}
-            onPress={toggleCard}
-          >
-            <View
-              style={[
-                stylesRef.innerBox,
-                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
-              ]}
-              onLayout={onLayoutInner}
-            >
-              <Animated.View
-                style={[stylesRef.textsContainer, { transform: [{ translateX }] }]}
-              >
-                <View>
-                  <View style={stylesRef.titleContainerRef}>
-                    <Text
-                      style={[
-                        stylesRef.titleText,
-                        { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardTitle1')}
-                    </Text>
-                  </View>
-                  <View style={stylesRef.descContainer}>
-                    <Text
-                      style={[
-                        stylesRef.subtitleText,
-                        { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardDesc1')}
-                    </Text>
-                  </View>
-                </View>
-
-                {boxW > 0 && (
-                  <View
-                    style={[
-                      stylesRef.helloPane,
-                      { left: -barToLeftDelta, width: contentW },
-                    ]}
-                  >
-                    <View style={stylesRef.containerEq}>
-                      <MathView math="A_{1} v_{1} = A_{2} v_{2}" style={{ color: themeColors.text }} />
-                    </View>
-                  </View>
-                )}
-              </Animated.View>
-
-              <Animated.View
-                key={`bar-${focusKey}`}
-                style={[stylesRef.verticalBar, { transform: [{ translateX }] }]}
-              />
-            </View>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <View style={{ width: '100%', paddingHorizontal: 20 }}>
-          <Pressable
-            style={[
-              stylesRef.contentBox,
-              { experimental_backgroundImage: themeColors.gradient },
-            ]}
-            onPress={toggleCard2}
-          >
-            <View
-              style={[
-                stylesRef.innerBox,
-                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
-              ]}
-              onLayout={onLayoutInner2}
-            >
-              <Animated.View
-                style={[stylesRef.textsContainer, { transform: [{ translateX: translateX2 }] }]}
-              >
-                <View>
-                  <View style={stylesRef.titleContainerRef}>
-                    <Text
-                      style={[
-                        stylesRef.titleText,
-                        { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardTitle2')}
-                    </Text>
-                  </View>
-                  <View style={stylesRef.descContainer}>
-                    <Text
-                      style={[
-                        stylesRef.subtitleText,
-                        { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardDesc2')}
-                    </Text>
-                  </View>
-                </View>
-
-                {boxW2 > 0 && (
-                  <View
-                    style={[
-                      stylesRef.helloPane,
-                      { left: -barToLeftDelta2, width: contentW2 },
-                    ]}
-                  >
-                    <View style={stylesRef.containerEq2}>
-                      <MathView
-                        math="P + \frac{1}{2}\rho v^{2} + \rho g h = \text{cte}"
-                        style={{ color: themeColors.text }}
-                      />
-                    </View>
-                  </View>
-                )}
-              </Animated.View>
-
-              <Animated.View
-                key={`bar2-${focusKey2}`}
-                style={[stylesRef.verticalBar, { transform: [{ translateX: translateX2 }] }]}
-              />
-            </View>
-          </Pressable>
-        </View>
-      </View>
-
-      
-
-      
-
-      <View style={styles.buttonContainer}>
-        <View style={{ width: '100%', paddingHorizontal: 20 }}>
-          <Pressable
-            style={[
-              stylesRef.contentBox,
-              { experimental_backgroundImage: themeColors.gradient },
-            ]}
-            onPress={toggleCard4}
-          >
-            <View
-              style={[
-                stylesRef.innerBox,
-                { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient },
-              ]}
-              onLayout={onLayoutInner4}
-            >
-              <Animated.View
-                style={[stylesRef.textsContainer, { transform: [{ translateX: translateX4 }] }]}
-              >
-                <View>
-                  <View style={stylesRef.titleContainerRef}>
-                    <Text
-                      style={[
-                        stylesRef.titleText,
-                        { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardTitle4')}
-                    </Text>
-                  </View>
-                  <View style={stylesRef.descContainer}>
-                    <Text
-                      style={[
-                        stylesRef.subtitleText,
-                        { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor },
-                      ]}
-                    >
-                      {t('calc.cardDesc4')}
-                    </Text>
-                  </View>
-                </View>
-
-                {boxW4 > 0 && (
-                  <View
-                    style={[
-                      stylesRef.helloPane,
-                      { left: -barToLeftDelta4, width: contentW4 },
-                    ]}
-                  >
-                    <View style={stylesRef.containerEq4}>
-                      <MathView
-                        math={`\\frac{1}{\\sqrt{f}} = -2\\log_{10}\\!\\left(\\frac{\\varepsilon/D}{3.7} + \\frac{2.51}{Re\\,\\sqrt{f}}\\right)`}
-                        style={{ color: themeColors.text }}
-                      />
-                    </View>
-                  </View>
-                )}
-              </Animated.View>
-
-              <Animated.View
-                key={`bar4-${focusKey4}`}
-                style={[stylesRef.verticalBar, { transform: [{ translateX: translateX4 }] }]}
-              />
-            </View>
-          </Pressable>
-        </View>
-      </View>
+      {cards.map(card => (
+        <CalcCard
+          key={card.key}
+          title={card.title}
+          desc={card.desc}
+          math={card.math}
+          route={card.route}
+          navigation={navigation}
+          themeColors={themeColors}
+          fontSizeFactor={fontSizeFactor}
+        />
+      ))}
     </View>
   );
 };
@@ -803,7 +418,18 @@ const styles = StyleSheet.create({
   },
   SEPARATOR: {
     width: '100%',
-    height: 50, // SEPARADOR ENTRE CALCULADORAS
+    height: 50,
+  },
+  logoAndTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  headerIcon: {
+    width: 30,
+    height: 30,
+    marginRight: 8,
+    borderRadius: 6,
   },
   preCardSubtitleWrap: {
     backgroundColor: 'transparent',
@@ -914,7 +540,7 @@ const styles = StyleSheet.create({
   },
   titlesContainerCalc: {
     backgroundColor: 'transparent',
-    marginTop: 10, // NO SE SI DEJARLO EN 10 PERO SE PIERDE LA COHERENCIA CON EL RESTO DE PANTALLAS, O DEJARLO EN 0 PERO SE VE RARO
+    marginTop: 10, // NO SE SI DEJARLO EN 10 PERO SE PIERDE LA COHERENCIA CON EL RESTO DE PANTALLAS, O DEJARLO EN 0 PERO SE VE FEO
     paddingHorizontal: 20,
   },
   subtitleCalc: {
@@ -925,9 +551,9 @@ const styles = StyleSheet.create({
   titleCalc: {
     color: 'rgb(0, 0, 0)',
     fontSize: 30,
-    fontFamily: 'lovelace-medium-italic',
-    marginTop: -45,
-    marginBottom: -45,
+    fontFamily: 'Alliance No.2 Medium',
+    marginTop: -8,
+    marginBottom: -5,
   },
   container: {
     flex: 1,
@@ -945,6 +571,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
+
 const stylesRef = StyleSheet.create({
   contentBox: {
     minHeight: 90,
@@ -1006,35 +633,9 @@ const stylesRef = StyleSheet.create({
   },
   containerEq: {
     backgroundColor: 'transparent',
-    width: '80%',
-    height: '90%',
+    width: '100%',
     justifyContent: 'center',
     alignContent: 'center',
-    paddingHorizontal: 60,
-  },
-  containerEq2: {
-    backgroundColor: 'transparent',
-    width: '80%',
-    height: '90%',
-    justifyContent: 'center',
-    alignContent: 'center',
-    paddingHorizontal: 10,
-  },
-  containerEq3: {
-    backgroundColor: 'transparent',
-    width: '80%',
-    height: '90%',
-    justifyContent: 'center',
-    alignContent: 'center',
-    paddingHorizontal: 0,
-  },
-  containerEq4: {
-    backgroundColor: 'transparent',
-    width: '90%',
-    height: '90%',
-    justifyContent: 'center',
-    alignContent: 'center',
-    paddingHorizontal: 0,
   },
 });
 

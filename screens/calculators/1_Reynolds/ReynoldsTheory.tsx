@@ -9,29 +9,39 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 
 const REFERENCES: Array<{ title: string; author: string; year: string; url: string }> = [
   {
-    title: 'An Experimental Investigation of the Circumstances which Determine whether the Motion of Water shall be Direct or Sinuous',
-    author: 'Osborne Reynolds',
-    year: '1883',
-    url: 'https://royalsocietypublishing.org/doi/10.1098/rstl.1883.0029',
+    title: 'Osborne Reynolds: scientist, engineer and pioneer',
+    author: 'J. D. Jackson',
+    year: '1995',
+    url: 'https://doi.org/10.1098/rspa.1995.0117',
   },
   {
-    title: 'Reynolds Number',
-    author: 'NASA',
-    year: '2021',
-    url: 'https://www.grc.nasa.gov/www/k-12/airplane/reynolds.html',
+    title: 'Note on the History of the Reynolds Number',
+    author: 'N. Rott',
+    year: '1990',
+    url: 'https://www.annualreviews.org/content/journals/10.1146/annurev.fl.22.010190.000245',
   },
   {
-    title: 'Fluid Mechanics Fundamentals and Applications',
-    author: 'Yunus A. Çengel & John M. Cimbala',
+    title: 'Non-dimensionalization of the Navier–Stokes Equation',
+    author: 'Penn State ME320',
+    year: 'ND',
+    url: 'https://www.me.psu.edu/cimbala/me320web_Fall_2012/pdf/Nondimensionalization_of_NS_equation.pdf?utm_source=chatgpt.com',
+  },
+  {
+    title: 'On Reynolds Number Physical Interpretation',
+    author: 'Václav Uruba',
     year: '2018',
-    url: 'https://www.example.com',
+    url: 'https://scispace.com/pdf/on-reynolds-number-physical-interpretation-3sgje7gdg5.pdf?utm_source=chatgpt.com',
   },
 ];
 
-// Ecuaciones de ejemplo - Reemplaza con las ecuaciones que necesites
-const EQ_REYNOLDS = String.raw`Re = \frac{\rho v L}{\mu} = \frac{v L}{\nu}`;
-const EQ_EXAMPLE2 = String.raw`\frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} = -\frac{1}{\rho}\frac{\partial p}{\partial x} + \nu \frac{\partial^2 u}{\partial x^2}`;
-const EQ_EXAMPLE3 = String.raw`Re_c \approx 2300`;
+const EQ_RE = String.raw`Re = \frac{\rho \, v \, D}{\mu}`;
+const EQ_RE2 = String.raw`Re = \frac{v \, D}{\nu}`;
+const EQ_3 = String.raw`\rho \left( \frac{\partial \mathbf{v}}{\partial t} + \mathbf{v} \cdot \nabla \mathbf{v} \right) = -\nabla p + \mu \nabla^2 \mathbf{v} + \rho \mathbf{g}`;
+const EQ_4 = String.raw`\mathbf{v}^* = \frac{\mathbf{v}}{V_0}, \quad x^* = \frac{x}{L}, \quad t^* = \frac{t V_0}{L}, \quad p^* = \frac{p}{\rho V_0^2}`;
+const EQ_5 = String.raw`\frac{\partial \mathbf{v}^*}{\partial t^*} + \mathbf{v}^* \cdot \nabla^* \mathbf{v}^* = -\nabla^* p^* + \frac{1}{Re} \nabla^{*2} \mathbf{v}^*`;
+const EQ_6 = String.raw`Re = \frac{\rho V_0 L}{\mu}`;
+const EQ_7 = String.raw`D_h = \frac{4A}{P}`;
+const EQ_8 = String.raw`Re = \frac{\rho \, v \, D_h}{\mu}`;
 
 type EquationProps = { math: string; containerStyle: any; ready: boolean; textColor: string };
 const Equation = memo(({ math, containerStyle, ready, textColor }: EquationProps) => {
@@ -160,56 +170,124 @@ const ReynoldsTheory = () => {
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryReynolds.paragraphs.paragraph1')}
         </Text>
-
-        {/* Ecuación 1 */}
         <Equation 
-          math={EQ_REYNOLDS} 
+          math={EQ_RE} 
           containerStyle={styles.containerEquation} 
           ready={equationsReady} 
           textColor={themeColors.text}
         />
 
-        {/* Más párrafos */}
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryReynolds.paragraphs.paragraph2')}
         </Text>
+        <Equation 
+          math={EQ_RE2} 
+          containerStyle={styles.containerEquation} 
+          ready={equationsReady} 
+          textColor={themeColors.text}
+        />
 
-        {/* Subtítulo 1 */}
-        <Text style={[styles.titleInsideText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('theoryReynolds.titles.title1')}
-        </Text>
-        
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryReynolds.paragraphs.paragraph3')}
         </Text>
 
+        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.title2')}
+        </Text>
+
+        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+          {t('theoryReynolds.paragraphs.paragraph4')}
+        </Text>
         <Equation 
-          math={EQ_EXAMPLE2} 
+          math={EQ_3} 
           containerStyle={styles.containerEquation} 
           ready={equationsReady} 
           textColor={themeColors.text}
         />
 
-        {/* Subtítulo 2 */}
-        <Text style={[styles.titleInsideText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('theoryReynolds.titles.title2')}
-        </Text>
-        
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph4')}
+          {t('theoryReynolds.paragraphs.paragraph5')}
         </Text>
-
         <Equation 
-          math={EQ_EXAMPLE3} 
-          containerStyle={styles.containerEquationShorter} 
+          math={EQ_4} 
+          containerStyle={styles.containerEquation} 
           ready={equationsReady} 
           textColor={themeColors.text}
         />
 
-        {/* Más contenido según necesites */}
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph5')}
+          {t('theoryReynolds.paragraphs.paragraph6')}
         </Text>
+        <Equation 
+          math={EQ_5} 
+          containerStyle={styles.containerEquation} 
+          ready={equationsReady} 
+          textColor={themeColors.text}
+        />
+        
+        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+          {t('theoryReynolds.paragraphs.paragraph7')}
+        </Text>
+        <Equation 
+          math={EQ_6} 
+          containerStyle={styles.containerEquation} 
+          ready={equationsReady} 
+          textColor={themeColors.text}
+        />
+
+        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+          {t('theoryReynolds.paragraphs.paragraph8')}
+        </Text>
+
+        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.title3')}
+        </Text>
+
+        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+          {t('theoryReynolds.paragraphs.paragraph9')}
+        </Text>
+
+        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.title4')}
+        </Text>
+
+        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+          {t('theoryReynolds.paragraphs.paragraph10')}
+        </Text>
+        <Equation 
+          math={EQ_7} 
+          containerStyle={styles.containerEquation} 
+          ready={equationsReady} 
+          textColor={themeColors.text}
+        />
+
+        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+          {t('theoryReynolds.paragraphs.paragraph11')}
+        </Text>
+        <Equation 
+          math={EQ_8} 
+          containerStyle={styles.containerEquation} 
+          ready={equationsReady} 
+          textColor={themeColors.text}
+        />
+
+        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+          {t('theoryReynolds.paragraphs.paragraph12')}
+        </Text>
+
+        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.title5')}
+        </Text>
+
+        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+          {t('theoryReynolds.paragraphs.paragraph13')}
+        </Text>
+
+
+
+
+
+
 
         {/* Título de Referencias */}
         <Text style={[styles.titleReferencesText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
@@ -331,27 +409,8 @@ const styles = StyleSheet.create({
   },
   containerEquation: {
     backgroundColor: 'transparent',
-    paddingVertical: 30,
     paddingHorizontal: '0%',
-    marginBottom: -20,
-  },
-  containerEquationShorter: {
-    backgroundColor: 'transparent',
-    paddingVertical: 30,
-    paddingHorizontal: '35%',
-    marginBottom: -20,
-  },
-  containerEquationShorterbutnotsoshorter: {
-    backgroundColor: 'transparent',
-    paddingVertical: 30,
-    paddingHorizontal: '25%',
-    marginBottom: -20,
-  },
-  containerEquationShorterbutnotsoshorter2: {
-    backgroundColor: 'transparent',
-    paddingVertical: 30,
-    paddingHorizontal: '30%',
-    marginBottom: -20,
+    marginTop: 20,
   },
   spacer: {
     height: 100,
