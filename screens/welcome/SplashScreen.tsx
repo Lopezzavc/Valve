@@ -106,7 +106,7 @@ const SplashScreen = () => {
         <View style={styles.overlay} />
         <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
           <Text style={styles.title}>VALVE</Text>
-          <Text style={styles.subtitle}>Alpha 1.1.9.0 [Build 60]</Text>
+          <Text style={styles.subtitle}>Alpha 1.1.9.05 [Build 61]</Text>
         </Animated.View>
       </View>
     </View>

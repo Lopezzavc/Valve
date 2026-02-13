@@ -42,7 +42,7 @@ const InfoScreen = () => {
           </View>
         </View>
         <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Alpha 1.1.9.0 [Build 60]</Text>
+          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Alpha 1.1.9.05 [Build 61]</Text>
         </View>
         <View style={{ height: 150 }} />
       </ScrollView>
@@ -62,13 +62,6 @@ const InfoScreen = () => {
           Andrés Felipe López <Text style={styles.boldText}>App Developer</Text>
         </Text>
         <View style={styles.separation}/>
-
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
-          Jesus Manuel Aray <Text style={styles.boldText}> Beta Tester</Text>
-        </Text>
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
-          Erik Steven Polanía <Text style={styles.boldText}> Beta Tester</Text>
-        </Text>
       </View>
     </View>
   );
