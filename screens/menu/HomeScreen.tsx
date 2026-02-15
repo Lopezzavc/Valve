@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SFUIDisplay-Bold',
   },
   titleCalc: {
-    color: 'rgb(0, 0, 0)',
+    color: 'rgb(49, 32, 32)',
     fontSize: 30,
     fontFamily: 'Alliance No.2 Medium',
     marginTop: -8,

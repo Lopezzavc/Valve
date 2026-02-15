@@ -36,10 +36,6 @@ import InfoScreen from './screens/menu/info/InfoScreen';
 import SearchScreen from './screens/menu/search/SearchScreen';
 
 // DE MOMENTO ESTO NO
-import ContinuidadCalc from './screens/calculators/3_Continuidad/ContinuidadCalc';
-import OptionsScreen from './screens/calculators/3_Continuidad/OptionsScreen';
-import HistoryScreenContinuidad from './screens/calculators/3_Continuidad/HistoryScreenContinuidad';
-import ContinuidadTheory from './screens/calculators/3_Continuidad/ContinuidadTheory'
 
 import BernoulliCalc from './screens/calculators/Bernoulli/BernoulliCalc';
 import OptionsScreenBernoulli from './screens/calculators/Bernoulli/OptionsScreenBernoulli';
@@ -56,6 +52,16 @@ import ReynoldsTheory from './screens/calculators/1_Reynolds/ReynoldsTheory';
 import FroudeCalc from './screens/calculators/2_Froude/FroudeCalc';
 import OptionsScreenFroude from './screens/calculators/2_Froude/OptionsScreenFroude';
 import HistoryScreenFroude from './screens/calculators/2_Froude/HistoryScreenFroude';
+
+// 3_CONTINUIDAD
+import ContinuidadCalc from './screens/calculators/3_Continuidad/ContinuidadCalc';
+import OptionsScreen from './screens/calculators/3_Continuidad/OptionsScreen';
+import HistoryScreenContinuidad from './screens/calculators/3_Continuidad/HistoryScreenContinuidad';
+import ContinuidadTheory from './screens/calculators/3_Continuidad/ContinuidadTheory'
+
+// 4_ENERGIA BERNOULLI
+import EnergiaBernoulliCalc from './screens/calculators/4_EnergiaBernoulli/EnergiaBernoulliCalc';
+import OptionsScreenEnergiaBernoulli from './screens/calculators/4_EnergiaBernoulli/OptionsScreenEnergiaBernoulli';
 
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
@@ -98,6 +104,8 @@ export type RootStackParamList = {
   FroudeCalc: undefined;
   OptionsScreenFroude: undefined;
   HistoryScreenFroude: undefined;
+  EnergiaBernoulliCalc: undefined;
+  OptionsScreenEnergiaBernoulli: undefined;
 };
 
 export type RootTabParamList = {
@@ -415,8 +423,24 @@ const App = () => {
                       }}
                     />
                     <Stack.Screen
+                      name="EnergiaBernoulliCalc"
+                      component={EnergiaBernoulliCalc}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                      }}
+                    />
+                    <Stack.Screen
                       name="OptionsScreen"
                       component={OptionsScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="OptionsScreenEnergiaBernoulli"
+                      component={OptionsScreenEnergiaBernoulli}
                       options={{
                         headerShown: false,
                         cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,

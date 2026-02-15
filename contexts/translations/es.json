@@ -325,10 +325,8 @@
     "calculator": "Calculadora",
     "frictionFactor": "Factor de Fricción",
     "saveToHistory": "Guardar en historial",
-    
     "pipeCharacteristics": "Características de la Tubería",
     "fluidCharacteristics": "Características del Fluido",
-
     "labels": {
       "material": "Material",
       "roughness": "Rugosidad Absoluta (ε)",
@@ -340,13 +338,11 @@
       "dynamicViscosity": "Viscosidad Dinámica (μ)",
       "reynoldsCalculated": "Reynolds Calculado"
     },
-
     "mode": {
       "label": "Modo",
       "simple": "Simple",
       "advanced": "Avanzado"
     },
-
     "toasts": {
       "reynoldsRequired": "Número de Reynolds requerido",
       "roughnessRequired": "Datos de rugosidad requeridos",
@@ -367,7 +363,6 @@
       "galvanizedSteel": "Acero galvanizado"
     }
   },
-
   "mainMenu": {
     "subtitleEssential": "Essential",
     "subtitle1": "Mecánica de fluidos"
@@ -430,6 +425,71 @@
       "nothingToSave": "No hay resultados para guardar",
       "saved": "Cálculo guardado en el historial",
       "saveError": "Error al guardar en el historial"
+    }
+  },
+  "EnergiaBernoulliCalc": {
+    "cardTitle1": "Energía y Bernoulli",
+    "cardDesc1": "Resuelve la ecuación general de energía, incluyendo el caso ideal, pérdidas de carga y cavitación."
+  },
+  "energiaBernoulliCalc": {
+    "title": "Energía / Bernoulli",
+    "calculator": "Calculadora",
+    "mode": {
+      "ideal": "Bernoulli",
+      "losses": "W/ pérdidas",
+      "cavitation": "Cavitación"
+    },
+    "section1": "Sección 1",
+    "section2": "Sección 2",
+    "suctionSection": "Sección de Succión",
+    "fluidProps": "Propiedades del Fluido",
+    "pumpTurbine": "Bomba/Turbina",
+    "losses": "Pérdidas",
+    "cavitationParams": "Parámetros de Cavitación",
+    "energyDifference": "Diferencia de Energía",
+    "cavitationMargin": "Margen de Cavitación",
+    "npsha": "NPSH disponible",
+    "pabs": "Presión Absoluta",
+    "result": "Resultado",
+    "saveToHistory": "Guardar en historial",
+    "lossInputType": "Tipo de pérdida",
+    "direct": "Pérdida directa (hL)",
+    "darcy": "Ecuación de Darcy",
+    "labels": {
+      "P1": "Presión (P₁)",
+      "P2": "Presión (P₂)",
+      "P1_suction": "Presión en succión (P₁)",
+      "z1": "Elevación (z₁)",
+      "z2": "Elevación (z₂)",
+      "z_suction": "Elevación en succión (z₁)",
+      "V1": "Velocidad (V₁)",
+      "V2": "Velocidad (V₂)",
+      "V_suction": "Velocidad en succión (V₁)",
+      "gamma": "Peso específico (γ)",
+      "g": "Gravedad (g)",
+      "alpha1": "Coeficiente de Coriolis (α₁)",
+      "alpha2": "Coeficiente de Coriolis (α₂)",
+      "hb": "Altura de bomba (hB)",
+      "ht": "Altura de turbina (hT)",
+      "hL": "Pérdida de carga (hL)",
+      "hL_suction": "Pérdida en succión (hL)",
+      "L": "Longitud de tubería (L)",
+      "D1": "Diámetro (D₁)",
+      "f": "Factor de fricción (f)",
+      "K": "Coeficiente de pérdidas (K)",
+      "temperatura": "Temperatura (T)",
+      "Pv": "Presión de vapor (Pv)",
+      "Velocity": "Velocidad",
+      "Pressure": "Presión",
+      "Density": "Densidad",
+      "Acceleration": "Aceleración",
+      "Temperature": "Temperatura"
+    },
+    "toasts": {
+      "copied": "Resultados copiados al portapapeles",
+      "nothingToSave": "No hay resultados para guardar",
+      "saved": "Cálculo guardado en historial",
+      "saveError": "Error al guardar en historial"
     }
   }
 }
