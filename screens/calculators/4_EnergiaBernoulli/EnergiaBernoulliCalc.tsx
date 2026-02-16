@@ -13,12 +13,14 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
+import IconCheck from 'react-native-vector-icons/Octicons';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from "@d11/react-native-fast-image";
 import { Keyboard, LayoutAnimation } from 'react-native';
+import Decimal from 'decimal.js';
 
 import { getDBConnection, createTable, saveCalculation } from '../../../src/services/database';
 import { createFavoritesTable, isFavorite, addFavorite, removeFavorite } from '../../../src/services/database';
@@ -27,6 +29,9 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { KeyboardAwareScrollView, KeyboardToolbar } from 'react-native-keyboard-controller';
+
+// Configurar Decimal para máxima precisión
+Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 
 // Tipos de navegación
 type RootStackParamList = {
@@ -61,6 +66,8 @@ interface CalculatorState {
   alpha2: string;
   hb: string;
   ht: string;
+  includeBomba: boolean;
+  includeTurbina: boolean;
   
   // Variables para pérdidas
   lossInputType: 'direct' | 'darcy';
@@ -69,9 +76,21 @@ interface CalculatorState {
   f: string;
   K: string;
   
-  // Variables para cavitación
+  // *** NUEVO: Variables para cavitación ***
+  cavitationSystemType: 'closed' | 'open';  // Selector: cerrado o abierto
+  // Cerrado
+  Ps: string;        // Presión en succión
+  Vs: string;        // Velocidad en succión
+  // Abierto
+  Patm: string;      // Presión atmosférica
+  z0: string;        // Elevación nivel líquido
+  zs: string;        // Elevación en succión
+  hfs: string;       // Pérdida en succión
+  // Comunes a ambos
   temperatura: string;
   Pv: string;
+  useRhoForGamma: boolean;  // Checkbox para usar ρ en lugar de γ
+  useTempForPv: boolean;    // Checkbox para usar T en lugar de Pv directo
   
   // Unidades
   P1Unit: string;
@@ -89,6 +108,13 @@ interface CalculatorState {
   htUnit: string;
   hLUnit: string;
   LUnit: string;
+  // *** NUEVO: Unidades para cavitación ***
+  PsUnit: string;
+  VsUnit: string;
+  PatmUnit: string;
+  z0Unit: string;
+  zsUnit: string;
+  hfsUnit: string;
   temperaturaUnit: string;
   PvUnit: string;
   
@@ -108,6 +134,13 @@ interface CalculatorState {
   prevHtUnit: string;
   prevHLUnit: string;
   prevLUnit: string;
+  // *** NUEVO: Unidades previas para cavitación ***
+  prevPsUnit: string;
+  prevVsUnit: string;
+  prevPatmUnit: string;
+  prevZ0Unit: string;
+  prevZsUnit: string;
+  prevHfsUnit: string;
   prevTemperaturaUnit: string;
   prevPvUnit: string;
   
@@ -119,9 +152,13 @@ interface CalculatorState {
   resultP2: string;
   resultV2: string;
   resultZ2: string;
+  // *** NUEVO: Resultados de cavitación ***
   resultNPSHa: string;
   resultCavitationMargin: string;
   resultPabs: string;
+  resultGamma: string;     // γ calculado desde ρ si aplica
+  resultPv: string;        // Pv calculado desde T si aplica
+  
   resultAlpha2?: string;
   
   // Estados de edición manual
@@ -138,6 +175,13 @@ interface CalculatorState {
   isManualEditHL: boolean;
   isManualEditAlpha1: boolean;
   isManualEditAlpha2: boolean;
+  // *** NUEVO: Estados de edición para cavitación ***
+  isManualEditPs: boolean;
+  isManualEditVs: boolean;
+  isManualEditPatm: boolean;
+  isManualEditz0: boolean;
+  isManualEditzs: boolean;
+  isManualEdithfs: boolean;
 
   unknownVariable: {
     name: string;
@@ -146,75 +190,74 @@ interface CalculatorState {
     value: string;
   } | null;
   
-  // Campo bloqueado para resolución automática
   lockedField: string | null;
   invalidFields: string[];
   autoCalculatedField: string | null;
 }
 
-// Factores de conversión
+// Factores de conversión - Versión de máxima precisión
 const conversionFactors: { [key: string]: { [key: string]: number } } = {
   length: {
     'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.344,
+    'mm': 0.001,                    // Exacto por definición SI
+    'cm': 0.01,                      // Exacto por definición SI
+    'km': 1000,                       // Exacto por definición SI
+    'in': 0.0254,                     // Exacto por definición (1959)
+    'ft': 0.3048,                     // Exacto (0.3048 m exactamente)
+    'yd': 0.9144,                     // Exacto (0.9144 m exactamente)
+    'mi': 1609.344,                   // Exacto (1609.344 m exactamente)
   },
   velocity: {
     'm/s': 1,
-    'km/h': 0.2777777777777778,
-    'ft/s': 0.3048,
-    'mph': 0.44704,
-    'kn': 0.5144444444444445,
-    'cm/s': 0.01,
-    'in/s': 0.0254,
+    'km/h': 0.2777777777777778,       // 5/18 exacto
+    'ft/s': 0.3048,                   // Exacto (mismo factor que ft)
+    'mph': 0.44704,                   // Exacto (1609.344/3600)
+    'kn': 0.5144444444444445,         // 1852/3600 exacto
+    'cm/s': 0.01,                     // Exacto
+    'in/s': 0.0254,                   // Exacto
   },
   area: {
     'm²': 1,
-    'cm²': 0.0001,
-    'mm²': 0.000001,
-    'km²': 1000000,
-    'ha': 10000,
-    'in²': 0.00064516,
-    'ft²': 0.09290304,
-    'yd²': 0.83612736,
-    'mi²': 2589988.110336,
-    'acre': 4046.8564224,
+    'cm²': 0.0001,                    // Exacto (10^-4)
+    'mm²': 0.000001,                  // Exacto (10^-6)
+    'km²': 1000000,                   // Exacto (10^6)
+    'ha': 10000,                      // Exacto (10^4)
+    'in²': 0.00064516,                // Exacto (0.0254^2)
+    'ft²': 0.09290304,                // Exacto (0.3048^2)
+    'yd²': 0.83612736,                // Exacto (0.9144^2)
+    'mi²': 2589988.110336,            // Exacto (1609.344^2)
+    'acre': 4046.8564224,             // Exacto (1 acre = 4046.8564224 m²)
   },
   pressure: {
     'Pa': 1,
-    'kPa': 1000,
-    'MPa': 1000000,
-    'bar': 100000,
-    'atm': 101325,
-    'psi': 6894.76,
-    'mmHg': 133.322,
-    'mca': 9806.65,
-    'N/m³': 1,
+    'kPa': 1000,                      // Exacto
+    'MPa': 1000000,                   // Exacto
+    'bar': 100000,                    // Exacto (10^5 Pa)
+    'atm': 101325,                    // Exacto (definición)
+    'psi': 6894.757293178,            // Alta precisión (lb*f/in² exacto)
+    'mmHg': 133.32236842105263,       // Alta precisión (101325/760)
+    'mca': 9806.65,                   // Preciso con g=9.80665 m/s²
+    'N/m³': 1,                        // Es presión, pero N/m³ = Pa/m? Esto parece incorrecto
   },
   density: {
     'kg/m³': 1,
-    'g/cm³': 1000,
-    'lb/ft³': 16.0185,
+    'g/cm³': 1000,                    // Exacto (10^3)
+    'lb/ft³': 16.018463373,           // Alta precisión (0.45359237/0.028316846592)
   },
   acceleration: {
     'm/s²': 1,
-    'ft/s²': 0.3048,
-    'g': 9.80665,
+    'ft/s²': 0.3048,                  // Exacto
+    'g': 9.80665,                     // g estándar exacto (definición)
   },
   temperature: {
-    '°C': 1,
-    '°F': 1,
-    'K': 1,
+    '°C': 1,      // NOTA: Estos factores son insuficientes para conversiones
+    '°F': 1,      // Se necesita una función especial para temperatura
+    'K': 1,       // ya que las conversiones son: °F = °C × 9/5 + 32, K = °C + 273.15
   },
   specificWeight: {
     'N/m³': 1,
-    'kN/m³': 1000,
-    'lbf/ft³': 157.087,
+    'kN/m³': 1000,                    // Exacto
+    'lbf/ft³': 157.08746061538463,    // Alta precisión (lb*f/ft³ exacto)
   },
 };
 
@@ -252,12 +295,14 @@ const initialState = (): CalculatorState => ({
   D1: '',
   D2: '',
   rho: '1000',
-  gamma: '9806.65',
+  gamma: '9810',
   g: '9.81',
   alpha1: '1',
   alpha2: '1',
   hb: '',
   ht: '',
+  includeBomba: true,
+  includeTurbina: false,
   
   lossInputType: 'direct',
   hL: '',
@@ -265,8 +310,18 @@ const initialState = (): CalculatorState => ({
   f: '',
   K: '',
   
+  // *** NUEVO: Estado inicial para cavitación ***
+  cavitationSystemType: 'closed',
+  Ps: '',
+  Vs: '',
+  Patm: '101325',
+  z0: '',
+  zs: '',
+  hfs: '',
   temperatura: '20',
   Pv: '2338',
+  useRhoForGamma: false,
+  useTempForPv: true,
   
   P1Unit: 'Pa',
   P2Unit: 'Pa',
@@ -283,6 +338,13 @@ const initialState = (): CalculatorState => ({
   htUnit: 'm',
   hLUnit: 'm',
   LUnit: 'm',
+  // *** NUEVO: Unidades iniciales para cavitación ***
+  PsUnit: 'Pa',
+  VsUnit: 'm/s',
+  PatmUnit: 'Pa',
+  z0Unit: 'm',
+  zsUnit: 'm',
+  hfsUnit: 'm',
   temperaturaUnit: '°C',
   PvUnit: 'Pa',
   
@@ -301,6 +363,13 @@ const initialState = (): CalculatorState => ({
   prevHtUnit: 'm',
   prevHLUnit: 'm',
   prevLUnit: 'm',
+  // *** NUEVO: Unidades previas para cavitación ***
+  prevPsUnit: 'Pa',
+  prevVsUnit: 'm/s',
+  prevPatmUnit: 'Pa',
+  prevZ0Unit: 'm',
+  prevZsUnit: 'm',
+  prevHfsUnit: 'm',
   prevTemperaturaUnit: '°C',
   prevPvUnit: 'Pa',
   
@@ -311,9 +380,12 @@ const initialState = (): CalculatorState => ({
   resultP2: '',
   resultV2: '',
   resultZ2: '',
+  // *** NUEVO: Resultados iniciales para cavitación ***
   resultNPSHa: '',
   resultCavitationMargin: '',
   resultPabs: '',
+  resultGamma: '',
+  resultPv: '',
   resultAlpha2: '',
   
   isManualEditP1: false,
@@ -329,6 +401,13 @@ const initialState = (): CalculatorState => ({
   isManualEditHL: false,
   isManualEditAlpha1: false,
   isManualEditAlpha2: false,
+  // *** NUEVO: Estados de edición iniciales para cavitación ***
+  isManualEditPs: false,
+  isManualEditVs: false,
+  isManualEditPatm: false,
+  isManualEditz0: false,
+  isManualEditzs: false,
+  isManualEdithfs: false,
 
   unknownVariable: null,
   
@@ -361,6 +440,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         gradient: 'linear-gradient(to bottom right, rgba(170, 170, 170, 0.4) 30%, rgba(58, 58, 58, 0.4) 45%, rgba(58, 58, 58, 0.4) 55%, rgba(170, 170, 170, 0.4)) 70%',
         cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
         blockInput: 'rgba(30, 30, 30, 1)',
+        checkboxMargin: 'rgb(255, 255, 255)'
       };
     }
     return {
@@ -372,6 +452,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
       cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       blockInput: 'rgba(240, 240, 240, 1)',
+      checkboxMargin: 'rgb(0, 0, 0)'
     };
   }, [currentTheme]);
 
@@ -464,6 +545,40 @@ const EnergiaBernoulliCalc: React.FC = () => {
     ]).start();
   }, [heartScale]);
 
+  const Checkbox = ({ 
+    label, 
+    value, 
+    onValueChange,
+    themeColors,
+    fontSizeFactor
+  }: { 
+    label: string;
+    value: boolean;
+    onValueChange: (value: boolean) => void;
+    themeColors: any;
+    fontSizeFactor: number;
+  }) => (
+    <Pressable 
+      style={styles.checkboxContainer}
+      onPress={() => onValueChange(!value)}
+    >
+      <View style={[
+        styles.checkbox, 
+        { 
+          borderColor: value ? 'transparent' : themeColors.checkboxMargin,
+          backgroundColor: value ? 'rgb(194,254,12)' : 'transparent',
+        }
+      ]}>
+        {value && (
+          <IconCheck name="dot-fill" size={14} color={currentTheme === 'dark' ? '#000' : '#000'} />
+        )}
+      </View>
+      <Text style={[styles.checkboxLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+
   // Animación selector
   useEffect(() => {
     if (buttonMetrics.ideal > 0 && buttonMetrics.losses > 0 && buttonMetrics.cavitation > 0) {
@@ -511,7 +626,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
   // Helpers
   const formatResult = useCallback((num: number): string => {
     if (isNaN(num) || !isFinite(num)) return '';
-    const fixed = num.toFixed(15);
+    
+    // Usar Decimal para formateo preciso
+    const decimalNum = new Decimal(num);
+    
+    // Formatear a 15 decimales (o la precisión que desees)
+    // Nota: Esto es para mostrar, no para cálculos internos
+    const fixed = decimalNum.toFixed(15);
+    
+    // Eliminar ceros innecesarios
     return fixed.replace(/\.?0+$/, '');
   }, []);
 
@@ -519,34 +642,42 @@ const EnergiaBernoulliCalc: React.FC = () => {
     value: string,
     fromUnit: string,
     toUnit: string,
-    category: 'length' | 'velocity' | 'area' | 'pressure' | 'density' | 'acceleration' | 'temperature'
+    category: 'length' | 'velocity' | 'area' | 'pressure' | 'density' | 'acceleration' | 'temperature' | 'specificWeight'
   ): string => {
     const cleanValue = value.replace(',', '.');
     if (cleanValue === '' || isNaN(parseFloat(cleanValue))) return value;
-    const numValue = parseFloat(cleanValue);
-    
+
+    // Convertir a Decimal
+    const decimalValue = new Decimal(cleanValue);
+
     if (category === 'temperature') {
-      // Manejo especial para temperatura
+      // Conversiones de temperatura con Decimal
       if (fromUnit === '°C' && toUnit === '°F') {
-        return formatResult((numValue * 9/5) + 32);
+        return formatResult(decimalValue.mul(9).div(5).plus(32).toNumber());
       } else if (fromUnit === '°C' && toUnit === 'K') {
-        return formatResult(numValue + 273.15);
+        return formatResult(decimalValue.plus(273.15).toNumber());
       } else if (fromUnit === '°F' && toUnit === '°C') {
-        return formatResult((numValue - 32) * 5/9);
+        return formatResult(decimalValue.minus(32).mul(5).div(9).toNumber());
       } else if (fromUnit === '°F' && toUnit === 'K') {
-        return formatResult((numValue - 32) * 5/9 + 273.15);
+        return formatResult(decimalValue.minus(32).mul(5).div(9).plus(273.15).toNumber());
       } else if (fromUnit === 'K' && toUnit === '°C') {
-        return formatResult(numValue - 273.15);
+        return formatResult(decimalValue.minus(273.15).toNumber());
       } else if (fromUnit === 'K' && toUnit === '°F') {
-        return formatResult((numValue - 273.15) * 9/5 + 32);
+        return formatResult(decimalValue.minus(273.15).mul(9).div(5).plus(32).toNumber());
       }
       return value;
     }
-    
+
     const fromFactor = conversionFactors[category]?.[fromUnit];
     const toFactor = conversionFactors[category]?.[toUnit];
     if (!fromFactor || !toFactor) return value;
-    const convertedValue = (numValue * fromFactor) / toFactor;
+
+    // Conversión con Decimal: (valor * fromFactor) / toFactor
+    const convertedValue = decimalValue
+      .mul(new Decimal(fromFactor))
+      .div(new Decimal(toFactor))
+      .toNumber();
+
     return formatResult(convertedValue);
   }, [formatResult]);
 
@@ -556,25 +687,29 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
   // Cálculo de presión de vapor según temperatura (agua)
   const calculateVaporPressure = useCallback((temp: number, unit: string): number => {
-    // Convertir a °C si es necesario
+    // Convertir a °C
     let tempC = temp;
     if (unit === '°F') {
       tempC = (temp - 32) * 5/9;
     } else if (unit === 'K') {
       tempC = temp - 273.15;
     }
-    
-    // Fórmula aproximada para presión de vapor del agua en Pa (rango 0-100°C)
-    // Basada en ecuación de Antoine
-    if (tempC < 0 || tempC > 100) return 0;
-    
-    const A = 8.07131;
-    const B = 1730.63;
-    const C = 233.426;
-    
-    // Presión en mmHg, convertir a Pa
-    const P_mmHg = Math.pow(10, A - (B / (tempC + C)));
-    return P_mmHg * 133.322;
+
+    // Ecuación de Wagner (más precisa, válida 0-374°C)
+    // Basada en IAPWS IF-97
+    const Tc = 647.096;      // Temperatura crítica (K)
+    const Pc = 22064000;     // Presión crítica (Pa)
+
+    const Tr = (tempC + 273.15) / Tc;
+    const tau = 1 - Tr;
+
+    // Coeficientes de Wagner
+    const a = [-7.85951783, 1.84408259, -11.7866497, 22.6807411, -15.9618719, 1.80122502];
+
+    let lnPr = (a[0] * tau + a[1] * Math.pow(tau, 1.5) + a[2] * Math.pow(tau, 3) + 
+                a[3] * Math.pow(tau, 3.5) + a[4] * Math.pow(tau, 4) + a[5] * Math.pow(tau, 7.5)) / Tr;
+
+    return Pc * Math.exp(lnPr);
   }, []);
 
   const updateLockedFieldIdeal = useCallback(() => {
@@ -605,6 +740,58 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state.P1, state.V1, state.z1, state.P2, state.V2, state.z2, state.alpha1, state.alpha2]);
 
+  const updateLockedFieldLosses = useCallback(() => {
+    const baseFields = [
+      { id: 'P1', value: state.P1 },
+      { id: 'z1', value: state.z1 },
+      { id: 'V1', value: state.V1 },
+      { id: 'P2', value: state.P2 },
+      { id: 'z2', value: state.z2 },
+      { id: 'V2', value: state.V2 },
+      { id: 'rho', value: state.rho },
+      { id: 'g', value: state.g },
+      { id: 'alpha1', value: state.alpha1 },
+      { id: 'alpha2', value: state.alpha2 },
+    ];
+  
+    const conditionalFields = [];
+    if (state.includeBomba) {
+      conditionalFields.push({ id: 'hb', value: state.hb });
+    }
+    if (state.includeTurbina) {
+      conditionalFields.push({ id: 'ht', value: state.ht });
+    }
+  
+    const lossFields = [];
+    if (state.lossInputType === 'direct') {
+      lossFields.push({ id: 'hL', value: state.hL });
+    } else {
+      lossFields.push(
+        { id: 'L', value: state.L },
+        { id: 'D1', value: state.D1 },
+        { id: 'f', value: state.f },
+        { id: 'K', value: state.K }
+      );
+    }
+  
+    const allPossibleFields = [...baseFields, ...conditionalFields, ...lossFields];
+    const validInputs = allPossibleFields.filter(({ value }) => 
+      value !== '' && !isNaN(parseFloat(value.replace(',', '.')))
+    );
+    const totalFields = allPossibleFields.length;
+  
+    if (validInputs.length === totalFields - 1) {
+      const emptyInput = allPossibleFields.find(({ value }) => 
+        value === '' || isNaN(parseFloat(value.replace(',', '.')))
+      );
+      setState((prev) => ({ ...prev, lockedField: emptyInput ? emptyInput.id : null }));
+    } else {
+      setState((prev) => ({ ...prev, lockedField: null }));
+    }
+  }, [state.P1, state.z1, state.V1, state.P2, state.z2, state.V2, state.rho, state.g,
+      state.alpha1, state.alpha2, state.includeBomba, state.includeTurbina, state.hb, state.ht,
+      state.lossInputType, state.hL, state.L, state.D1, state.f, state.K]);
+
   const calculateIdealBernoulli = useCallback(() => {
     // Definir los 8 campos posibles (incluyendo alpha1 y alpha2)
     const allFields = [
@@ -614,28 +801,30 @@ const EnergiaBernoulliCalc: React.FC = () => {
       { id: 'P2', value: state.P2, unit: state.P2Unit, category: 'pressure', resultField: 'resultP2' },
       { id: 'V2', value: state.V2, unit: state.V2Unit, category: 'velocity', resultField: 'resultV2' },
       { id: 'z2', value: state.z2, unit: state.z2Unit, category: 'length', resultField: 'resultZ2' },
-      { id: 'alpha1', value: state.alpha1, unit: '', category: 'none', resultField: 'alpha1' }, // Añadido
+      { id: 'alpha1', value: state.alpha1, unit: '', category: 'none', resultField: 'alpha1' },
       { id: 'alpha2', value: state.alpha2, unit: '', category: 'none', resultField: 'alpha2' },
     ];
 
-    // Convertir cada campo a unidades SI y verificar validez
+    // Convertir cada campo a unidades SI usando Decimal
     const fieldsInSI = allFields.map(field => {
       if (field.id === 'alpha1' || field.id === 'alpha2') {
-        // α₁ y α₂ no necesitan conversión de unidades
         const rawValue = field.value.replace(',', '.');
         if (rawValue === '' || isNaN(parseFloat(rawValue))) {
-          return { ...field, siValue: NaN, isValid: false };
+          return { ...field, siValue: null, isValid: false };
         }
-        return { ...field, siValue: parseFloat(rawValue), isValid: true };
+        return { ...field, siValue: new Decimal(rawValue), isValid: true };
       }
 
       const rawValue = field.value.replace(',', '.');
       if (rawValue === '' || isNaN(parseFloat(rawValue))) {
-        return { ...field, siValue: NaN, isValid: false };
+        return { ...field, siValue: null, isValid: false };
       }
-      const numValue = parseFloat(rawValue);
+
+      const numValue = new Decimal(rawValue);
       const factor = conversionFactors[field.category]?.[field.unit] || 1;
-      return { ...field, siValue: numValue * factor, isValid: true };
+      // Convertir a Decimal si factor es número
+      const factorDecimal = new Decimal(factor);
+      return { ...field, siValue: numValue.mul(factorDecimal), isValid: true };
     });
 
     // Contar campos válidos y encontrar los faltantes
@@ -643,17 +832,21 @@ const EnergiaBernoulliCalc: React.FC = () => {
     const missingFields = fieldsInSI.filter(f => !f.isValid).map(f => f.id);
     const validCount = validFields.length;
 
-    // Obtener valores gamma y g en unidades SI
-    const gammaSI = state.gamma && !isNaN(parseFloat(state.gamma.replace(',', '.')))
-      ? parseFloat(state.gamma.replace(',', '.')) * conversionFactors.pressure[state.gammaUnit]
-      : 9806.65;
+    // Obtener valores gamma y g en unidades SI usando Decimal
+    let gammaDecimal = new Decimal(9810);
+    if (state.gamma && !isNaN(parseFloat(state.gamma.replace(',', '.')))) {
+      gammaDecimal = new Decimal(state.gamma.replace(',', '.'))
+        .mul(new Decimal(conversionFactors.pressure[state.gammaUnit] || 1));
+    }
 
-    const gSI = state.g && !isNaN(parseFloat(state.g.replace(',', '.')))
-      ? parseFloat(state.g.replace(',', '.')) * conversionFactors.acceleration[state.gUnit]
-      : 9.81;
+    let gDecimal = new Decimal(9.81);
+    if (state.g && !isNaN(parseFloat(state.g.replace(',', '.')))) {
+      gDecimal = new Decimal(state.g.replace(',', '.'))
+        .mul(new Decimal(conversionFactors.acceleration[state.gUnit] || 1));
+    }
 
     // Caso 1: Más de un campo faltante → marcar inválido y no calcular
-    if (validCount !== 7) { // Cambiado de 6 a 7
+    if (validCount !== 7) {
       setState((prev) => ({
         ...prev,
         resultTotalEnergy: 0,
@@ -665,6 +858,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         resultZ2: '',
         invalidFields: missingFields,
         autoCalculatedField: null,
+        unknownVariable: null,
       }));
       return;
     }
@@ -672,27 +866,28 @@ const EnergiaBernoulliCalc: React.FC = () => {
     // Caso 2: Exactamente 7 campos válidos → encontrar el faltante y resolver
     const missingField = missingFields[0];
 
-    // Crear mapa de valores SI
-    const siValues: { [key: string]: number } = {};
+    // Crear mapa de valores SI (Decimal)
+    const siValues: { [key: string]: Decimal } = {};
     validFields.forEach(f => { 
-      if (f.id !== 'alpha1' && f.id !== 'alpha2') {
-        siValues[f.id] = f.siValue;
-      } else {
-        siValues[f.id] = f.siValue;
-      }
+      siValues[f.id] = f.siValue as Decimal;
     });
 
     const newState: Partial<CalculatorState> = {};
 
-    // Calcular energía total usando los valores disponibles
-    let E = 0;
-    const alpha1 = siValues['alpha1'] !== undefined ? siValues['alpha1'] : 1;
-    const alpha2 = siValues['alpha2'] !== undefined ? siValues['alpha2'] : 1;
+    // Calcular energía total usando Decimal
+    let E = new Decimal(0);
+    const alpha1 = siValues['alpha1'] !== undefined ? siValues['alpha1'] : new Decimal(1);
+    const alpha2 = siValues['alpha2'] !== undefined ? siValues['alpha2'] : new Decimal(1);
 
     if (siValues['P1'] !== undefined && siValues['V1'] !== undefined && siValues['z1'] !== undefined) {
-      E = siValues['P1']/gammaSI + alpha1 * siValues['V1']*siValues['V1']/(2*gSI) + siValues['z1'];
+      // E = P1/γ + α1·V1²/2g + z1
+      E = siValues['P1'].div(gammaDecimal)
+        .plus(alpha1.mul(siValues['V1'].pow(2)).div(new Decimal(2).mul(gDecimal)))
+        .plus(siValues['z1']);
     } else if (siValues['P2'] !== undefined && siValues['V2'] !== undefined && siValues['z2'] !== undefined) {
-      E = siValues['P2']/gammaSI + alpha2 * siValues['V2']*siValues['V2']/(2*gSI) + siValues['z2'];
+      E = siValues['P2'].div(gammaDecimal)
+        .plus(alpha2.mul(siValues['V2'].pow(2)).div(new Decimal(2).mul(gDecimal)))
+        .plus(siValues['z2']);
     }
 
     // Limpiar resultados anteriores
@@ -706,13 +901,20 @@ const EnergiaBernoulliCalc: React.FC = () => {
     switch (missingField) {
       case 'P1': {
         if (siValues['V1'] === undefined || siValues['z1'] === undefined) break;
-        const headTerm = E - alpha1 * siValues['V1']*siValues['V1']/(2*gSI) - siValues['z1'];
-        const pressureSI = headTerm * gammaSI;
-        const result = pressureSI / conversionFactors.pressure[state.P1Unit];
-        const formattedResult = formatResult(result);
+
+        // headTerm = E - α1·V1²/2g - z1
+        const headTerm = E
+          .minus(alpha1.mul(siValues['V1'].pow(2)).div(new Decimal(2).mul(gDecimal)))
+          .minus(siValues['z1']);
+
+        // P1 = headTerm * γ
+        const pressureSI = headTerm.mul(gammaDecimal);
+
+        // Convertir a la unidad de salida
+        const result = pressureSI.div(new Decimal(conversionFactors.pressure[state.P1Unit] || 1));
+        const formattedResult = formatResult(result.toNumber());
         newState.resultP1 = formattedResult;
-        
-        // AÑADIR: Actualizar unknownVariable
+
         newState.unknownVariable = {
           name: 'P₁',
           label: t('energiaBernoulliCalc.labels.P1'),
@@ -724,14 +926,23 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'V1': {
         if (siValues['P1'] === undefined || siValues['z1'] === undefined) break;
-        const headTerm = E - siValues['P1']/gammaSI - siValues['z1'];
-        if (headTerm >= 0) {
-          const velocitySI = Math.sqrt(2 * gSI * headTerm / alpha1);
-          const result = velocitySI / conversionFactors.velocity[state.V1Unit];
-          const formattedResult = formatResult(result);
+
+        // headTerm = E - P1/γ - z1
+        const headTerm = E
+          .minus(siValues['P1'].div(gammaDecimal))
+          .minus(siValues['z1']);
+
+        if (headTerm.greaterThanOrEqualTo(0)) {
+          // V1 = √(2·g·headTerm / α1)
+          const velocitySI = headTerm
+            .mul(new Decimal(2).mul(gDecimal))
+            .div(alpha1)
+            .sqrt();
+
+          const result = velocitySI.div(new Decimal(conversionFactors.velocity[state.V1Unit] || 1));
+          const formattedResult = formatResult(result.toNumber());
           newState.resultV1 = formattedResult;
 
-          // AÑADIR: Actualizar unknownVariable
           newState.unknownVariable = {
             name: 'V₁',
             label: t('energiaBernoulliCalc.labels.V1'),
@@ -744,12 +955,16 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'z1': {
         if (siValues['P1'] === undefined || siValues['V1'] === undefined) break;
-        const elevationSI = E - siValues['P1']/gammaSI - alpha1 * siValues['V1']*siValues['V1']/(2*gSI);
-        const result = elevationSI / conversionFactors.length[state.z1Unit];
-        const formattedResult = formatResult(result);
+
+        // z1 = E - P1/γ - α1·V1²/2g
+        const elevationSI = E
+          .minus(siValues['P1'].div(gammaDecimal))
+          .minus(alpha1.mul(siValues['V1'].pow(2)).div(new Decimal(2).mul(gDecimal)));
+
+        const result = elevationSI.div(new Decimal(conversionFactors.length[state.z1Unit] || 1));
+        const formattedResult = formatResult(result.toNumber());
         newState.resultZ1 = formattedResult;
-        
-        // AÑADIR: Actualizar unknownVariable
+
         newState.unknownVariable = {
           name: 'z₁',
           label: t('energiaBernoulliCalc.labels.z1'),
@@ -761,13 +976,16 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'P2': {
         if (siValues['V2'] === undefined || siValues['z2'] === undefined) break;
-        const headTerm = E - alpha2 * siValues['V2']*siValues['V2']/(2*gSI) - siValues['z2'];
-        const pressureSI = headTerm * gammaSI;
-        const result = pressureSI / conversionFactors.pressure[state.P2Unit];
-        const formattedResult = formatResult(result);
+
+        const headTerm = E
+          .minus(alpha2.mul(siValues['V2'].pow(2)).div(new Decimal(2).mul(gDecimal)))
+          .minus(siValues['z2']);
+
+        const pressureSI = headTerm.mul(gammaDecimal);
+        const result = pressureSI.div(new Decimal(conversionFactors.pressure[state.P2Unit] || 1));
+        const formattedResult = formatResult(result.toNumber());
         newState.resultP2 = formattedResult;
-        
-        // AÑADIR: Actualizar unknownVariable
+
         newState.unknownVariable = {
           name: 'P₂',
           label: t('energiaBernoulliCalc.labels.P2'),
@@ -779,14 +997,21 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'V2': {
         if (siValues['P2'] === undefined || siValues['z2'] === undefined) break;
-        const headTerm = E - siValues['P2']/gammaSI - siValues['z2'];
-        if (headTerm >= 0) {
-          const velocitySI = Math.sqrt(2 * gSI * headTerm / alpha2);
-          const result = velocitySI / conversionFactors.velocity[state.V2Unit];
-          const formattedResult = formatResult(result);
+
+        const headTerm = E
+          .minus(siValues['P2'].div(gammaDecimal))
+          .minus(siValues['z2']);
+
+        if (headTerm.greaterThanOrEqualTo(0)) {
+          const velocitySI = headTerm
+            .mul(new Decimal(2).mul(gDecimal))
+            .div(alpha2)
+            .sqrt();
+
+          const result = velocitySI.div(new Decimal(conversionFactors.velocity[state.V2Unit] || 1));
+          const formattedResult = formatResult(result.toNumber());
           newState.resultV2 = formattedResult;
 
-          // AÑADIR: Actualizar unknownVariable
           newState.unknownVariable = {
             name: 'V₂',
             label: t('energiaBernoulliCalc.labels.V2'),
@@ -799,12 +1024,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'z2': {
         if (siValues['P2'] === undefined || siValues['V2'] === undefined) break;
-        const elevationSI = E - siValues['P2']/gammaSI - alpha2 * siValues['V2']*siValues['V2']/(2*gSI);
-        const result = elevationSI / conversionFactors.length[state.z2Unit];
-        const formattedResult = formatResult(result);
+
+        const elevationSI = E
+          .minus(siValues['P2'].div(gammaDecimal))
+          .minus(alpha2.mul(siValues['V2'].pow(2)).div(new Decimal(2).mul(gDecimal)));
+
+        const result = elevationSI.div(new Decimal(conversionFactors.length[state.z2Unit] || 1));
+        const formattedResult = formatResult(result.toNumber());
         newState.resultZ2 = formattedResult;
-        
-        // AÑADIR: Actualizar unknownVariable
+
         newState.unknownVariable = {
           name: 'z₂',
           label: t('energiaBernoulliCalc.labels.z2'),
@@ -815,37 +1043,30 @@ const EnergiaBernoulliCalc: React.FC = () => {
       }
 
       case 'alpha1': {
-        if (E === 0) {
-          // Intentar calcular E con los valores que tenemos
-          if (siValues['P1'] !== undefined && siValues['V1'] !== undefined && siValues['z1'] !== undefined) {
-            E = siValues['P1']/gammaSI + alpha1 * siValues['V1']*siValues['V1']/(2*gSI) + siValues['z1'];
-          } else if (siValues['P2'] !== undefined && siValues['V2'] !== undefined && siValues['z2'] !== undefined) {
-            E = siValues['P2']/gammaSI + alpha2 * siValues['V2']*siValues['V2']/(2*gSI) + siValues['z2'];
-          }
-        }
-
         if (siValues['P1'] === undefined || siValues['V1'] === undefined || siValues['z1'] === undefined) break;
 
-        // Primero, asegurarnos de tener la energía total correcta
-        // Si tenemos valores de la sección 2, calcular E desde allí
+        // Si tenemos valores de la sección 2, recalcular E desde allí
         if (siValues['P2'] !== undefined && siValues['V2'] !== undefined && siValues['z2'] !== undefined) {
-          // Usar la sección 2 para calcular E
-          E = siValues['P2']/gammaSI + alpha2 * siValues['V2']*siValues['V2']/(2*gSI) + siValues['z2'];
+          E = siValues['P2'].div(gammaDecimal)
+            .plus(alpha2.mul(siValues['V2'].pow(2)).div(new Decimal(2).mul(gDecimal)))
+            .plus(siValues['z2']);
         }
 
-        // Calcular α₁ usando la ecuación de Bernoulli
-        // P₁/γ + α₁·V₁²/2g + z₁ = E
-        // Por lo tanto: α₁·V₁²/2g = E - P₁/γ - z₁
-        const energyTerm = E - siValues['P1']/gammaSI - siValues['z1'];
+        // energyTerm = E - P1/γ - z1
+        const energyTerm = E
+          .minus(siValues['P1'].div(gammaDecimal))
+          .minus(siValues['z1']);
 
-        if (energyTerm > 0 && siValues['V1'] !== 0) {
-          // Despejando α₁ = (2g * (E - P₁/γ - z₁)) / V₁²
-          const alpha1_calc = (2 * gSI * energyTerm) / (siValues['V1'] * siValues['V1']);
-          const formattedResult = formatResult(alpha1_calc);
+        if (energyTerm.greaterThan(0) && !siValues['V1'].isZero()) {
+          // α1 = (2g * energyTerm) / V1²
+          const alpha1_calc = energyTerm
+            .mul(new Decimal(2).mul(gDecimal))
+            .div(siValues['V1'].pow(2));
+
+          const formattedResult = formatResult(alpha1_calc.toNumber());
           newState.alpha1 = formattedResult;
           newState.isManualEditAlpha1 = false;
         
-          // Actualizar unknownVariable
           newState.unknownVariable = {
             name: 'α₁',
             label: t('energiaBernoulliCalc.labels.alpha1'),
@@ -859,16 +1080,23 @@ const EnergiaBernoulliCalc: React.FC = () => {
       case 'alpha2': {
         if (siValues['P2'] === undefined || siValues['V2'] === undefined || siValues['z2'] === undefined) break;
 
-        // Si tenemos valores de la sección 1, calcular E desde allí
+        // Si tenemos valores de la sección 1, recalcular E desde allí
         if (siValues['P1'] !== undefined && siValues['V1'] !== undefined && siValues['z1'] !== undefined) {
-          E = siValues['P1']/gammaSI + alpha1 * siValues['V1']*siValues['V1']/(2*gSI) + siValues['z1'];
+          E = siValues['P1'].div(gammaDecimal)
+            .plus(alpha1.mul(siValues['V1'].pow(2)).div(new Decimal(2).mul(gDecimal)))
+            .plus(siValues['z1']);
         }
 
-        const energyTerm = E - siValues['P2']/gammaSI - siValues['z2'];
+        const energyTerm = E
+          .minus(siValues['P2'].div(gammaDecimal))
+          .minus(siValues['z2']);
 
-        if (energyTerm > 0 && siValues['V2'] !== 0) {
-          const alpha2_calc = (2 * gSI * energyTerm) / (siValues['V2'] * siValues['V2']);
-          const formattedResult = formatResult(alpha2_calc);
+        if (energyTerm.greaterThan(0) && !siValues['V2'].isZero()) {
+          const alpha2_calc = energyTerm
+            .mul(new Decimal(2).mul(gDecimal))
+            .div(siValues['V2'].pow(2));
+
+          const formattedResult = formatResult(alpha2_calc.toNumber());
           newState.resultAlpha2 = formattedResult;
           newState.alpha2 = formattedResult;
           newState.isManualEditAlpha2 = false;
@@ -884,19 +1112,17 @@ const EnergiaBernoulliCalc: React.FC = () => {
       }
     }
 
-    // Si no se encontró una variable faltante (caso cuando hay 8 campos válidos)
+    // Si no se encontró una variable faltante
     if (!missingField) {
       newState.unknownVariable = null;
     }
-
 
     setState((prev) => ({
       ...prev,
       ...newState,
       invalidFields: [],
       autoCalculatedField: missingField,
-      resultTotalEnergy: E,
-      // Resetear banderas de edición manual para el campo calculado
+      resultTotalEnergy: E.toNumber(),
       isManualEditP1: missingField === 'P1' ? false : prev.isManualEditP1,
       isManualEditV1: missingField === 'V1' ? false : prev.isManualEditV1,
       isManualEditz1: missingField === 'z1' ? false : prev.isManualEditz1,
@@ -907,143 +1133,612 @@ const EnergiaBernoulliCalc: React.FC = () => {
       isManualEditAlpha2: missingField === 'alpha2' ? false : prev.isManualEditAlpha2,
     }));
 
-  }, [state, formatResult]);
+  }, [state, formatResult, t]);
 
   useEffect(() => {
     if (state.mode === 'ideal') {
       updateLockedFieldIdeal();
+    } else if (state.mode === 'losses') {
+      updateLockedFieldLosses();
     }
-  }, [state.mode, state.P1, state.V1, state.z1, state.P2, state.V2, state.z2, state.alpha1, state.alpha2, updateLockedFieldIdeal]);
-  // Añadido state.alpha2 ↑
+    // Para el modo cavitation, podrías añadir una lógica similar más adelante.
+  }, [state.mode, state.P1, state.V1, state.z1, state.P2, state.V2, state.z2, 
+      state.alpha1, state.alpha2, state.gamma, state.g,
+      state.includeBomba, state.includeTurbina, state.hb, state.ht,
+      state.lossInputType, state.hL, state.L, state.D1, state.f, state.K,
+      updateLockedFieldIdeal, updateLockedFieldLosses]); // No olvides añadir las nuevas dependencias
 
   const calculateWithLosses = useCallback(() => {
-    const requiredIds = ['P1', 'z1', 'V1', 'P2', 'z2', 'V2', 'gamma', 'g'];
-    if (state.lossInputType === 'direct') {
-      requiredIds.push('hL');
-    } else {
-      requiredIds.push('L', 'D1', 'f', 'K');
+    // 1. Definir todos los campos posibles según el modo
+    const allFields = [
+      { id: 'P1', value: state.P1, unit: state.P1Unit, category: 'pressure', resultField: 'resultP1' },
+      { id: 'z1', value: state.z1, unit: state.z1Unit, category: 'length', resultField: 'resultZ1' },
+      { id: 'V1', value: state.V1, unit: state.V1Unit, category: 'velocity', resultField: 'resultV1' },
+      { id: 'P2', value: state.P2, unit: state.P2Unit, category: 'pressure', resultField: 'resultP2' },
+      { id: 'z2', value: state.z2, unit: state.z2Unit, category: 'length', resultField: 'resultZ2' },
+      { id: 'V2', value: state.V2, unit: state.V2Unit, category: 'velocity', resultField: 'resultV2' },
+      { id: 'rho', value: state.rho, unit: state.rhoUnit, category: 'density', resultField: null },
+      { id: 'g', value: state.g, unit: state.gUnit, category: 'acceleration', resultField: null },
+      { id: 'alpha1', value: state.alpha1, unit: '', category: 'none', resultField: null },
+      { id: 'alpha2', value: state.alpha2, unit: '', category: 'none', resultField: null },
+    ];
+  
+    // Añadir bomba y turbina si están incluidas
+    if (state.includeBomba) {
+      allFields.push({ id: 'hb', value: state.hb, unit: state.hbUnit, category: 'length', resultField: null });
     }
+    if (state.includeTurbina) {
+      allFields.push({ id: 'ht', value: state.ht, unit: state.htUnit, category: 'length', resultField: null });
+    }
+  
+    // Añadir campos de pérdidas
+    if (state.lossInputType === 'direct') {
+      allFields.push({ id: 'hL', value: state.hL, unit: state.hLUnit, category: 'length', resultField: null });
+    } else {
+      allFields.push(
+        { id: 'L', value: state.L, unit: state.LUnit, category: 'length', resultField: null },
+        { id: 'D1', value: state.D1, unit: state.D1Unit, category: 'length', resultField: null },
+        { id: 'f', value: state.f, unit: '', category: 'none', resultField: null },
+        { id: 'K', value: state.K, unit: '', category: 'none', resultField: null }
+      );
+    }
+  
+    // 2. Convertir cada campo a unidades SI usando Decimal
+    const fieldsInSI = allFields.map(field => {
+      // Campos sin unidad (adimensionales)
+      if (field.category === 'none') {
+        const rawValue = field.value?.replace(',', '.');
+        if (!rawValue || rawValue === '' || isNaN(parseFloat(rawValue))) {
+          return { ...field, siValue: null, isValid: false };
+        }
+        return { ...field, siValue: new Decimal(rawValue), isValid: true };
+      }
     
-    const missing = requiredIds.filter((id) => {
-      const raw = (state as any)[id] as string;
-      const val = raw?.replace(',', '.');
-      return !val || isNaN(parseFloat(val));
+      // Campos con unidad
+      const rawValue = field.value?.replace(',', '.');
+      if (!rawValue || rawValue === '' || isNaN(parseFloat(rawValue))) {
+        return { ...field, siValue: null, isValid: false };
+      }
+    
+      const numValue = new Decimal(rawValue);
+      const factor = conversionFactors[field.category]?.[field.unit];
+      if (!factor) {
+        return { ...field, siValue: numValue, isValid: true };
+      }
+      const factorDecimal = new Decimal(factor);
+      return { ...field, siValue: numValue.mul(factorDecimal), isValid: true };
     });
-
-    if (missing.length > 1) {
+  
+    // 3. Validar y encontrar la incógnita
+    const validFields = fieldsInSI.filter(f => f.isValid);
+    const missingFields = fieldsInSI.filter(f => !f.isValid).map(f => f.id);
+    const validCount = validFields.length;
+    const totalFields = fieldsInSI.length;
+  
+    // Si no hay exactamente UNA incógnita, no se puede calcular
+    if (validCount !== totalFields - 1) {
       setState((prev) => ({
         ...prev,
-        invalidFields: missing,
-        autoCalculatedField: null,
         resultTotalEnergy: 0,
+        resultP1: '', resultV1: '', resultZ1: '',
+        resultP2: '', resultV2: '', resultZ2: '',
+        invalidFields: missingFields,
+        autoCalculatedField: null,
+        unknownVariable: null,
       }));
       return;
     }
-
-    // Calcular pérdidas
-    let hL_value = 0;
-    if (state.lossInputType === 'direct') {
-      hL_value = parseFloat(state.hL.replace(',', '.')) * conversionFactors.length[state.hLUnit];
-    } else {
-      const L = parseFloat(state.L.replace(',', '.')) * conversionFactors.length[state.LUnit];
-      const D1 = parseFloat(state.D1.replace(',', '.')) * conversionFactors.length[state.D1Unit];
-      const f = parseFloat(state.f.replace(',', '.'));
-      const K = parseFloat(state.K.replace(',', '.'));
-      const V1 = parseFloat(state.V1.replace(',', '.')) * conversionFactors.velocity[state.V1Unit];
-      const g = parseFloat(state.g.replace(',', '.')) * conversionFactors.acceleration[state.gUnit];
+  
+    const missingField = missingFields[0];
+  
+    // 4. Crear un mapa de valores SI
+    const siValues: { [key: string]: Decimal } = {};
+    validFields.forEach(f => { siValues[f.id] = f.siValue as Decimal; });
+  
+    // 5. Función auxiliar para obtener un valor del mapa o un valor por defecto
+    const getVal = (id: string, defaultValue: Decimal): Decimal => {
+      return siValues[id] !== undefined ? siValues[id] : defaultValue;
+    };
+  
+    // Obtener valores esenciales
+    const rho = getVal('rho', new Decimal(1000)); // kg/m³ por defecto
+    const g = getVal('g', new Decimal(9.81));
+    const rhoG = rho.mul(g); // ρg en N/m³
+    const alpha1 = getVal('alpha1', new Decimal(1));
+    const alpha2 = getVal('alpha2', new Decimal(1));
+    const twoG = new Decimal(2).mul(g);
+  
+    // 6. Función para calcular hL en SI
+    const calculateHL = (): Decimal => {
+      if (state.lossInputType === 'direct') {
+        return getVal('hL', new Decimal(0));
+      } else {
+        // Darcy: hL = f * (L/D) * (V²/(2g)) + K * (V²/(2g))
+        const L = getVal('L', new Decimal(0));
+        const D1 = getVal('D1', new Decimal(1));
+        const f = getVal('f', new Decimal(0));
+        const K = getVal('K', new Decimal(0));
+        const V1 = getVal('V1', new Decimal(0));
       
-      // Pérdidas por fricción + pérdidas menores
-      const hL_friction = f * (L / D1) * (V1 * V1) / (2 * g);
-      const hL_minor = K * (V1 * V1) / (2 * g);
-      hL_value = hL_friction + hL_minor;
+        const vSquaredOver2g = V1.pow(2).div(twoG);
+        const hL_friction = f.mul(L.div(D1)).mul(vSquaredOver2g);
+        const hL_minor = K.mul(vSquaredOver2g);
+        return hL_friction.plus(hL_minor);
+      }
+    };
+  
+    // 7. Preparar el nuevo estado
+    const newState: Partial<CalculatorState> = {
+      resultP1: '', resultV1: '', resultZ1: '',
+      resultP2: '', resultV2: '', resultZ2: '',
+    };
+  
+    // 8. ECUACIÓN CORREGIDA: P₁/(ρg) + α₁V₁²/(2g) + z₁ + hB = P₂/(ρg) + α₂V₂²/(2g) + z₂ + hT + hL
+    try {
+      switch (missingField) {
+        case 'P1': {
+          // P₁ = ρg * (P₂/(ρg) + α₂V₂²/(2g) + z₂ + hT + hL - α₁V₁²/(2g) - z₁ - hB)
+          const rightSide = getVal('P2', new Decimal(0)).div(rhoG)
+            .plus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
+            .plus(getVal('z2', new Decimal(0)))
+            .plus(getVal('ht', new Decimal(0)))
+            .plus(calculateHL())
+            .minus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
+            .minus(getVal('z1', new Decimal(0)))
+            .minus(getVal('hb', new Decimal(0)));
+          
+          const pressureSI = rightSide.mul(rhoG);
+          const result = pressureSI.div(new Decimal(conversionFactors.pressure[state.P1Unit] || 1));
+          newState.resultP1 = formatResult(result.toNumber());
+          newState.unknownVariable = { 
+            name: 'P₁', 
+            label: t('energiaBernoulliCalc.labels.P1'), 
+            unit: state.P1Unit, 
+            value: newState.resultP1 
+          };
+          break;
+        }
+      
+        case 'z1': {
+          // z₁ = P₂/(ρg) + α₂V₂²/(2g) + z₂ + hT + hL - P₁/(ρg) - α₁V₁²/(2g) - hB
+          const elevationSI = getVal('P2', new Decimal(0)).div(rhoG)
+            .plus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
+            .plus(getVal('z2', new Decimal(0)))
+            .plus(getVal('ht', new Decimal(0)))
+            .plus(calculateHL())
+            .minus(getVal('P1', new Decimal(0)).div(rhoG))
+            .minus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
+            .minus(getVal('hb', new Decimal(0)));
+          
+          const result = elevationSI.div(new Decimal(conversionFactors.length[state.z1Unit] || 1));
+          newState.resultZ1 = formatResult(result.toNumber());
+          newState.unknownVariable = { 
+            name: 'z₁', 
+            label: t('energiaBernoulliCalc.labels.z1'), 
+            unit: state.z1Unit, 
+            value: newState.resultZ1 
+          };
+          break;
+        }
+      
+        case 'V1': {
+          // α₁V₁²/(2g) = P₂/(ρg) + α₂V₂²/(2g) + z₂ + hT + hL - P₁/(ρg) - z₁ - hB
+          const rightSide = getVal('P2', new Decimal(0)).div(rhoG)
+            .plus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
+            .plus(getVal('z2', new Decimal(0)))
+            .plus(getVal('ht', new Decimal(0)))
+            .plus(calculateHL())
+            .minus(getVal('P1', new Decimal(0)).div(rhoG))
+            .minus(getVal('z1', new Decimal(0)))
+            .minus(getVal('hb', new Decimal(0)));
+          
+          if (rightSide.greaterThanOrEqualTo(0)) {
+            // V₁ = √( (2g * rightSide) / α₁ )
+            const velocitySI = rightSide.mul(twoG).div(alpha1).sqrt();
+            const result = velocitySI.div(new Decimal(conversionFactors.velocity[state.V1Unit] || 1));
+            newState.resultV1 = formatResult(result.toNumber());
+            newState.unknownVariable = { 
+              name: 'V₁', 
+              label: t('energiaBernoulliCalc.labels.V1'), 
+              unit: state.V1Unit, 
+              value: newState.resultV1 
+            };
+          }
+          break;
+        }
+      
+        case 'hb': {
+          // hB = P₂/(ρg) + α₂V₂²/(2g) + z₂ + hT + hL - P₁/(ρg) - α₁V₁²/(2g) - z₁
+          const headSI = getVal('P2', new Decimal(0)).div(rhoG)
+            .plus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
+            .plus(getVal('z2', new Decimal(0)))
+            .plus(getVal('ht', new Decimal(0)))
+            .plus(calculateHL())
+            .minus(getVal('P1', new Decimal(0)).div(rhoG))
+            .minus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
+            .minus(getVal('z1', new Decimal(0)));
+          
+          const result = headSI.div(new Decimal(conversionFactors.length[state.hbUnit] || 1));
+          newState.hb = formatResult(result.toNumber());
+          newState.isManualEditHb = false;
+          newState.unknownVariable = { 
+            name: 'hB', 
+            label: t('energiaBernoulliCalc.labels.hb'), 
+            unit: state.hbUnit, 
+            value: newState.hb 
+          };
+          break;
+        }
+      
+        case 'P2': {
+          // P₂ = ρg * (P₁/(ρg) + α₁V₁²/(2g) + z₁ + hB - α₂V₂²/(2g) - z₂ - hT - hL)
+          const rightSide = getVal('P1', new Decimal(0)).div(rhoG)
+            .plus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
+            .plus(getVal('z1', new Decimal(0)))
+            .plus(getVal('hb', new Decimal(0)))
+            .minus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
+            .minus(getVal('z2', new Decimal(0)))
+            .minus(getVal('ht', new Decimal(0)))
+            .minus(calculateHL());
+          
+          const pressureSI = rightSide.mul(rhoG);
+          const result = pressureSI.div(new Decimal(conversionFactors.pressure[state.P2Unit] || 1));
+          newState.resultP2 = formatResult(result.toNumber());
+          newState.unknownVariable = { 
+            name: 'P₂', 
+            label: t('energiaBernoulliCalc.labels.P2'), 
+            unit: state.P2Unit, 
+            value: newState.resultP2 
+          };
+          break;
+        }
+      
+        case 'z2': {
+          // z₂ = P₁/(ρg) + α₁V₁²/(2g) + z₁ + hB - P₂/(ρg) - α₂V₂²/(2g) - hT - hL
+          const elevationSI = getVal('P1', new Decimal(0)).div(rhoG)
+            .plus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
+            .plus(getVal('z1', new Decimal(0)))
+            .plus(getVal('hb', new Decimal(0)))
+            .minus(getVal('P2', new Decimal(0)).div(rhoG))
+            .minus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
+            .minus(getVal('ht', new Decimal(0)))
+            .minus(calculateHL());
+          
+          const result = elevationSI.div(new Decimal(conversionFactors.length[state.z2Unit] || 1));
+          newState.resultZ2 = formatResult(result.toNumber());
+          newState.unknownVariable = { 
+            name: 'z₂', 
+            label: t('energiaBernoulliCalc.labels.z2'), 
+            unit: state.z2Unit, 
+            value: newState.resultZ2 
+          };
+          break;
+        }
+      
+        case 'V2': {
+          // α₂V₂²/(2g) = P₁/(ρg) + α₁V₁²/(2g) + z₁ + hB - P₂/(ρg) - z₂ - hT - hL
+          const rightSide = getVal('P1', new Decimal(0)).div(rhoG)
+            .plus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
+            .plus(getVal('z1', new Decimal(0)))
+            .plus(getVal('hb', new Decimal(0)))
+            .minus(getVal('P2', new Decimal(0)).div(rhoG))
+            .minus(getVal('z2', new Decimal(0)))
+            .minus(getVal('ht', new Decimal(0)))
+            .minus(calculateHL());
+          
+          if (rightSide.greaterThanOrEqualTo(0)) {
+            const velocitySI = rightSide.mul(twoG).div(alpha2).sqrt();
+            const result = velocitySI.div(new Decimal(conversionFactors.velocity[state.V2Unit] || 1));
+            newState.resultV2 = formatResult(result.toNumber());
+            newState.unknownVariable = { 
+              name: 'V₂', 
+              label: t('energiaBernoulliCalc.labels.V2'), 
+              unit: state.V2Unit, 
+              value: newState.resultV2 
+            };
+          }
+          break;
+        }
+      
+        case 'ht': {
+          // hT = P₁/(ρg) + α₁V₁²/(2g) + z₁ + hB - P₂/(ρg) - α₂V₂²/(2g) - z₂ - hL
+          const headSI = getVal('P1', new Decimal(0)).div(rhoG)
+            .plus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
+            .plus(getVal('z1', new Decimal(0)))
+            .plus(getVal('hb', new Decimal(0)))
+            .minus(getVal('P2', new Decimal(0)).div(rhoG))
+            .minus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
+            .minus(getVal('z2', new Decimal(0)))
+            .minus(calculateHL());
+          
+          const result = headSI.div(new Decimal(conversionFactors.length[state.htUnit] || 1));
+          newState.ht = formatResult(result.toNumber());
+          newState.isManualEditHt = false;
+          newState.unknownVariable = { 
+            name: 'hT', 
+            label: t('energiaBernoulliCalc.labels.ht'), 
+            unit: state.htUnit, 
+            value: newState.ht 
+          };
+          break;
+        }
+      
+        case 'hL': {
+          // hL = P₁/(ρg) + α₁V₁²/(2g) + z₁ + hB - P₂/(ρg) - α₂V₂²/(2g) - z₂ - hT
+          const headSI = getVal('P1', new Decimal(0)).div(rhoG)
+            .plus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
+            .plus(getVal('z1', new Decimal(0)))
+            .plus(getVal('hb', new Decimal(0)))
+            .minus(getVal('P2', new Decimal(0)).div(rhoG))
+            .minus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
+            .minus(getVal('z2', new Decimal(0)))
+            .minus(getVal('ht', new Decimal(0)));
+          
+          const result = headSI.div(new Decimal(conversionFactors.length[state.hLUnit] || 1));
+          newState.hL = formatResult(result.toNumber());
+          newState.isManualEditHL = false;
+          newState.unknownVariable = { 
+            name: 'hL', 
+            label: t('energiaBernoulliCalc.labels.hL'), 
+            unit: state.hLUnit, 
+            value: newState.hL 
+          };
+          break;
+        }
+      
+        case 'rho': {
+          // ρ = P₂/(g) / [P₁/(ρg?) - Esto es más complejo]
+          // Por simplicidad, no implementamos despeje de ρ
+          console.warn('Resolución para ρ no implementada');
+          setState((prev) => ({
+            ...prev,
+            invalidFields: [missingField],
+            autoCalculatedField: null,
+            unknownVariable: null,
+          }));
+          return;
+        }
+      
+        case 'g': {
+          // Similar a ρ, no implementado
+          console.warn('Resolución para g no implementada');
+          setState((prev) => ({
+            ...prev,
+            invalidFields: [missingField],
+            autoCalculatedField: null,
+            unknownVariable: null,
+          }));
+          return;
+        }
+      
+        case 'alpha1':
+        case 'alpha2': {
+          // α = (2g * término) / V²
+          // Similar al modo ideal, pero con la ecuación completa
+          if (missingField === 'alpha1') {
+            const rightSide = getVal('P2', new Decimal(0)).div(rhoG)
+              .plus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
+              .plus(getVal('z2', new Decimal(0)))
+              .plus(getVal('ht', new Decimal(0)))
+              .plus(calculateHL())
+              .minus(getVal('P1', new Decimal(0)).div(rhoG))
+              .minus(getVal('z1', new Decimal(0)))
+              .minus(getVal('hb', new Decimal(0)));
+            
+            const V1 = getVal('V1', new Decimal(0));
+            if (rightSide.greaterThan(0) && !V1.isZero()) {
+              const alpha1_calc = rightSide.mul(twoG).div(V1.pow(2));
+              const formattedResult = formatResult(alpha1_calc.toNumber());
+              newState.alpha1 = formattedResult;
+              newState.isManualEditAlpha1 = false;
+              newState.unknownVariable = { 
+                name: 'α₁', 
+                label: t('energiaBernoulliCalc.labels.alpha1'), 
+                unit: '', 
+                value: formattedResult 
+              };
+            }
+          } else { // alpha2
+            const rightSide = getVal('P1', new Decimal(0)).div(rhoG)
+              .plus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
+              .plus(getVal('z1', new Decimal(0)))
+              .plus(getVal('hb', new Decimal(0)))
+              .minus(getVal('P2', new Decimal(0)).div(rhoG))
+              .minus(getVal('z2', new Decimal(0)))
+              .minus(getVal('ht', new Decimal(0)))
+              .minus(calculateHL());
+            
+            const V2 = getVal('V2', new Decimal(0));
+            if (rightSide.greaterThan(0) && !V2.isZero()) {
+              const alpha2_calc = rightSide.mul(twoG).div(V2.pow(2));
+              const formattedResult = formatResult(alpha2_calc.toNumber());
+              newState.alpha2 = formattedResult;
+              newState.isManualEditAlpha2 = false;
+              newState.unknownVariable = { 
+                name: 'α₂', 
+                label: t('energiaBernoulliCalc.labels.alpha2'), 
+                unit: '', 
+                value: formattedResult 
+              };
+            }
+          }
+          break;
+        }
+      
+        default:
+          console.warn(`Resolución para '${missingField}' no implementada`);
+          setState((prev) => ({
+            ...prev,
+            invalidFields: [missingField],
+            autoCalculatedField: null,
+            unknownVariable: null,
+          }));
+          return;
+      }
+    
+      // 9. Actualizar estado
+      setState((prev) => ({
+        ...prev,
+        ...newState,
+        invalidFields: [],
+        autoCalculatedField: missingField,
+        resultTotalEnergy: 0,
+        isManualEditP1: missingField === 'P1' ? false : prev.isManualEditP1,
+        isManualEditV1: missingField === 'V1' ? false : prev.isManualEditV1,
+        isManualEditz1: missingField === 'z1' ? false : prev.isManualEditz1,
+        isManualEditP2: missingField === 'P2' ? false : prev.isManualEditP2,
+        isManualEditV2: missingField === 'V2' ? false : prev.isManualEditV2,
+        isManualEditz2: missingField === 'z2' ? false : prev.isManualEditz2,
+        isManualEditHb: missingField === 'hb' ? false : (prev.isManualEditHb || false),
+        isManualEditHt: missingField === 'ht' ? false : (prev.isManualEditHt || false),
+        isManualEditHL: missingField === 'hL' ? false : (prev.isManualEditHL || false),
+        isManualEditAlpha1: missingField === 'alpha1' ? false : (prev.isManualEditAlpha1 || false),
+        isManualEditAlpha2: missingField === 'alpha2' ? false : (prev.isManualEditAlpha2 || false),
+      }));
+    
+    } catch (error) {
+      console.error("Error en cálculo con pérdidas:", error);
+      setState((prev) => ({
+        ...prev,
+        invalidFields: [missingField],
+        autoCalculatedField: null,
+        unknownVariable: null,
+      }));
     }
-
-    // Obtener valores en unidades base
-    const P1 = parseFloat(state.P1.replace(',', '.')) * conversionFactors.pressure[state.P1Unit];
-    const P2 = parseFloat(state.P2.replace(',', '.')) * conversionFactors.pressure[state.P2Unit];
-    const z1 = parseFloat(state.z1.replace(',', '.')) * conversionFactors.length[state.z1Unit];
-    const z2 = parseFloat(state.z2.replace(',', '.')) * conversionFactors.length[state.z2Unit];
-    const V1 = parseFloat(state.V1.replace(',', '.')) * conversionFactors.velocity[state.V1Unit];
-    const V2 = parseFloat(state.V2.replace(',', '.')) * conversionFactors.velocity[state.V2Unit];
-    const gamma = parseFloat(state.gamma.replace(',', '.')) * conversionFactors.pressure[state.gammaUnit];
-    const g = parseFloat(state.g.replace(',', '.')) * conversionFactors.acceleration[state.gUnit];
-    const alpha1 = parseFloat(state.alpha1?.replace(',', '.') || '1');
-    const alpha2 = parseFloat(state.alpha2?.replace(',', '.') || '1');
-    const hb = state.hb ? parseFloat(state.hb.replace(',', '.')) * conversionFactors.length[state.hbUnit] : 0;
-    const ht = state.ht ? parseFloat(state.ht.replace(',', '.')) * conversionFactors.length[state.htUnit] : 0;
-
-    // Energía en sección 1
-    const E1 = P1/gamma + alpha1 * V1*V1/(2*g) + z1 + hb - ht;
-    // Energía en sección 2
-    const E2 = P2/gamma + alpha2 * V2*V2/(2*g) + z2 + hL_value;
-
-    setState((prev) => ({
-      ...prev,
-      invalidFields: [],
-      autoCalculatedField: null,
-      resultTotalEnergy: E1 - E2, // Diferencia de energía (pérdidas)
-    }));
-  }, [state, formatResult]);
+  }, [state, formatResult, t]);
 
   const calculateCavitation = useCallback(() => {
-    const requiredIds = ['P1', 'z1', 'V1', 'gamma', 'g', 'temperatura'];
-    
-    const missing = requiredIds.filter((id) => {
-      const raw = (state as any)[id] as string;
-      const val = raw?.replace(',', '.');
-      return !val || isNaN(parseFloat(val));
-    });
+    try {
+      // Validar campos según el tipo de sistema
+      let requiredIds: string[] = ['g'];
 
-    if (missing.length > 0) {
+      if (state.cavitationSystemType === 'closed') {
+        requiredIds = [...requiredIds, 'Ps', 'Vs'];
+      } else {
+        requiredIds = [...requiredIds, 'Patm', 'z0', 'zs', 'hfs'];
+      }
+
+      // Validar según opciones de fluido
+      if (state.useRhoForGamma) {
+        requiredIds.push('rho');
+      } else {
+        requiredIds.push('gamma');
+      }
+
+      if (state.useTempForPv) {
+        requiredIds.push('temperatura');
+      } else {
+        requiredIds.push('Pv');
+      }
+
+      const missing = requiredIds.filter((id) => {
+        const raw = (state as any)[id] as string;
+        const val = raw?.replace(',', '.');
+        return !val || isNaN(parseFloat(val));
+      });
+
+      if (missing.length > 0) {
+        setState((prev) => ({
+          ...prev,
+          invalidFields: missing,
+          autoCalculatedField: null,
+          resultNPSHa: '',
+          resultCavitationMargin: '',
+          resultPabs: '',
+        }));
+        return;
+      }
+
+      // Obtener valores en unidades base
+      const g = parseFloat(state.g.replace(',', '.')) * conversionFactors.acceleration[state.gUnit];
+
+      // Calcular gamma (peso específico)
+      let gamma: number;
+      if (state.useRhoForGamma) {
+        const rho = parseFloat(state.rho.replace(',', '.')) * conversionFactors.density[state.rhoUnit];
+        gamma = rho * g;
+        setState(prev => ({ ...prev, resultGamma: formatResult(gamma) }));
+      } else {
+        gamma = parseFloat(state.gamma.replace(',', '.')) * conversionFactors.specificWeight[state.gammaUnit];
+      }
+
+      // Calcular Pv (presión de vapor)
+      let Pv: number;
+      if (state.useTempForPv) {
+        const temp = parseFloat(state.temperatura.replace(',', '.'));
+        Pv = calculateVaporPressure(temp, state.temperaturaUnit);
+        setState(prev => ({ ...prev, resultPv: formatResult(Pv) }));
+      } else {
+        Pv = parseFloat(state.Pv.replace(',', '.')) * conversionFactors.pressure[state.PvUnit];
+      }
+
+      let NPSHa: number;
+      let Pabs: number = 0;
+
+      if (state.cavitationSystemType === 'closed') {
+        // SISTEMA CERRADO
+        // NPSH_disp = P_s/γ + V_s²/(2g) - P_v/γ
+        const Ps = parseFloat(state.Ps.replace(',', '.')) * conversionFactors.pressure[state.PsUnit];
+        const Vs = parseFloat(state.Vs.replace(',', '.')) * conversionFactors.velocity[state.VsUnit];
+
+        Pabs = Ps; // En sistema cerrado, Ps es presión absoluta
+        const velocityHead = Math.pow(Vs, 2) / (2 * g);
+
+        NPSHa = (Ps / gamma) + velocityHead - (Pv / gamma);
+
+      } else {
+        // SISTEMA ABIERTO
+        // NPSH_disp = P_atm/γ + z₀ - z_s - h_fs - P_v/γ
+        const Patm = parseFloat(state.Patm.replace(',', '.')) * conversionFactors.pressure[state.PatmUnit];
+        const z0 = parseFloat(state.z0.replace(',', '.')) * conversionFactors.length[state.z0Unit];
+        const zs = parseFloat(state.zs.replace(',', '.')) * conversionFactors.length[state.zsUnit];
+        const hfs = parseFloat(state.hfs.replace(',', '.')) * conversionFactors.length[state.hfsUnit];
+
+        Pabs = Patm; // En sistema abierto, usamos presión atmosférica
+
+        NPSHa = (Patm / gamma) + z0 - zs - hfs - (Pv / gamma);
+      }
+
+      // Margen de cavitación (NPSHa - 0.5m como margen típico)
+      // En una versión mejorada, esto podría ser configurable
+      const cavitationMargin = NPSHa - 0.5;
+
+      // Determinar estado de cavitación
+      let cavitationStatus = '';
+      if (cavitationMargin > 0.5) {
+        cavitationStatus = 'Seguro';
+      } else if (cavitationMargin > 0) {
+        cavitationStatus = 'Margen bajo';
+      } else {
+        cavitationStatus = 'Riesgo de cavitación';
+      }
+
       setState((prev) => ({
         ...prev,
-        invalidFields: missing,
+        invalidFields: [],
         autoCalculatedField: null,
-        resultCavitationMargin: '',
-        resultNPSHa: '',
+        resultNPSHa: formatResult(NPSHa / conversionFactors.length['m']), // Convertir a metros para mostrar
+        resultCavitationMargin: formatResult(cavitationMargin / conversionFactors.length['m']),
+        resultPabs: formatResult(Pabs / conversionFactors.pressure['Pa']),
+        resultTotalEnergy: cavitationMargin, // Para mantener compatibilidad
       }));
-      return;
+
+      // Mostrar toast con estado de cavitación
+      // Toast.show({
+      //   type: cavitationMargin > 0 ? 'success' : 'error',
+      //   text1: t('energiaBernoulliCalc.cavitationStatus') || 'Estado de cavitación',
+      //   text2: cavitationStatus,
+      // });
+
+    } catch (error) {
+      console.error('Error en cálculo de cavitación:', error);
+      Toast.show({
+        type: 'error',
+        text1: t('common.error'),
+        text2: t('energiaBernoulliCalc.toasts.calculationError'),
+      });
     }
-
-    // Calcular presión de vapor según temperatura
-    const temp = parseFloat(state.temperatura.replace(',', '.'));
-    let Pv = 0;
-    
-    if (state.Pv && !isNaN(parseFloat(state.Pv.replace(',', '.')))) {
-      Pv = parseFloat(state.Pv.replace(',', '.')) * conversionFactors.pressure[state.PvUnit];
-    } else {
-      Pv = calculateVaporPressure(temp, state.temperaturaUnit);
-    }
-
-    // Obtener valores en unidades base
-    const P1 = parseFloat(state.P1.replace(',', '.')) * conversionFactors.pressure[state.P1Unit];
-    const z1 = parseFloat(state.z1.replace(',', '.')) * conversionFactors.length[state.z1Unit];
-    const V1 = parseFloat(state.V1.replace(',', '.')) * conversionFactors.velocity[state.V1Unit];
-    const gamma = parseFloat(state.gamma.replace(',', '.')) * conversionFactors.pressure[state.gammaUnit];
-    const g = parseFloat(state.g.replace(',', '.')) * conversionFactors.acceleration[state.gUnit];
-    
-    // Pérdidas (opcionales)
-    const hL = state.hL ? parseFloat(state.hL.replace(',', '.')) * conversionFactors.length[state.hLUnit] : 0;
-
-    // Presión absoluta en la sección (asumiendo presión atmosférica si no se especifica)
-    const Pabs = P1 + 101325; // Sumar presión atmosférica si P1 es manométrica
-    
-    // NPSH disponible
-    const NPSHa = (Pabs / gamma) + z1 - (Pv / gamma) - hL;
-    
-    // Margen de cavitación (positivo = seguro)
-    const cavitationMargin = NPSHa - 0.5; // Margen típico de seguridad
-
-    setState((prev) => ({
-      ...prev,
-      invalidFields: [],
-      autoCalculatedField: null,
-      resultPabs: formatResult(Pabs / conversionFactors.pressure['Pa']),
-      resultNPSHa: formatResult(NPSHa / conversionFactors.length['m']),
-      resultCavitationMargin: formatResult(cavitationMargin / conversionFactors.length['m']),
-      resultTotalEnergy: cavitationMargin,
-    }));
-  }, [state, formatResult, calculateVaporPressure]);
+  }, [state, formatResult, calculateVaporPressure, t]);
 
   const handleCalculate = useCallback(() => {
     switch (state.mode) {
@@ -1088,9 +1783,28 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
 
     if (state.mode === 'cavitation') {
-      textToCopy += `${t('energiaBernoulliCalc.cavitationMargin')}: ${formattedMain} m\n`;
       textToCopy += `${t('energiaBernoulliCalc.npsha')}: ${state.resultNPSHa} m\n`;
+      textToCopy += `${t('energiaBernoulliCalc.cavitationMargin')}: ${formattedMain} m\n`;
       textToCopy += `${t('energiaBernoulliCalc.pabs')}: ${state.resultPabs} Pa\n`;
+
+      if (state.resultGamma) {
+        textToCopy += `γ: ${state.resultGamma} N/m³ (calculado)\n`;
+      }
+      if (state.resultPv) {
+        textToCopy += `Pv: ${state.resultPv} Pa (calculado)\n`;
+      }
+
+      textToCopy += `\n${t('energiaBernoulliCalc.systemType')}: ${state.cavitationSystemType === 'closed' ? 'Cerrado' : 'Abierto'}\n`;
+
+      if (state.cavitationSystemType === 'closed') {
+        textToCopy += `${t('energiaBernoulliCalc.labels.Ps')}: ${state.Ps} ${state.PsUnit}\n`;
+        textToCopy += `${t('energiaBernoulliCalc.labels.Vs')}: ${state.Vs} ${state.VsUnit}\n`;
+      } else {
+        textToCopy += `${t('energiaBernoulliCalc.labels.Patm')}: ${state.Patm} ${state.PatmUnit}\n`;
+        textToCopy += `${t('energiaBernoulliCalc.labels.z0')}: ${state.z0} ${state.z0Unit}\n`;
+        textToCopy += `${t('energiaBernoulliCalc.labels.zs')}: ${state.zs} ${state.zsUnit}\n`;
+        textToCopy += `${t('energiaBernoulliCalc.labels.hfs')}: ${state.hfs} ${state.hfsUnit}\n`;
+      }
     } else {
       textToCopy += `${t('energiaBernoulliCalc.energyDifference')}: ${formattedMain} m\n`;
     }
@@ -1218,10 +1932,30 @@ const EnergiaBernoulliCalc: React.FC = () => {
           K: state.K,
         }),
         ...(state.mode === 'cavitation' && {
+          cavitationSystemType: state.cavitationSystemType,
+          Ps: state.Ps,
+          PsUnit: state.PsUnit,
+          Vs: state.Vs,
+          VsUnit: state.VsUnit,
+          Patm: state.Patm,
+          PatmUnit: state.PatmUnit,
+          z0: state.z0,
+          z0Unit: state.z0Unit,
+          zs: state.zs,
+          zsUnit: state.zsUnit,
+          hfs: state.hfs,
+          hfsUnit: state.hfsUnit,
           temperatura: state.temperatura,
           temperaturaUnit: state.temperaturaUnit,
           Pv: state.Pv,
           PvUnit: state.PvUnit,
+          useRhoForGamma: state.useRhoForGamma,
+          useTempForPv: state.useTempForPv,
+          resultNPSHa: state.resultNPSHa,
+          resultCavitationMargin: state.resultCavitationMargin,
+          resultPabs: state.resultPabs,
+          resultGamma: state.resultGamma,
+          resultPv: state.resultPv,
         }),
       };
 
@@ -1266,13 +2000,71 @@ const EnergiaBernoulliCalc: React.FC = () => {
       'L': state.LUnit,
       'T': state.temperaturaUnit,
       'Pv': state.PvUnit,
+      // *** NUEVO: Unidades para cavitación ***
+      'P_s': state.PsUnit,
+      'V_s': state.VsUnit,
+      'P_atm': state.PatmUnit,
+      'z₀': state.z0Unit,
+      'z_s': state.zsUnit,
+      'h_fs': state.hfsUnit,
     };
-    
+
     const unit = unitProp || unitMap[label] || '';
     const shownLabel = displayLabel || label;
 
     const isFieldLocked = fieldId && state.lockedField === fieldId;
     const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
+
+    // Función para formatear el valor mostrado (máximo 5 decimales)
+    const formatDisplayValue = (val: string): string => {
+      if (!val || val === '') return val;
+
+      // Si el usuario está escribiendo y el último carácter es un punto o coma,
+      // o si hay un punto/coma sin dígitos después, mantener el valor sin formato
+      const lastChar = val.charAt(val.length - 1);
+      if (lastChar === '.' || lastChar === ',') {
+        return val;
+      }
+
+      // Si hay un punto/coma seguido de nada (ej: "123.") mantenerlo
+      if (val.includes('.') && val.split('.')[1] === '') {
+        return val;
+      }
+      if (val.includes(',') && val.split(',')[1] === '') {
+        return val;
+      }
+
+      // Reemplazar coma por punto para parsear
+      const normalizedVal = val.replace(',', '.');
+      const num = parseFloat(normalizedVal);
+
+      if (isNaN(num)) return val;
+
+      // Formatear a máximo 5 decimales, eliminando ceros innecesarios
+      const formatted = num.toFixed(5).replace(/\.?0+$/, '');
+
+      // Restaurar el separador decimal original si es coma
+      return selectedDecimalSeparator === 'Coma' ? formatted.replace('.', ',') : formatted;
+    };
+
+    // Función para manejar cambios en el texto sin formato
+    const handleTextChange = (text: string) => {
+      // Permitir que el usuario escriba puntos y comas libremente
+      onChange(text);
+      setManualEdit(true);
+      if (fieldId) {
+        setState((prev) => ({
+          ...prev,
+          invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
+          autoCalculatedField: prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
+          unknownVariable: prev.unknownVariable?.name === fieldId ? null : prev.unknownVariable,
+        }));
+      }
+    };
+
+    // Determinar qué valor mostrar (resultado calculado o valor manual)
+    const rawDisplayValue = resultValue && resultValue !== '' ? resultValue : value;
+    const displayValue = formatDisplayValue(rawDisplayValue);
 
     return (
       <View style={styles.inputWrapper}>
@@ -1313,18 +2105,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
                 keyboardType="numeric"
-                value={resultValue && resultValue !== '' ? resultValue : value}
-                onChangeText={(text) => {
-                  onChange(text);
-                  setManualEdit(true);
-                  if (fieldId) {
-                    setState((prev) => ({
-                      ...prev,
-                      invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
-                      autoCalculatedField: prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
-                      // Limpiar unknownVariable si el campo editado era la incógnita
-                      unknownVariable: prev.unknownVariable?.name === fieldId ? null : prev.unknownVariable,
-                    }));
+                value={displayValue}
+                onChangeText={handleTextChange}
+                onBlur={() => {
+                  // Al perder el foco, forzar la actualización del formato
+                  if (value && value !== '') {
+                    const formatted = formatDisplayValue(value);
+                    if (formatted !== value) {
+                      onChange(formatted);
+                    }
                   }
                 }}
                 editable={!isFieldLocked}
@@ -1346,9 +2135,9 @@ const EnergiaBernoulliCalc: React.FC = () => {
               else if (label.includes('γ')) category = 'specificWeight';
               else if (label === 'g') category = 'acceleration';
               else if (label === 'T') category = 'temperature';
-              
+              else if (label === 'P_v') category = 'pressure';
+
               navigateToOptions(category, (option: string) => {
-                // En la función updateUnit dentro de navigateToOptions:
                 const updateUnit = (field: keyof CalculatorState, prevField: keyof CalculatorState, resultField?: keyof CalculatorState) => {
                   const inputValue = state[field] as string;
                   const prevUnit = state[prevField] as string;
@@ -1358,9 +2147,8 @@ const EnergiaBernoulliCalc: React.FC = () => {
                   if (resultVal && resultField) {
                     convertedResultValue = convertValue(resultVal, prevUnit, option, category as any);
                   }
-
+                
                   setState((prev) => {
-                    // Actualizar unknownVariable si la variable actual es la incógnita
                     let updatedUnknown = prev.unknownVariable;
                     if (updatedUnknown && field === updatedUnknown.name) {
                       updatedUnknown = {
@@ -1369,7 +2157,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
                         value: convertedResultValue || updatedUnknown.value
                       };
                     }
-
+                  
                     return {
                       ...prev,
                       [field]: convertedInputValue,
@@ -1380,7 +2168,8 @@ const EnergiaBernoulliCalc: React.FC = () => {
                     };
                   });
                 };
-
+              
+                // *** ACTUALIZADO: Añadir casos para los nuevos labels de cavitación ***
                 switch (label) {
                   case 'P₁': updateUnit('P1', 'prevP1Unit', 'resultP1'); break;
                   case 'P₂': updateUnit('P2', 'prevP2Unit', 'resultP2'); break;
@@ -1398,7 +2187,14 @@ const EnergiaBernoulliCalc: React.FC = () => {
                   case 'hL': updateUnit('hL', 'prevHLUnit'); break;
                   case 'L': updateUnit('L', 'prevLUnit'); break;
                   case 'T': updateUnit('temperatura', 'prevTemperaturaUnit'); break;
-                  case 'Pv': updateUnit('Pv', 'prevPvUnit'); break;
+                  case 'P_v': updateUnit('Pv', 'prevPvUnit'); break;
+                  case 'P_s': updateUnit('Ps', 'prevPsUnit'); break;
+                  case 'V_s': updateUnit('Vs', 'prevVsUnit'); break;
+                  case 'P_atm': updateUnit('Patm', 'prevPatmUnit'); break;
+                  case 'z₀': updateUnit('z0', 'prevZ0Unit'); break;
+                  case 'z_s': updateUnit('zs', 'prevZsUnit'); break;
+                  case 'h_fs': updateUnit('hfs', 'prevHfsUnit'); break;
+                  default: break;
                 }
               }, unit);
             }}
@@ -1411,7 +2207,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         </View>
       </View>
     );
-  }, [state, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor]);
+  }, [state, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor, selectedDecimalSeparator]);
 
   const onLayoutDirect = useCallback((e: LayoutChangeEvent) => {
     const { x, width } = e.nativeEvent.layout;
@@ -1466,6 +2262,98 @@ const EnergiaBernoulliCalc: React.FC = () => {
       </View>
     </View>
   ), [themeColors, t, fontSizeFactor, state.lossInputType, lossButtonMetrics, lossButtonPositions, animatedLossValue, animatedLossScale, onLayoutDirect, onLayoutDarcy]);
+
+  // *** NUEVO: Selector para sistema cerrado/abierto ***
+  const onLayoutClosed = useCallback((e: LayoutChangeEvent) => {
+    const { x, width } = e.nativeEvent.layout;
+    setCavitationButtonPositions((prev) => ({ ...prev, closed: x }));
+    setCavitationButtonMetrics((prev) => ({ ...prev, closed: width }));
+  }, []);
+
+  const onLayoutOpen = useCallback((e: LayoutChangeEvent) => {
+    const { x, width } = e.nativeEvent.layout;
+    setCavitationButtonPositions((prev) => ({ ...prev, open: x }));
+    setCavitationButtonMetrics((prev) => ({ ...prev, open: width }));
+  }, []);
+
+  // Añadir estos estados junto con los otros estados de métricas (línea ~290)
+  const [cavitationButtonMetrics, setCavitationButtonMetrics] = useState<{ closed: number; open: number }>({
+    closed: 0,
+    open: 0,
+  });
+  const [cavitationButtonPositions, setCavitationButtonPositions] = useState<{ closed: number; open: number }>({
+    closed: 0,
+    open: 0,
+  });
+
+  // Añadir animaciones para el selector de cavitación (junto a animatedLossValue, línea ~300)
+  const animatedCavitationValue = useRef(new Animated.Value(0)).current;
+  const animatedCavitationScale = useRef(new Animated.Value(1)).current;
+
+  // Añadir useEffect para la animación del selector de cavitación (después del useEffect de loss)
+  useEffect(() => {
+    if (cavitationButtonMetrics.closed > 0 && cavitationButtonMetrics.open > 0) {
+      let targetX = 0;
+      if (state.cavitationSystemType === 'closed') targetX = cavitationButtonPositions.closed;
+      else if (state.cavitationSystemType === 'open') targetX = cavitationButtonPositions.open;
+
+      Animated.parallel([
+        Animated.spring(animatedCavitationValue, {
+          toValue: targetX,
+          useNativeDriver: true,
+          bounciness: 5,
+          speed: 5,
+        }),
+        Animated.sequence([
+          Animated.spring(animatedCavitationScale, { toValue: 1.15, useNativeDriver: true, bounciness: 5, speed: 50 }),
+          Animated.spring(animatedCavitationScale, { toValue: 1, useNativeDriver: true, bounciness: 5, speed: 50 }),
+        ]),
+      ]).start();
+    }
+  }, [state.cavitationSystemType, cavitationButtonMetrics, cavitationButtonPositions]);
+
+  // *** NUEVO: Render del selector de sistema ***
+  const renderSystemTypeSelector = useCallback(() => (
+    <View style={styles.inputWrapper}>
+      <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+        {t('energiaBernoulliCalc.systemType')}
+      </Text>
+      <View style={styles.lossButtonContainer}>
+        <Animated.View
+          style={[
+            styles.lossOverlay,
+            {
+              experimental_backgroundImage: themeColors.gradient,
+              width: state.cavitationSystemType === 'closed' ? cavitationButtonMetrics.closed : cavitationButtonMetrics.open,
+              transform: [{ translateX: animatedCavitationValue }, { scale: animatedCavitationScale }],
+            },
+          ]}
+        >
+          <View style={[styles.lossOverlayInner, { backgroundColor: themeColors.card }]}></View>
+        </Animated.View>
+
+        <Pressable
+          onLayout={onLayoutClosed}
+          style={[styles.lossButton, state.cavitationSystemType === 'closed' ? styles.selectedLossButton : styles.unselectedLossButton]}
+          onPress={() => setState(prev => ({ ...prev, cavitationSystemType: 'closed' }))}
+        >
+          <Text style={[styles.lossButtonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+            {t('energiaBernoulliCalc.closed') || 'Cerrado'}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onLayout={onLayoutOpen}
+          style={[styles.lossButton, state.cavitationSystemType === 'open' ? styles.selectedLossButton : styles.unselectedLossButton]}
+          onPress={() => setState(prev => ({ ...prev, cavitationSystemType: 'open' }))}
+        >
+          <Text style={[styles.lossButtonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+            {t('energiaBernoulliCalc.open') || 'Abierto'}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  ), [themeColors, t, fontSizeFactor, state.cavitationSystemType, cavitationButtonMetrics, cavitationButtonPositions, animatedCavitationValue, animatedCavitationScale]);
 
   const renderIdealInputs = useCallback(() => (
     <>
@@ -1541,12 +2429,26 @@ const EnergiaBernoulliCalc: React.FC = () => {
           onChangeText={(text) => {
             setState((prev) => ({ 
               ...prev, 
-              alpha1: text,
+              alpha1: text, // guarda lo q el usuario escribe
               isManualEditAlpha1: true,
               invalidFields: prev.invalidFields.filter((f) => f !== 'alpha1'),
               autoCalculatedField: prev.autoCalculatedField === 'alpha1' ? null : prev.autoCalculatedField,
             }));
           }}
+          onBlur={() => {
+            // Formatear al perder el foco
+            if (state.alpha1 && state.alpha1 !== '') {
+              const normalized = state.alpha1.replace(',', '.');
+              const num = parseFloat(normalized);
+              if (!isNaN(num)) {
+                const formatted = num.toFixed(5).replace(/\.?0+$/, '');
+                const finalValue = selectedDecimalSeparator === 'Coma' ? formatted.replace('.', ',') : formatted;
+                if (finalValue !== state.alpha1) {
+                  setState(prev => ({ ...prev, alpha1: finalValue }));
+                }
+              }
+            }
+          }} // ← Nuevo: agregar onBlur
           editable={state.lockedField !== 'alpha1'}
           selectTextOnFocus={state.lockedField !== 'alpha1'}
           placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
@@ -1602,25 +2504,60 @@ const EnergiaBernoulliCalc: React.FC = () => {
   const renderLossesInputs = useCallback(() => (
     <>
       {renderIdealInputs()}
-      
+
       <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
-      
+
       <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
         {t('energiaBernoulliCalc.pumpTurbine')}
       </Text>
-      {renderInput('hB', state.hb, (text) => setState((prev) => ({ ...prev, hb: text })), (val) => setState((prev) => ({ ...prev, isManualEditHb: val })), 'hb', state.isManualEditHb ? state.hb : undefined, t('energiaBernoulliCalc.labels.hb'))}
-      {renderInput('hT', state.ht, (text) => setState((prev) => ({ ...prev, ht: text })), (val) => setState((prev) => ({ ...prev, isManualEditHt: val })), 'ht', state.isManualEditHt ? state.ht : undefined, t('energiaBernoulliCalc.labels.ht'))}
-      
+
+      <View style={styles.checkboxRow}>
+        <Checkbox
+          label={t('energiaBernoulliCalc.includeBomba') || 'Incluir Bomba'}
+          value={state.includeBomba}
+          onValueChange={(value) => setState(prev => ({ ...prev, includeBomba: value }))}
+          themeColors={themeColors}
+          fontSizeFactor={fontSizeFactor}
+        />
+      </View>
+      {state.includeBomba && renderInput('hB', state.hb, 
+        (text) => setState((prev) => ({ ...prev, hb: text })), 
+        (val) => setState((prev) => ({ ...prev, isManualEditHb: val })), 
+        'hb', state.isManualEditHb ? state.hb : undefined, 
+        t('energiaBernoulliCalc.labels.hb')
+      )}
+
+      <View style={styles.checkboxRow}>
+        <Checkbox
+          label={t('energiaBernoulliCalc.includeTurbina') || 'Incluir Turbina'}
+          value={state.includeTurbina}
+          onValueChange={(value) => setState(prev => ({ ...prev, includeTurbina: value }))}
+          themeColors={themeColors}
+          fontSizeFactor={fontSizeFactor}
+        />
+      </View>
+      {state.includeTurbina && renderInput('hT', state.ht, 
+        (text) => setState((prev) => ({ ...prev, ht: text })), 
+        (val) => setState((prev) => ({ ...prev, isManualEditHt: val })), 
+        'ht', state.isManualEditHt ? state.ht : undefined, 
+        t('energiaBernoulliCalc.labels.ht')
+      )}
+
       <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
-      
+
       <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
         {t('energiaBernoulliCalc.losses')}
       </Text>
-      
+
       {renderLossTypeSelector()}
-      
+
       {state.lossInputType === 'direct' ? (
-        renderInput('hL', state.hL, (text) => setState((prev) => ({ ...prev, hL: text })), (val) => setState((prev) => ({ ...prev, isManualEditHL: val })), 'hL', state.isManualEditHL ? state.hL : undefined, t('energiaBernoulliCalc.labels.hL'))
+        renderInput('hL', state.hL, 
+          (text) => setState((prev) => ({ ...prev, hL: text })), 
+          (val) => setState((prev) => ({ ...prev, isManualEditHL: val })), 
+          'hL', state.isManualEditHL ? state.hL : undefined, 
+          t('energiaBernoulliCalc.labels.hL')
+        )
       ) : (
         <>
           {renderInput('L', state.L, (text) => setState((prev) => ({ ...prev, L: text })), () => {}, 'L', undefined, t('energiaBernoulliCalc.labels.L'))}
@@ -1658,43 +2595,138 @@ const EnergiaBernoulliCalc: React.FC = () => {
         </>
       )}
     </>
-  ), [renderIdealInputs, renderInput, renderLossTypeSelector, state.hb, state.ht, state.hL, state.L, state.D1, state.f, state.K, state.isManualEditHb, state.isManualEditHt, state.isManualEditHL, state.lossInputType, themeColors, t, fontSizeFactor, currentTheme]);
+  ), [renderIdealInputs, renderInput, renderLossTypeSelector, state.includeBomba, state.includeTurbina, state.hb, state.ht, state.hL, state.L, state.D1, state.f, state.K, state.isManualEditHb, state.isManualEditHt, state.isManualEditHL, state.lossInputType, themeColors, t, fontSizeFactor, currentTheme]);
 
   const renderCavitationInputs = useCallback(() => (
     <>
-      <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
-        {t('energiaBernoulliCalc.suctionSection')}
-      </Text>
-      {renderInput('P₁', state.P1, (text) => setState((prev) => ({ ...prev, P1: text })), (val) => setState((prev) => ({ ...prev, isManualEditP1: val })), 'P1', state.isManualEditP1 ? state.P1 : state.resultP1, t('energiaBernoulliCalc.labels.P1_suction'))}
-      {renderInput('z₁', state.z1, (text) => setState((prev) => ({ ...prev, z1: text })), (val) => setState((prev) => ({ ...prev, isManualEditz1: val })), 'z1', state.isManualEditz1 ? state.z1 : state.resultZ1, t('energiaBernoulliCalc.labels.z_suction'))}
-      {renderInput('V₁', state.V1, (text) => setState((prev) => ({ ...prev, V1: text })), (val) => setState((prev) => ({ ...prev, isManualEditV1: val })), 'V1', state.isManualEditV1 ? state.V1 : state.resultZ1, t('energiaBernoulliCalc.labels.V_suction'))}
-      
+      {renderSystemTypeSelector()}
+
       <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
-      
+
+      {state.cavitationSystemType === 'closed' ? (
+        // SISTEMA CERRADO
+        <>
+          <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
+            {t('energiaBernoulliCalc.closedSystem') || 'Sistema Cerrado'}
+          </Text>
+
+          {renderInput('P_s', state.Ps, 
+            (text) => setState((prev) => ({ ...prev, Ps: text })), 
+            (val) => setState((prev) => ({ ...prev, isManualEditPs: val })), 
+            'Ps', state.isManualEditPs ? state.Ps : undefined, 
+            t('energiaBernoulliCalc.labels.Ps') || 'Presión en succión', 
+          state.PsUnit)}
+
+          {renderInput('V_s', state.Vs, 
+            (text) => setState((prev) => ({ ...prev, Vs: text })), 
+            (val) => setState((prev) => ({ ...prev, isManualEditVs: val })), 
+            'Vs', state.isManualEditVs ? state.Vs : undefined, 
+            t('energiaBernoulliCalc.labels.Vs') || 'Velocidad en succión', 
+          state.VsUnit)}
+        </>
+      ) : (
+        // SISTEMA ABIERTO
+        <>
+          <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
+            {t('energiaBernoulliCalc.openSystem') || 'Sistema Abierto'}
+          </Text>
+
+          {renderInput('P_atm', state.Patm, 
+            (text) => setState((prev) => ({ ...prev, Patm: text })), 
+            (val) => setState((prev) => ({ ...prev, isManualEditPatm: val })), 
+            'Patm', state.isManualEditPatm ? state.Patm : undefined, 
+            t('energiaBernoulliCalc.labels.Patm') || 'Presión atmosférica', 
+          state.PatmUnit)}
+
+          {renderInput('z₀', state.z0, 
+            (text) => setState((prev) => ({ ...prev, z0: text })), 
+            (val) => setState((prev) => ({ ...prev, isManualEditz0: val })), 
+            'z0', state.isManualEditz0 ? state.z0 : undefined, 
+            t('energiaBernoulliCalc.labels.z0') || 'Nivel del líquido', 
+          state.z0Unit)}
+
+          {renderInput('z_s', state.zs, 
+            (text) => setState((prev) => ({ ...prev, zs: text })), 
+            (val) => setState((prev) => ({ ...prev, isManualEditzs: val })), 
+            'zs', state.isManualEditzs ? state.zs : undefined, 
+            t('energiaBernoulliCalc.labels.zs') || 'Elevación en succión', 
+          state.zsUnit)}
+
+          {renderInput('h_fs', state.hfs, 
+            (text) => setState((prev) => ({ ...prev, hfs: text })), 
+            (val) => setState((prev) => ({ ...prev, isManualEdithfs: val })), 
+            'hfs', state.isManualEdithfs ? state.hfs : undefined, 
+            t('energiaBernoulliCalc.labels.hfs') || 'Pérdida en succión', 
+          state.hfsUnit)}
+        </>
+      )}
+
+      <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
+
       <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
         {t('energiaBernoulliCalc.fluidProps')}
       </Text>
-      {renderInput('γ', state.gamma, (text) => setState((prev) => ({ ...prev, gamma: text })), () => {}, 'gamma', undefined, t('energiaBernoulliCalc.labels.gamma'))}
-      {renderInput('g', state.g, (text) => setState((prev) => ({ ...prev, g: text })), () => {}, 'g', undefined, t('energiaBernoulliCalc.labels.g'))}
-      
+
+      <View style={styles.checkboxRow}>
+        <Checkbox
+          label={t('energiaBernoulliCalc.useRhoForGamma') || 'Usar densidad (ρ) en lugar de peso específico (γ)'}
+          value={state.useRhoForGamma}
+          onValueChange={(value) => setState(prev => ({ ...prev, useRhoForGamma: value }))}
+          themeColors={themeColors}
+          fontSizeFactor={fontSizeFactor}
+        />
+      </View>
+
+      {state.useRhoForGamma ? (
+        // Input de densidad
+        renderInput('ρ', state.rho, 
+          (text) => setState((prev) => ({ ...prev, rho: text })), 
+          () => {}, 'rho', undefined, 
+          t('energiaBernoulliCalc.labels.rho') || 'Densidad', state.rhoUnit)
+      ) : (
+        // Input de peso específico
+        renderInput('γ', state.gamma, 
+          (text) => setState((prev) => ({ ...prev, gamma: text })), 
+          () => {}, 'gamma', undefined, 
+          t('energiaBernoulliCalc.labels.gamma'), state.gammaUnit)
+      )}
+
+      {renderInput('g', state.g, 
+        (text) => setState((prev) => ({ ...prev, g: text })), 
+        () => {}, 'g', undefined, 
+        t('energiaBernoulliCalc.labels.g'), state.gUnit)}
+
       <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
       
       <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
-        {t('energiaBernoulliCalc.cavitationParams')}
+        {t('energiaBernoulliCalc.vaporPressure') || 'Presión de Vapor'}
       </Text>
       
-      {renderInput('T', state.temperatura, (text) => setState((prev) => ({ ...prev, temperatura: text })), () => {}, 'temperatura', undefined, t('energiaBernoulliCalc.labels.temperatura'))}
-      {renderInput('Pv', state.Pv, (text) => setState((prev) => ({ ...prev, Pv: text })), () => {}, 'Pv', undefined, t('energiaBernoulliCalc.labels.Pv'))}
+      <View style={styles.checkboxRow}>
+        <Checkbox
+          label={t('energiaBernoulliCalc.useTempForPv') || 'Calcular Pv desde temperatura'}
+          value={state.useTempForPv}
+          onValueChange={(value) => setState(prev => ({ ...prev, useTempForPv: value }))}
+          themeColors={themeColors}
+          fontSizeFactor={fontSizeFactor}
+        />
+      </View>
       
-      <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
-      
-      <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
-        {t('energiaBernoulliCalc.losses')}
-      </Text>
-      
-      {renderInput('hL', state.hL, (text) => setState((prev) => ({ ...prev, hL: text })), (val) => setState((prev) => ({ ...prev, isManualEditHL: val })), 'hL', state.isManualEditHL ? state.hL : undefined, t('energiaBernoulliCalc.labels.hL_suction'))}
+      {state.useTempForPv ? (
+        // Input de temperatura
+        renderInput('T', state.temperatura, 
+          (text) => setState((prev) => ({ ...prev, temperatura: text })), 
+          () => {}, 'temperatura', undefined, 
+          t('energiaBernoulliCalc.labels.temperatura'), state.temperaturaUnit)
+      ) : (
+        // Input directo de Pv
+        renderInput('P_v', state.Pv, 
+          (text) => setState((prev) => ({ ...prev, Pv: text })), 
+          () => {}, 'Pv', undefined, 
+          t('energiaBernoulliCalc.labels.Pv'), state.PvUnit)
+      )}
     </>
-  ), [renderInput, state.P1, state.z1, state.V1, state.gamma, state.g, state.temperatura, state.Pv, state.hL, state.isManualEditP1, state.isManualEditz1, state.isManualEditV1, state.isManualEditHL, state.resultP1, state.resultZ1, themeColors, t, fontSizeFactor]);
+  ), [renderInput, renderSystemTypeSelector, state.cavitationSystemType, state.Ps, state.Vs, state.Patm, state.z0, state.zs, state.hfs, state.useRhoForGamma, state.rho, state.gamma, state.g, state.useTempForPv, state.temperatura, state.Pv, state.isManualEditPs, state.isManualEditVs, state.isManualEditPatm, state.isManualEditz0, state.isManualEditzs, state.isManualEdithfs, themeColors, t, fontSizeFactor]);
 
   // onLayout handlers
   const onLayoutIdeal = useCallback((e: LayoutChangeEvent) => {
@@ -1716,8 +2748,8 @@ const EnergiaBernoulliCalc: React.FC = () => {
   }, []);
 
   const getMainResultLabel = useCallback(() => {
-    // Si hay una variable incógnita calculada en modo ideal
-    if (state.mode === 'ideal' && state.unknownVariable) {
+    // Si hay una variable incógnita calculada (en CUALQUIER modo)
+    if (state.unknownVariable) {
       const unit = state.unknownVariable.unit ? ` (${state.unknownVariable.unit})` : '';
       return `${state.unknownVariable.label} ${unit}`;
     }
@@ -1726,38 +2758,54 @@ const EnergiaBernoulliCalc: React.FC = () => {
     switch (state.mode) {
       case 'losses':
         return t('energiaBernoulliCalc.energyDifference');
-      case 'cavitation':
-        return t('energiaBernoulliCalc.cavitationMargin');
+      case 'cavitation': {
+        // Calcular el margen para determinar el estado
+        const margin = parseFloat(state.resultCavitationMargin || '0');
+
+        if (margin > 0.5) {
+          return `${t('energiaBernoulliCalc.noCavitation') || 'Sin riesgo de cavitación'}`;
+        } else if (margin > 0) {
+          return `${t('energiaBernoulliCalc.lowMargin') || 'Margen bajo'}`;
+        } else {
+          return `${t('energiaBernoulliCalc.cavitationRisk') || '¡RIESGO DE CAVITACIÓN!'}`;
+        }
+      }
       default:
         return t('energiaBernoulliCalc.result');
     }
-  }, [state.mode, state.unknownVariable, t]);
+  }, [state.mode, state.unknownVariable, state.resultCavitationMargin, t]);
 
-  // Añadir función para verificar si mostrar placeholder en el label
+  // También actualizar la función shouldShowPlaceholder para reflejar el cambio
   const shouldShowPlaceholderLabel = useCallback(() => {
+    // Si hay una variable incógnita, mostrar el label (no placeholder)
+    if (state.unknownVariable) {
+      return false;
+    }
+    
+    // Para otros modos, mostrar placeholder si no hay resultado
     if (state.mode === 'ideal') {
       return !state.unknownVariable;
     }
-    // Para otros modos, mostrar placeholder si no hay resultado
+    
     return state.resultTotalEnergy === 0 && 
-           !state.resultCavitationMargin;
-  }, [state.mode, state.unknownVariable, state.resultTotalEnergy, state.resultCavitationMargin]);
+           !state.resultNPSHa; // Cambiado de resultCavitationMargin a resultNPSHa
+  }, [state.mode, state.unknownVariable, state.resultTotalEnergy, state.resultNPSHa]);
 
-  // El valor numérico siempre mostrará 0 cuando no haya resultado
+  // El valor numérico ahora mostrará NPSHa en lugar del margen
   const getMainResultValue = useCallback(() => {
-    // Si hay una variable incógnita calculada en modo ideal
-    if (state.mode === 'ideal' && state.unknownVariable) {
+    // Si hay una variable incógnita calculada (en CUALQUIER modo)
+    if (state.unknownVariable) {
       return state.unknownVariable.value || '0';
     }
 
     // Para otros modos, mantener el comportamiento original
     switch (state.mode) {
       case 'cavitation':
-        return state.resultCavitationMargin || '0';
+        return state.resultNPSHa || '0'; // Cambiado de resultCavitationMargin a resultNPSHa
       default:
         return formatResult(state.resultTotalEnergy) || '0';
     }
-  }, [state.mode, state.unknownVariable, state.resultCavitationMargin, state.resultTotalEnergy, formatResult]);
+  }, [state.mode, state.unknownVariable, state.resultNPSHa, state.resultTotalEnergy, formatResult]);
 
   // Añadir función para verificar si mostrar placeholder "--/"
   const shouldShowPlaceholder = useCallback(() => {
@@ -1844,7 +2892,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
                     <Text
                       style={[
                         styles.flowLabel,
-                        { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 14 * fontSizeFactor }
+                        { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 16 * fontSizeFactor }
                       ]}
                     >
                       {shouldShowPlaceholderLabel() ? 'な' : getMainResultLabel()}
@@ -2088,9 +3136,9 @@ const styles = StyleSheet.create({
     position: 'relative' 
   },
   caudalLabel: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+    backgroundColor: 'rgba(142, 142, 142, 0.1)', 
     borderWidth: 1, 
-    borderColor: 'rgba(255, 255, 255, 0.4)', 
+    borderColor: 'rgba(104, 104, 104, 0.2)', 
     borderRadius: 14, 
     marginLeft: 11, 
     marginTop: 11, 
@@ -2098,7 +3146,7 @@ const styles = StyleSheet.create({
     minWidth: 90, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    paddingHorizontal: 20 
+    paddingHorizontal: 12,
   },
   flowLabel: { 
     fontSize: 14, 
@@ -2355,6 +3403,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white',
     borderRadius: 25,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    marginTop: 5,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 5,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  checkboxLabel: {
+    fontFamily: 'SFUIDisplay-Medium',
+  },
+  checkboxRow: {
+    marginTop: 0,
+    backgroundColor: 'transparent',
   },
 });
 

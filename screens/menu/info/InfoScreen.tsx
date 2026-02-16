@@ -38,20 +38,26 @@ const InfoScreen = () => {
             <Text style={styles.titleText}>VALVE</Text>
           </View>
           <View style={styles.titleContainer2}>
-            <Text style={styles.titleText2}>2025</Text>
+            <Text style={styles.titleText2}>2026</Text>
           </View>
         </View>
         <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Alpha 1.1.9.05 [Build 61]</Text>
+          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Alpha 26M02.15.01 [Build IDK]</Text>
         </View>
         <View style={{ height: 150 }} />
       </ScrollView>
       <View style={styles.creditsContainer}>
+        <Text style={[styles.creditsText2, { fontSize: 22 * fontSizeFactor }]}>
+          <Text style={styles.boldText}>データ</Text>
+        </Text>
+
+        <View style={styles.separation}/>      
+        
         <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
           <Text style={styles.boldText}>{t('infoScreen.creadoPor')}</Text>
         </Text>
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Vanesa Alejandra Martínez</Text>
         <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Andrés Felipe López</Text>
+        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Vanesa Alejandra Martínez</Text>
 
         <View style={styles.separation}/>
 
@@ -142,6 +148,12 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 5,
     lineHeight: 17,
+  },
+  creditsText2: {
+    fontFamily: 'SFUIDisplay-Light',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 5,
+    lineHeight: 25,
   },
   boldText: {
     fontFamily: 'SFUIDisplay-Medium',

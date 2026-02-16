@@ -62,6 +62,7 @@ import ContinuidadTheory from './screens/calculators/3_Continuidad/ContinuidadTh
 // 4_ENERGIA BERNOULLI
 import EnergiaBernoulliCalc from './screens/calculators/4_EnergiaBernoulli/EnergiaBernoulliCalc';
 import OptionsScreenEnergiaBernoulli from './screens/calculators/4_EnergiaBernoulli/OptionsScreenEnergiaBernoulli';
+import HistoryScreenEnergiaBernoulli from './screens/calculators/4_EnergiaBernoulli/HistoryScreenEnergiaBernoulli';
 
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
@@ -106,6 +107,7 @@ export type RootStackParamList = {
   HistoryScreenFroude: undefined;
   EnergiaBernoulliCalc: undefined;
   OptionsScreenEnergiaBernoulli: undefined;
+  HistoryScreenEnergiaBernoulli: undefined;
 };
 
 export type RootTabParamList = {
@@ -449,6 +451,14 @@ const App = () => {
                     <Stack.Screen
                       name="HistoryScreenContinuidad"
                       component={HistoryScreenContinuidad}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="HistoryScreenEnergiaBernoulli"
+                      component={HistoryScreenEnergiaBernoulli}
                       options={{
                         headerShown: false,
                         cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
