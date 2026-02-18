@@ -1,6 +1,17 @@
 // screens/menu/search/SearchScreen.tsx
-import React, { useContext, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, FlatList } from 'react-native';
+import React, { useContext, useMemo, useState, useEffect, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  Pressable, 
+  TextInput, 
+  FlatList, 
+  Image, 
+  Keyboard,
+  Animated,
+  Dimensions
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +23,11 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 
 import { calculatorsDef } from '../../../src/data/calculators';
+
+// Importar la imagen del easter egg
+const EASTER_EGG_IMAGE = require('../../../assets/easter_egg/IMG_8677.webp'); // Ajusta la ruta según tu estructura de carpetas
+
+const { width, height } = Dimensions.get('window');
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -56,6 +72,11 @@ const SearchScreen = () => {
   const { currentTheme } = useContext(ThemeContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
 
+  // Estados para el easter egg
+  const [showEasterEgg, setShowEasterEgg] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+
   const themeColors = {
     light: {
       background: 'rgba(255, 255, 255, 1)',
@@ -98,6 +119,48 @@ const SearchScreen = () => {
 
   const [query, setQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('none');
+
+  // Efecto para detectar el número mágico
+  useEffect(() => {
+    if (query === '310807' && !showEasterEgg) {
+      // Ocultar teclado
+      Keyboard.dismiss();
+      
+      // Mostrar easter egg con animación
+      setShowEasterEgg(true);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [query, showEasterEgg]);
+
+  const handleCloseEasterEgg = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.8,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowEasterEgg(false);
+      setQuery(''); // Opcional: limpiar el query después de cerrar
+    });
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -204,6 +267,7 @@ const SearchScreen = () => {
           </View>
         </View>
       </View>
+      
       {filtered.length === 0 ? (
         <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
           <Text style={{ opacity: 0.6, fontFamily: 'SFUIDisplay-Regular' }}>
@@ -220,6 +284,40 @@ const SearchScreen = () => {
           keyboardShouldPersistTaps="handled"
         />
       )}
+
+      {/* Easter Egg Overlay */}
+      {showEasterEgg && (
+        <Animated.View 
+          style={[
+            styles.easterEggContainer,
+            {
+              opacity: fadeAnim,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            }
+          ]}
+        >
+          <Pressable 
+            style={styles.easterEggPressable}
+            onPress={handleCloseEasterEgg}
+          >
+            <Animated.View
+              style={[
+                styles.easterEggImageContainer,
+                {
+                  transform: [{ scale: scaleAnim }]
+                }
+              ]}
+            >
+              <Image
+                source={EASTER_EGG_IMAGE}
+                style={styles.easterEggImage}
+                resizeMode="contain"
+              />
+            </Animated.View>
+          </Pressable>
+        </Animated.View>
+      )}
+
       <Toast config={toastConfig} position="bottom" />
     </View>
   );
@@ -347,5 +445,32 @@ const styles = StyleSheet.create({
   },
   cardDesc: {
     fontFamily: 'SFUIDisplay-Regular'
+  },
+  // Estilos para el easter egg
+  easterEggContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  easterEggPressable: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  easterEggImageContainer: {
+    width: width * 0.95,
+    height: height * 0.6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  easterEggImage: {
+    width: '100%',
+    height: '100%',
   },
 });

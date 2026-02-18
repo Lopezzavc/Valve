@@ -65,7 +65,7 @@ const toastConfig = {
 
 interface HistoryItem {
   id: number;
-  calculation_type: 'caudal' | 'continuidad';
+  calculation_type: 'Continuidad_caudal' | 'Continuidad_continuidad'; // Actualizado
   inputs: string;
   result: string;
   timestamp: number;
@@ -112,7 +112,7 @@ const translateFillValue = (value: string, t: (k: string, vars?: any) => string)
 };
 
 const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k: string, vars?: any) => string) => {
-  if (item.calculation_type === 'caudal') {
+  if (item.calculation_type === 'Continuidad_caudal') {
     const { sectionType, fillType, ...restInputs } = parsedInputs;
     let inputString = `${t('continuidadCalc.labels.sectionType')}: ${translateSectionValue(sectionType, t)}\n`;
     if (sectionType === 'Circular') {
@@ -144,7 +144,7 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
 
 const buildCopyText = (item: HistoryItem, parsedInputs: ParsedInputs, formattedResult: string, t: (k: string, vars?: any) => string) => {
   let textToCopy = '';
-  if (item.calculation_type === 'caudal') {
+  if (item.calculation_type === 'Continuidad_caudal') {
     const { sectionType, fillType, ...restInputs } = parsedInputs;
     textToCopy += `${t('continuidadCalc.flow')}: ${formattedResult} m³/s\n`;
     textToCopy += `${t('continuidadCalc.labels.sectionType')}: ${translateSectionValue(sectionType, t)}\n`;
@@ -304,7 +304,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
   const dateStr = useMemo(() => formatDate(item.timestamp), [item.timestamp]);
 
   const handleCopy = useCallback(() => {
-    if (item.calculation_type === 'caudal') {
+    if (item.calculation_type === 'Continuidad_caudal') {
       const q = parseFloat(String(item.result ?? '').replace(',', '.'));
       if (!isFinite(q) || q === 0) {
         Toast.show({
@@ -427,6 +427,12 @@ const HistoryScreenContinuidad = () => {
         dbRef.current = await getDBConnection();
       }
       const fetched = await getHistory(dbRef.current);
+
+      // En loadHistory de HistoryScreenContinuidad.tsx
+      const filtered = fetched.filter((item: HistoryItem) => 
+        item.calculation_type.startsWith('Continuidad_')
+      );
+
       setHistory((prev) => {
         const sameLength = prev.length === fetched.length;
         if (sameLength) {
@@ -516,8 +522,8 @@ const HistoryScreenContinuidad = () => {
         return;
       }
 
-      const caudalItems = history.filter(h => h.calculation_type === 'caudal');
-      const contItems   = history.filter(h => h.calculation_type === 'continuidad');
+      const caudalItems = history.filter(h => h.calculation_type === 'Continuidad_caudal');
+      const contItems   = history.filter(h => h.calculation_type === 'Continuidad_continuidad');
 
       const wb = new ExcelJS.Workbook();
       wb.creator = 'App Hidráulica';

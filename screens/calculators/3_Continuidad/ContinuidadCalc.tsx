@@ -734,7 +734,7 @@
           result = formatResult(state.resultCaudal);
         }
 
-        await saveCalculation(db, state.mode, JSON.stringify(inputs), result);
+        await saveCalculation(db, `Continuidad_${state.mode}`, JSON.stringify(inputs), result);
         Toast.show({ type: 'success', text1: t('common.success'), text2: t('continuidadCalc.toasts.saved') });
       } catch (error) {
         console.error('Error al guardar el historial:', error);

@@ -23,6 +23,7 @@ import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast
 import { getDBConnection, getHistory, deleteHistory } from '../../../src/services/database';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
+
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
@@ -62,7 +63,7 @@ const toastConfig = {
 
 interface HistoryItem {
   id: number;
-  calculation_type: string; // 'EnergiaBernoulli_ideal', 'EnergiaBernoulli_losses', 'EnergiaBernoulli_cavitation'
+  calculation_type: 'EnergiaBernoulli_ideal' | 'EnergiaBernoulli_losses' | 'EnergiaBernoulli_cavitation';
   inputs: string;
   result: string;
   timestamp: number;
@@ -71,7 +72,6 @@ interface HistoryItem {
 const { width } = Dimensions.get('window');
 const ORIGINAL_WIDTH = width - 40;
 const BUTTON_SIZE = 45;
-
 const REVEAL_OFFSET = -(BUTTON_SIZE + 20);
 
 const formatDate = (timestamp: number) => {
@@ -84,99 +84,154 @@ const formatDate = (timestamp: number) => {
 
 type ParsedInputs = Record<string, any>;
 
-// Función auxiliar para obtener el modo de cálculo
-const getCalculationMode = (calculationType: string): string => {
-  if (calculationType.includes('ideal')) return 'ideal';
-  if (calculationType.includes('losses')) return 'losses';
-  if (calculationType.includes('cavitation')) return 'cavitation';
-  return 'unknown';
-};
-
 const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k: string, vars?: any) => string) => {
-  const mode = getCalculationMode(item.calculation_type);
-  let inputString = `${t('energiaBernoulliCalc.mode')}: ${t(`energiaBernoulliCalc.mode.${mode}`)}\n\n`;
+  const mode = item.calculation_type.split('_')[1];
+  let inputString = '';
 
-  // Sección 1
-  inputString += `${t('energiaBernoulliCalc.section1')}:\n`;
-  inputString += `  P₁: ${parsedInputs.P1 ?? 'N/A'} ${parsedInputs.P1Unit ?? ''}\n`;
-  inputString += `  z₁: ${parsedInputs.z1 ?? 'N/A'} ${parsedInputs.z1Unit ?? ''}\n`;
-  inputString += `  V₁: ${parsedInputs.V1 ?? 'N/A'} ${parsedInputs.V1Unit ?? ''}\n`;
-
-  // Sección 2
-  inputString += `${t('energiaBernoulliCalc.section2')}:\n`;
-  inputString += `  P₂: ${parsedInputs.P2 ?? 'N/A'} ${parsedInputs.P2Unit ?? ''}\n`;
-  inputString += `  z₂: ${parsedInputs.z2 ?? 'N/A'} ${parsedInputs.z2Unit ?? ''}\n`;
-  inputString += `  V₂: ${parsedInputs.V2 ?? 'N/A'} ${parsedInputs.V2Unit ?? ''}\n`;
-
-  // Propiedades del fluido
-  inputString += `\n${t('energiaBernoulliCalc.fluidProps')}:\n`;
-  inputString += `  γ: ${parsedInputs.gamma ?? 'N/A'} ${parsedInputs.gammaUnit ?? ''}\n`;
-  inputString += `  g: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
-  if (parsedInputs.alpha1 && parsedInputs.alpha1 !== '1') {
-    inputString += `  α₁: ${parsedInputs.alpha1}\n`;
-  }
-  if (parsedInputs.alpha2 && parsedInputs.alpha2 !== '1') {
-    inputString += `  α₂: ${parsedInputs.alpha2}\n`;
-  }
-
-  // Bomba y Turbina
-  if (parsedInputs.hb) {
-    inputString += `\n${t('energiaBernoulliCalc.hb')}: ${parsedInputs.hb} ${parsedInputs.hbUnit ?? ''}\n`;
-  }
-  if (parsedInputs.ht) {
-    inputString += `${t('energiaBernoulliCalc.ht')}: ${parsedInputs.ht} ${parsedInputs.htUnit ?? ''}\n`;
-  }
-
-  // Pérdidas (modo losses)
-  if (mode === 'losses') {
-    inputString += `\n${t('energiaBernoulliCalc.losses')}:\n`;
-    if (parsedInputs.lossInputType === 'direct') {
-      inputString += `  hL: ${parsedInputs.hL ?? 'N/A'} ${parsedInputs.hLUnit ?? ''}\n`;
-    } else {
-      inputString += `  L: ${parsedInputs.L ?? 'N/A'} ${parsedInputs.LUnit ?? ''}\n`;
-      inputString += `  D₁: ${parsedInputs.D1 ?? 'N/A'} ${parsedInputs.D1Unit ?? ''}\n`;
-      inputString += `  f: ${parsedInputs.f ?? 'N/A'}\n`;
-      inputString += `  K: ${parsedInputs.K ?? 'N/A'}\n`;
+  if (mode === 'ideal' || mode === 'losses') {
+    inputString += `P₁: ${parsedInputs.P1 ?? 'N/A'} ${parsedInputs.P1Unit ?? ''}\n`;
+    inputString += `z₁: ${parsedInputs.z1 ?? 'N/A'} ${parsedInputs.z1Unit ?? ''}\n`;
+    inputString += `V₁: ${parsedInputs.V1 ?? 'N/A'} ${parsedInputs.V1Unit ?? ''}\n`;
+    inputString += `P₂: ${parsedInputs.P2 ?? 'N/A'} ${parsedInputs.P2Unit ?? ''}\n`;
+    inputString += `z₂: ${parsedInputs.z2 ?? 'N/A'} ${parsedInputs.z2Unit ?? ''}\n`;
+    inputString += `V₂: ${parsedInputs.V2 ?? 'N/A'} ${parsedInputs.V2Unit ?? ''}\n`;
+    inputString += `γ: ${parsedInputs.gamma ?? 'N/A'} ${parsedInputs.gammaUnit ?? ''}\n`;
+    inputString += `g: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
+    
+    if (parsedInputs.alpha1 && parsedInputs.alpha1 !== '1') {
+      inputString += `α₁: ${parsedInputs.alpha1}\n`;
     }
-  }
-
-  // Cavitación (modo cavitation)
-  if (mode === 'cavitation') {
-    inputString += `\n${t('energiaBernoulliCalc.cavitation')}:\n`;
-    inputString += `  ${t('energiaBernoulliCalc.systemType')}: ${parsedInputs.cavitationSystemType === 'closed' ? 'Cerrado' : 'Abierto'}\n`;
+    if (parsedInputs.alpha2 && parsedInputs.alpha2 !== '1') {
+      inputString += `α₂: ${parsedInputs.alpha2}\n`;
+    }
+    if (parsedInputs.hb) {
+      inputString += `hB: ${parsedInputs.hb} ${parsedInputs.hbUnit ?? ''}\n`;
+    }
+    if (parsedInputs.ht) {
+      inputString += `hT: ${parsedInputs.ht} ${parsedInputs.htUnit ?? ''}\n`;
+    }
+    if (mode === 'losses') {
+      if (parsedInputs.lossInputType === 'direct') {
+        inputString += `hL: ${parsedInputs.hL ?? 'N/A'} ${parsedInputs.hLUnit ?? ''}\n`;
+      } else {
+        inputString += `L: ${parsedInputs.L ?? 'N/A'} ${parsedInputs.LUnit ?? ''}\n`;
+        inputString += `D₁: ${parsedInputs.D1 ?? 'N/A'} ${parsedInputs.D1Unit ?? ''}\n`;
+        inputString += `f: ${parsedInputs.f ?? 'N/A'}\n`;
+        inputString += `K: ${parsedInputs.K ?? 'N/A'}\n`;
+      }
+    }
+  } else if (mode === 'cavitation') {
+    inputString += `${t('energiaBernoulliCalc.systemType') || 'Sistema'}: ${parsedInputs.cavitationSystemType === 'closed' ? 'Cerrado' : 'Abierto'}\n`;
+    
     if (parsedInputs.cavitationSystemType === 'closed') {
-      inputString += `  P_s: ${parsedInputs.Ps ?? 'N/A'} ${parsedInputs.PsUnit ?? ''}\n`;
-      inputString += `  V_s: ${parsedInputs.Vs ?? 'N/A'} ${parsedInputs.VsUnit ?? ''}\n`;
+      inputString += `P_s: ${parsedInputs.Ps ?? 'N/A'} ${parsedInputs.PsUnit ?? ''}\n`;
+      inputString += `V_s: ${parsedInputs.Vs ?? 'N/A'} ${parsedInputs.VsUnit ?? ''}\n`;
     } else {
-      inputString += `  P_atm: ${parsedInputs.Patm ?? 'N/A'} ${parsedInputs.PatmUnit ?? ''}\n`;
-      inputString += `  z₀: ${parsedInputs.z0 ?? 'N/A'} ${parsedInputs.z0Unit ?? ''}\n`;
-      inputString += `  z_s: ${parsedInputs.zs ?? 'N/A'} ${parsedInputs.zsUnit ?? ''}\n`;
-      inputString += `  h_fs: ${parsedInputs.hfs ?? 'N/A'} ${parsedInputs.hfsUnit ?? ''}\n`;
+      inputString += `P_atm: ${parsedInputs.Patm ?? 'N/A'} ${parsedInputs.PatmUnit ?? ''}\n`;
+      inputString += `z₀: ${parsedInputs.z0 ?? 'N/A'} ${parsedInputs.z0Unit ?? ''}\n`;
+      inputString += `z_s: ${parsedInputs.zs ?? 'N/A'} ${parsedInputs.zsUnit ?? ''}\n`;
+      inputString += `h_fs: ${parsedInputs.hfs ?? 'N/A'} ${parsedInputs.hfsUnit ?? ''}\n`;
     }
-    inputString += `  T: ${parsedInputs.temperatura ?? 'N/A'} ${parsedInputs.temperaturaUnit ?? ''}\n`;
-    inputString += `  Pv: ${parsedInputs.Pv ?? 'N/A'} ${parsedInputs.PvUnit ?? ''}\n`;
+
+    if (parsedInputs.useRhoForGamma) {
+      inputString += `ρ: ${parsedInputs.rho ?? 'N/A'} ${parsedInputs.rhoUnit ?? ''}\n`;
+    } else {
+      inputString += `γ: ${parsedInputs.gamma ?? 'N/A'} ${parsedInputs.gammaUnit ?? ''}\n`;
+    }
+
+    inputString += `g: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
+
+    if (parsedInputs.useTempForPv) {
+      inputString += `T: ${parsedInputs.temperatura ?? 'N/A'} ${parsedInputs.temperaturaUnit ?? ''}\n`;
+    } else {
+      inputString += `Pv: ${parsedInputs.Pv ?? 'N/A'} ${parsedInputs.PvUnit ?? ''}\n`;
+    }
+
+    if (parsedInputs.resultGamma) {
+      inputString += `γ calc: ${parsedInputs.resultGamma} N/m³\n`;
+    }
+    if (parsedInputs.resultPv) {
+      inputString += `Pv calc: ${parsedInputs.resultPv} Pa\n`;
+    }
   }
 
   return inputString;
 };
 
 const buildCopyText = (item: HistoryItem, parsedInputs: ParsedInputs, formattedResult: string, t: (k: string, vars?: any) => string) => {
-  const mode = getCalculationMode(item.calculation_type);
+  const mode = item.calculation_type.split('_')[1];
   let textToCopy = '';
 
   if (mode === 'cavitation') {
-    textToCopy += `${t('energiaBernoulliCalc.npsha')}: ${parsedInputs.resultNPSHa ?? 'N/A'} m\n`;
-    textToCopy += `${t('energiaBernoulliCalc.cavitationMargin')}: ${formattedResult} m\n`;
-    textToCopy += `${t('energiaBernoulliCalc.pabs')}: ${parsedInputs.resultPabs ?? 'N/A'} Pa\n`;
-    if (parsedInputs.resultGamma) textToCopy += `γ: ${parsedInputs.resultGamma} N/m³ (calculado)\n`;
-    if (parsedInputs.resultPv) textToCopy += `Pv: ${parsedInputs.resultPv} Pa (calculado)\n`;
-    textToCopy += `\n${t('energiaBernoulliCalc.systemType')}: ${parsedInputs.cavitationSystemType === 'closed' ? 'Cerrado' : 'Abierto'}\n`;
+    textToCopy += `${t('energiaBernoulliCalc.npsha') || 'NPSHa'}: ${formattedResult} m\n`;
+    if (parsedInputs.resultCavitationMargin) {
+      textToCopy += `${t('energiaBernoulliCalc.cavitationMargin') || 'Margen'}: ${parsedInputs.resultCavitationMargin} m\n`;
+    }
+    if (parsedInputs.resultPabs) {
+      textToCopy += `${t('energiaBernoulliCalc.pabs') || 'Pabs'}: ${parsedInputs.resultPabs} Pa\n`;
+    }
   } else {
-    textToCopy += `${t('energiaBernoulliCalc.energyDifference')}: ${formattedResult} m\n`;
+    textToCopy += `${t('energiaBernoulliCalc.energyDifference') || 'Diferencia de energía'}: ${formattedResult} m\n`;
   }
 
-  textToCopy += `${t('energiaBernoulliCalc.mode')}: ${t(`energiaBernoulliCalc.mode.${mode}`)}\n\n`;
-  textToCopy += buildInputsString(item, parsedInputs, t);
+  textToCopy += `\n${t('energiaBernoulliCalc.section1') || 'Sección 1'}:\n`;
+  textToCopy += `  P₁: ${parsedInputs.P1 ?? 'N/A'} ${parsedInputs.P1Unit ?? ''}\n`;
+  textToCopy += `  z₁: ${parsedInputs.z1 ?? 'N/A'} ${parsedInputs.z1Unit ?? ''}\n`;
+  textToCopy += `  V₁: ${parsedInputs.V1 ?? 'N/A'} ${parsedInputs.V1Unit ?? ''}\n`;
+  if (parsedInputs.alpha1 && parsedInputs.alpha1 !== '1') {
+    textToCopy += `  α₁: ${parsedInputs.alpha1}\n`;
+  }
+
+  textToCopy += `\n${t('energiaBernoulliCalc.section2') || 'Sección 2'}:\n`;
+  textToCopy += `  P₂: ${parsedInputs.P2 ?? 'N/A'} ${parsedInputs.P2Unit ?? ''}\n`;
+  textToCopy += `  z₂: ${parsedInputs.z2 ?? 'N/A'} ${parsedInputs.z2Unit ?? ''}\n`;
+  textToCopy += `  V₂: ${parsedInputs.V2 ?? 'N/A'} ${parsedInputs.V2Unit ?? ''}\n`;
+  if (parsedInputs.alpha2 && parsedInputs.alpha2 !== '1') {
+    textToCopy += `  α₂: ${parsedInputs.alpha2}\n`;
+  }
+
+  if (parsedInputs.hb) {
+    textToCopy += `\nhB: ${parsedInputs.hb} ${parsedInputs.hbUnit ?? ''}\n`;
+  }
+  if (parsedInputs.ht) {
+    textToCopy += `hT: ${parsedInputs.ht} ${parsedInputs.htUnit ?? ''}\n`;
+  }
+
+  if (mode === 'losses') {
+    textToCopy += `\n${t('energiaBernoulliCalc.losses') || 'Pérdidas'}:\n`;
+    if (parsedInputs.lossInputType === 'direct') {
+      textToCopy += `  hL: ${parsedInputs.hL ?? 'N/A'} ${parsedInputs.hLUnit ?? ''}\n`;
+    } else {
+      textToCopy += `  L: ${parsedInputs.L ?? 'N/A'} ${parsedInputs.LUnit ?? ''}\n`;
+      textToCopy += `  D₁: ${parsedInputs.D1 ?? 'N/A'} ${parsedInputs.D1Unit ?? ''}\n`;
+      textToCopy += `  f: ${parsedInputs.f ?? 'N/A'}\n`;
+      textToCopy += `  K: ${parsedInputs.K ?? 'N/A'}\n`;
+    }
+  }
+
+  if (mode === 'cavitation') {
+    textToCopy += `\n${t('energiaBernoulliCalc.fluidProps') || 'Propiedades'}:\n`;
+    if (parsedInputs.useRhoForGamma) {
+      textToCopy += `  ρ: ${parsedInputs.rho ?? 'N/A'} ${parsedInputs.rhoUnit ?? ''}\n`;
+    } else {
+      textToCopy += `  γ: ${parsedInputs.gamma ?? 'N/A'} ${parsedInputs.gammaUnit ?? ''}\n`;
+    }
+    textToCopy += `  g: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
+
+    if (parsedInputs.useTempForPv) {
+      textToCopy += `  T: ${parsedInputs.temperatura ?? 'N/A'} ${parsedInputs.temperaturaUnit ?? ''}\n`;
+    } else {
+      textToCopy += `  Pv: ${parsedInputs.Pv ?? 'N/A'} ${parsedInputs.PvUnit ?? ''}\n`;
+    }
+
+    if (parsedInputs.resultGamma) {
+      textToCopy += `  γ (calc): ${parsedInputs.resultGamma} N/m³\n`;
+    }
+    if (parsedInputs.resultPv) {
+      textToCopy += `  Pv (calc): ${parsedInputs.resultPv} Pa\n`;
+    }
+  }
+
   return textToCopy;
 };
 
@@ -221,9 +276,9 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
     [selectedDecimalSeparator]
   );
 
-  const formatResultValue = useCallback(
+  const formatValue = useCallback(
     (raw: string): string => {
-      if (raw == null) return '';
+      if (raw == null || raw === '') return 'N/A';
       const n = parseFloat(String(raw).replace(',', '.'));
       if (isNaN(n)) return String(raw);
       return adjustDecimalSeparator(formatNumber(n));
@@ -231,7 +286,31 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
     [formatNumber, adjustDecimalSeparator]
   );
 
-  const formattedResult = useMemo(() => formatResultValue(item.result), [item.result, formatResultValue]);
+  const parsedInputs = useMemo<ParsedInputs>(() => {
+    try {
+      return JSON.parse(item.inputs) || {};
+    } catch {
+      return {};
+    }
+  }, [item.inputs]);
+
+  const mode = item.calculation_type.split('_')[1];
+  
+  // Determinar el resultado principal según el modo
+  let mainResult = '';
+  let mainLabel = '';
+  
+  if (mode === 'cavitation') {
+    mainResult = parsedInputs.resultNPSHa || item.result;
+    mainLabel = t('energiaBernoulliCalc.npsha') || 'NPSHa';
+  } else {
+    mainResult = item.result;
+    mainLabel = t('energiaBernoulliCalc.energyDifference') || 'Diferencia de energía';
+  }
+  
+  const formattedMainResult = useMemo(() => formatValue(mainResult), [mainResult, formatValue]);
+  const inputsString = useMemo(() => buildInputsString(item, parsedInputs, t), [item, parsedInputs, t]);
+  const dateStr = useMemo(() => formatDate(item.timestamp), [item.timestamp]);
 
   const translateX = useRef(new Animated.Value(0)).current;
   const buttonsOpacity = useRef(
@@ -255,11 +334,13 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
     if (!isFirst) return;
     const timeoutId = setTimeout(() => {
       isRevealed.current = true;
-      Animated.timing(translateX, {
-        toValue: REVEAL_OFFSET,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.timing(translateX, {
+          toValue: REVEAL_OFFSET,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }, 500);
     return () => clearTimeout(timeoutId);
   }, [isFirst, translateX]);
@@ -291,25 +372,14 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
     })
   ).current;
 
-  const parsedInputs = useMemo<ParsedInputs>(() => {
-    try {
-      return JSON.parse(item.inputs) || {};
-    } catch {
-      return {};
-    }
-  }, [item.inputs]);
-
-  const inputsString = useMemo(() => buildInputsString(item, parsedInputs, t), [item, parsedInputs, t]);
-  const dateStr = useMemo(() => formatDate(item.timestamp), [item.timestamp]);
-
   const handleCopy = useCallback(() => {
-    Clipboard.setString(buildCopyText(item, parsedInputs, formattedResult, t));
+    Clipboard.setString(buildCopyText(item, parsedInputs, formattedMainResult, t));
     Toast.show({
       type: 'success',
       text1: t('common.success'),
       text2: t('energiaBernoulliCalc.toasts.copied'),
     });
-  }, [item, parsedInputs, formattedResult, t]);
+  }, [item, parsedInputs, formattedMainResult, t]);
 
   return (
     <View style={styles.THISCONTAINER}>
@@ -323,14 +393,27 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
         <View style={[styles.optionsContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}>
           <View style={styles.itemContent}>
             <Text style={[styles.resultLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-              {t('energiaBernoulliCalc.energyDifference')}:
+              {mainLabel}:
             </Text>
             <Text style={[styles.resultValue, { color: themeColors.text, fontSize: 24 * fontSizeFactor }]}>
-              {formattedResult} m
+              {formattedMainResult} {mode === 'cavitation' ? 'm' : 'm'}
             </Text>
+            
+            {mode === 'cavitation' && parsedInputs.resultCavitationMargin && (
+              <>
+                <Text style={[styles.resultLabel, { color: themeColors.text, fontSize: 14 * fontSizeFactor, marginTop: 5 }]}>
+                  {t('energiaBernoulliCalc.cavitationMargin') || 'Margen de cavitación'}:
+                </Text>
+                <Text style={[styles.resultValue, { color: themeColors.text, fontSize: 20 * fontSizeFactor }]}>
+                  {formatValue(parsedInputs.resultCavitationMargin)} m
+                </Text>
+              </>
+            )}
+
             <Text style={[styles.inputsText, { color: currentTheme === 'dark' ? 'rgb(210, 210, 210)' : 'rgb(50, 50, 50)', fontSize: 14 * fontSizeFactor }]}>
               {inputsString}
             </Text>
+            
             <Text style={[styles.timestampText, { color: currentTheme === 'dark' ? 'rgb(170, 170, 170)' : 'rgb(150, 150, 150)', fontSize: 12 * fontSizeFactor }]}>
               {t('history.savedOn') + ' ' + dateStr}
             </Text>
@@ -371,7 +454,6 @@ const HistoryScreenEnergiaBernoulli = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const dbRef = useRef<any>(null);
   const navigation = useNavigation();
-
   const { t } = useContext(LanguageContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
   const { currentTheme } = useTheme();
@@ -407,9 +489,9 @@ const HistoryScreenEnergiaBernoulli = () => {
         dbRef.current = await getDBConnection();
       }
       const fetched = await getHistory(dbRef.current);
-      // Filtrar solo los items que pertenecen a EnergiaBernoulli
+      // Filtrar solo los items de EnergiaBernoulli
       const filtered = fetched.filter((item: HistoryItem) => 
-        item.calculation_type.startsWith('EnergiaBernoulli')
+        item.calculation_type.startsWith('EnergiaBernoulli_')
       );
       setHistory((prev) => {
         const sameLength = prev.length === filtered.length;
@@ -474,10 +556,7 @@ const HistoryScreenEnergiaBernoulli = () => {
           onPress: async () => {
             const db = dbRef.current;
             if (db) {
-              // Eliminar solo los items de EnergiaBernoulli
-              for (const item of history) {
-                await deleteHistory(db, item.id);
-              }
+              await deleteHistory(db, -1);
               setHistory([]);
               Toast.show({
                 type: 'success',
@@ -490,7 +569,7 @@ const HistoryScreenEnergiaBernoulli = () => {
       ],
       { cancelable: false }
     );
-  }, [history.length, t, history]);
+  }, [history.length, t]);
 
   const handleExportExcel = useCallback(async () => {
     try {
@@ -503,146 +582,136 @@ const HistoryScreenEnergiaBernoulli = () => {
         return;
       }
 
-      const idealItems = history.filter(h => h.calculation_type.includes('ideal'));
-      const lossesItems = history.filter(h => h.calculation_type.includes('losses'));
-      const cavitationItems = history.filter(h => h.calculation_type.includes('cavitation'));
+      const idealItems = history.filter(h => h.calculation_type === 'EnergiaBernoulli_ideal');
+      const lossesItems = history.filter(h => h.calculation_type === 'EnergiaBernoulli_losses');
+      const cavitationItems = history.filter(h => h.calculation_type === 'EnergiaBernoulli_cavitation');
 
       const wb = new ExcelJS.Workbook();
       wb.creator = 'App Hidráulica';
       wb.created = new Date();
 
-      // Hoja para modo Ideal
-      const wsIdeal = wb.addWorksheet('Ideal');
-      const idealHeaders = [
-        'Fecha/Hora',
-        'Energía Total (m)',
-        'P₁', 'z₁', 'V₁',
-        'P₂', 'z₂', 'V₂',
-        'γ', 'g', 'α₁', 'α₂',
-        'hB', 'hT',
-      ];
-      wsIdeal.addRow(idealHeaders);
-      const idealHeaderRow = wsIdeal.getRow(1);
-      idealHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
-      idealHeaderRow.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      });
-
-      idealItems.forEach(it => {
-        let inputs: any = {};
-        try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
-        const q = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
-
-        wsIdeal.addRow([
-          formatDate(it.timestamp),
-          isFinite(q as number) ? q : null,
-          inputs.P1, inputs.z1, inputs.V1,
-          inputs.P2, inputs.z2, inputs.V2,
-          inputs.gamma, inputs.g, inputs.alpha1, inputs.alpha2,
-          inputs.hb, inputs.ht,
-        ]);
-      });
-
-      // Hoja para modo Losses
-      const wsLosses = wb.addWorksheet('Con Pérdidas');
-      const lossesHeaders = [
-        'Fecha/Hora',
-        'Diferencia Energía (m)',
-        'P₁', 'z₁', 'V₁',
-        'P₂', 'z₂', 'V₂',
-        'γ', 'g', 'α₁', 'α₂',
-        'hB', 'hT',
-        'Tipo Pérdida', 'hL', 'L', 'D₁', 'f', 'K',
-      ];
-      wsLosses.addRow(lossesHeaders);
-      const lossesHeaderRow = wsLosses.getRow(1);
-      lossesHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
-      lossesHeaderRow.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      });
-
-      lossesItems.forEach(it => {
-        let inputs: any = {};
-        try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
-        const q = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
-
-        wsLosses.addRow([
-          formatDate(it.timestamp),
-          isFinite(q as number) ? q : null,
-          inputs.P1, inputs.z1, inputs.V1,
-          inputs.P2, inputs.z2, inputs.V2,
-          inputs.gamma, inputs.g, inputs.alpha1, inputs.alpha2,
-          inputs.hb, inputs.ht,
-          inputs.lossInputType,
-          inputs.hL,
-          inputs.L,
-          inputs.D1,
-          inputs.f,
-          inputs.K,
-        ]);
-      });
-
-      // Hoja para modo Cavitation
-      const wsCavitation = wb.addWorksheet('Cavitación');
-      const cavitationHeaders = [
-        'Fecha/Hora',
-        'NPSHa (m)',
-        'Margen (m)',
-        'Pabs (Pa)',
-        'Sistema',
-        'P_s', 'V_s',
-        'P_atm', 'z₀', 'z_s', 'h_fs',
-        'T', 'Pv',
-        'γ/ρ', 'g',
-      ];
-      wsCavitation.addRow(cavitationHeaders);
-      const cavitationHeaderRow = wsCavitation.getRow(1);
-      cavitationHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
-      cavitationHeaderRow.eachCell(cell => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      });
-
-      cavitationItems.forEach(it => {
-        let inputs: any = {};
-        try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
-        const q = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
-
-        wsCavitation.addRow([
-          formatDate(it.timestamp),
-          inputs.resultNPSHa,
-          isFinite(q as number) ? q : null,
-          inputs.resultPabs,
-          inputs.cavitationSystemType === 'closed' ? 'Cerrado' : 'Abierto',
-          inputs.Ps,
-          inputs.Vs,
-          inputs.Patm,
-          inputs.z0,
-          inputs.zs,
-          inputs.hfs,
-          inputs.temperatura,
-          inputs.Pv,
-          inputs.resultGamma || inputs.gamma,
-          inputs.g,
-        ]);
-      });
-
-      // Autoajustar ancho de columnas (simplificado)
-      [wsIdeal, wsLosses, wsCavitation].forEach((ws, idx) => {
-        ws.columns.forEach((column, i) => {
-          let maxLength = 10;
-          if (idx === 0 && idealHeaders[i]) maxLength = idealHeaders[i].length;
-          if (idx === 1 && lossesHeaders[i]) maxLength = lossesHeaders[i].length;
-          if (idx === 2 && cavitationHeaders[i]) maxLength = cavitationHeaders[i].length;
-          column.width = Math.min(Math.max(maxLength + 2, 10), 60);
+      // Hoja para Bernoulli Ideal
+      if (idealItems.length > 0) {
+        const wsIdeal = wb.addWorksheet('Bernoulli Ideal');
+        const idealHeaders = [
+          'Fecha/Hora', 'Diferencia Energía (m)', 'P₁', 'z₁', 'V₁', 'P₂', 'z₂', 'V₂',
+          'γ', 'g', 'α₁', 'α₂', 'hB', 'hT'
+        ];
+        wsIdeal.addRow(idealHeaders);
+        
+        const idealHeaderRow = wsIdeal.getRow(1);
+        idealHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
+        idealHeaderRow.eachCell(cell => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
         });
-      });
+
+        idealItems.forEach(it => {
+          let inputs: any = {};
+          try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
+          
+          wsIdeal.addRow([
+            formatDate(it.timestamp),
+            parseFloat(it.result) || 0,
+            inputs.P1 || 0, inputs.z1 || 0, inputs.V1 || 0,
+            inputs.P2 || 0, inputs.z2 || 0, inputs.V2 || 0,
+            inputs.gamma || 0, inputs.g || 0,
+            inputs.alpha1 || 1, inputs.alpha2 || 1,
+            inputs.hb || 0, inputs.ht || 0,
+          ]);
+        });
+
+        // Ajustar anchos
+        idealHeaders.forEach((_, i) => {
+          wsIdeal.getColumn(i + 1).width = 15;
+        });
+      }
+
+      // Hoja para Bernoulli con Pérdidas
+      if (lossesItems.length > 0) {
+        const wsLosses = wb.addWorksheet('Bernoulli con Pérdidas');
+        const lossesHeaders = [
+          'Fecha/Hora', 'Diferencia Energía (m)', 'P₁', 'z₁', 'V₁', 'P₂', 'z₂', 'V₂',
+          'γ', 'g', 'α₁', 'α₂', 'hB', 'hT', 'Tipo Pérdida', 'hL', 'L', 'D₁', 'f', 'K'
+        ];
+        wsLosses.addRow(lossesHeaders);
+        
+        const lossesHeaderRow = wsLosses.getRow(1);
+        lossesHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
+        lossesHeaderRow.eachCell(cell => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+
+        lossesItems.forEach(it => {
+          let inputs: any = {};
+          try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
+          
+          wsLosses.addRow([
+            formatDate(it.timestamp),
+            parseFloat(it.result) || 0,
+            inputs.P1 || 0, inputs.z1 || 0, inputs.V1 || 0,
+            inputs.P2 || 0, inputs.z2 || 0, inputs.V2 || 0,
+            inputs.gamma || 0, inputs.g || 0,
+            inputs.alpha1 || 1, inputs.alpha2 || 1,
+            inputs.hb || 0, inputs.ht || 0,
+            inputs.lossInputType || '',
+            inputs.hL || 0,
+            inputs.L || 0, inputs.D1 || 0,
+            inputs.f || 0, inputs.K || 0,
+          ]);
+        });
+
+        lossesHeaders.forEach((_, i) => {
+          wsLosses.getColumn(i + 1).width = 15;
+        });
+      }
+
+      // Hoja para Cavitación
+      if (cavitationItems.length > 0) {
+        const wsCav = wb.addWorksheet('Cavitación');
+        const cavHeaders = [
+          'Fecha/Hora', 'NPSHa (m)', 'Margen (m)', 'Pabs (Pa)',
+          'Tipo Sistema', 'P_s', 'V_s', 'P_atm', 'z₀', 'z_s', 'h_fs',
+          'ρ/γ', 'g', 'T/Pv', 'γ calc', 'Pv calc'
+        ];
+        wsCav.addRow(cavHeaders);
+        
+        const cavHeaderRow = wsCav.getRow(1);
+        cavHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
+        cavHeaderRow.eachCell(cell => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+
+        cavitationItems.forEach(it => {
+          let inputs: any = {};
+          try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
+          
+          wsCav.addRow([
+            formatDate(it.timestamp),
+            parseFloat(inputs.resultNPSHa) || 0,
+            parseFloat(inputs.resultCavitationMargin) || 0,
+            parseFloat(inputs.resultPabs) || 0,
+            inputs.cavitationSystemType || '',
+            inputs.Ps || 0, inputs.Vs || 0,
+            inputs.Patm || 0, inputs.z0 || 0, inputs.zs || 0, inputs.hfs || 0,
+            inputs.useRhoForGamma ? (inputs.rho || 0) : (inputs.gamma || 0),
+            inputs.g || 0,
+            inputs.useTempForPv ? (inputs.temperatura || 0) : (inputs.Pv || 0),
+            inputs.resultGamma || 0,
+            inputs.resultPv || 0,
+          ]);
+        });
+
+        cavHeaders.forEach((_, i) => {
+          wsCav.getColumn(i + 1).width = 15;
+        });
+      }
 
       const buffer = await wb.xlsx.writeBuffer();
       const base64 = base64FromArrayBuffer(buffer);
-      const fileName = `EnergiaBernoulli_Historial.xlsx`;
+      const fileName = `Valve_Historial_EnergiaBernoulli.xlsx`;
       const path = `${RNFS.CachesDirectoryPath}/${fileName}`;
       await RNFS.writeFile(path, base64, 'base64');
 
@@ -781,8 +850,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   iconWrapper: {
-    experimental_backgroundImage:
-      'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     width: 60,
     height: 40,
     borderRadius: 30,
@@ -790,8 +858,7 @@ const styles = StyleSheet.create({
     padding: 1,
   },
   iconWrapper2: {
-    experimental_backgroundImage:
-      'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     width: 40,
     height: 40,
     borderRadius: 30,
@@ -830,8 +897,7 @@ const styles = StyleSheet.create({
   optionsContainerMain: {
     padding: 1,
     marginVertical: 10,
-    experimental_backgroundImage:
-      'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     borderRadius: 25,
   },
   optionsContainer: {
