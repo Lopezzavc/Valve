@@ -432,6 +432,7 @@
     "cardDesc1": "Resuelve la ecuación general de energía, incluyendo el caso ideal, pérdidas de carga y cavitación."
   },
   "energiaBernoulliCalc": {
+    "safe": "Seguro",
     "noCavitation": "Sin riesgo",
     "lowMargin": "Margen bajo",
     "cavitationRisk": "RIESGO",
@@ -446,6 +447,7 @@
     "useTempForPv": "Calcular Pv desde temperatura",
     "title": "Energía / Bernoulli",
     "calculator": "Calculadora",
+    "modec": "Modo",
     "mode": {
       "ideal": "Bernoulli",
       "losses": "W/ pérdidas",
@@ -527,7 +529,51 @@
       "calculationError": "Error en el cálculo de cavitación",
       "cavitationSafe": "Sistema seguro - No hay riesgo de cavitación",
       "cavitationWarning": "Margen de cavitación bajo",
-      "cavitationDanger": "¡RIESGO DE CAVITACIÓN!"
+      "cavitationDanger": "¡RIESGO DE CAVITACIÓN!",
+      "negativeNPSHa": "NPSHa negativo - verifique los datos"
+    }
+  },
+  "geometriaSeccionesCalc": {
+    "cardTitle1":"Calculadora Geométrica de Secciones",
+    "cardDesc1":"Calcula área, perímetro y radio hidráulico de diferentes tipos de secciones.",
+    "title": "Geometría de Secciones",
+    "calculator": "Calculadora",
+    "saveToHistory": "Guardar en historial",
+    "result": "Resultado",
+    "mode": {
+      "caudal": "Cálculo de Caudal",
+      "continuidad": "Ecuación de Continuidad"
+    },
+    "labels": {
+      "sectionType": "Tipo de sección",
+      "diametro": "Diámetro",
+      "tirante": "Tirante",
+      "base": "Base",
+      "talud": "Talud (z)",
+      "K": "Parámetro K",
+      "A": "Área (A)",
+      "P": "Perímetro (P)",
+      "R": "Radio Hidráulico (R)",
+      "T": "Ancho superficial (T)",
+      "Dh": "Profundidad hidráulica (Dh)"
+    },
+    "options": {
+      "sectionType": {
+        "circular-llena": "Tubería circular (llena)",
+        "circular-parcial": "Tubería circular (parcialmente llena)",
+        "rectangular": "Canal rectangular",
+        "trapezoidal": "Canal trapezoidal",
+        "triangular": "Canal triangular",
+        "parabolico": "Canal parabólico"
+      }
+    },
+    "paramsSection": "Parámetros Geométricos",
+    "resultsSection": "Resultados Geométricos",
+    "toasts": {
+      "copied": "Resultados copiados al portapapeles",
+      "nothingToSave": "No hay resultados para guardar",
+      "saved": "Cálculo guardado en historial",
+      "saveError": "Error al guardar en historial"
     }
   }
 }

@@ -47,4 +47,13 @@ export const calculatorsDef: CalcDef[] = [
     descKey: 'EnergiaBernoulliCalc.cardDesc1',
     math: '\\frac{P_1}{\\gamma} + \\frac{V_1^2}{2g} + z_1 + h_b - h_t - h_L = \\frac{P_2}{\\gamma} + \\frac{V_2^2}{2g} + z_2',
   },
+  {
+    desc: '',
+    id: 'GeometriaSecciones',
+    route: 'GeometriaSeccionesCalc',
+    icon: 'wind',
+    titleKey: 'geometriaSeccionesCalc.cardTitle1',
+    descKey: 'geometriaSeccionesCalc.cardDesc1',
+    math: 'A = \\frac{\\pi D^2}{4} ; P = \\pi D ; R = \\frac{A}{P} = \\frac{D}{4} ; T = D ; D_h = \\frac{A}{T} = \\frac{\\pi D}{4} ; y = D',
+  },
 ];

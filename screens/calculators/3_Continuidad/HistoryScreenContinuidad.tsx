@@ -65,7 +65,7 @@ const toastConfig = {
 
 interface HistoryItem {
   id: number;
-  calculation_type: 'Continuidad_caudal' | 'Continuidad_continuidad'; // Actualizado
+  calculation_type: 'Continuidad_caudal' | 'Continuidad_continuidad';
   inputs: string;
   result: string;
   timestamp: number;
@@ -77,11 +77,37 @@ const BUTTON_SIZE = 45;
 
 const REVEAL_OFFSET = -(BUTTON_SIZE + 20);
 
+const applyExcelCell = (row: ExcelJS.Row, col: number, numFmt?: string) => {
+  const cell = row.getCell(col);
+  if (numFmt) cell.numFmt = numFmt;
+  cell.alignment = { vertical: 'middle', horizontal: 'center' };
+};
+
+const applyExcelCells = (row: ExcelJS.Row, cols: number[], numFmt?: string) => {
+  cols.forEach(col => applyExcelCell(row, col, numFmt));
+};
+
+const applyHeaderStyle = (sheet: ExcelJS.Worksheet) => {
+  const headerRow = sheet.getRow(1);
+  headerRow.eachCell(cell => {
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    cell.font = { bold: true };
+  });
+};
+
+const setColumnWidths = (sheet: ExcelJS.Worksheet, columnCount: number, defaultWidth: number = 15) => {
+  for (let i = 1; i <= columnCount; i++) {
+    sheet.getColumn(i).width = defaultWidth;
+  }
+};
+
 const formatDate = (timestamp: number) => {
   const date = new Date(timestamp);
   return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
   })}`;
 };
 
@@ -421,35 +447,18 @@ const HistoryScreenContinuidad = () => {
     };
   }, [currentTheme]);
 
+  // En HistoryScreenContinuidad.tsx
   const loadHistory = useCallback(async () => {
     try {
       if (!dbRef.current) {
         dbRef.current = await getDBConnection();
       }
       const fetched = await getHistory(dbRef.current);
-
-      // En loadHistory de HistoryScreenContinuidad.tsx
+      // Filtrar solo los items de Continuidad
       const filtered = fetched.filter((item: HistoryItem) => 
         item.calculation_type.startsWith('Continuidad_')
       );
-
-      setHistory((prev) => {
-        const sameLength = prev.length === fetched.length;
-        if (sameLength) {
-          const same = prev.every((p, i) => {
-            const n = fetched[i];
-            return (
-              p.id === n.id &&
-              p.result === n.result &&
-              p.inputs === n.inputs &&
-              p.timestamp === n.timestamp &&
-              p.calculation_type === n.calculation_type
-            );
-          });
-          if (same) return prev;
-        }
-        return fetched;
-      });
+      setHistory(filtered);
     } catch (error) {
       console.error('Error al cargar el historial:', error);
     }
@@ -496,7 +505,8 @@ const HistoryScreenContinuidad = () => {
           onPress: async () => {
             const db = dbRef.current;
             if (db) {
-              await deleteHistory(db, -1);
+              // Cambio importante: pasar el tipo de cálculo
+              await deleteHistory(db, -1, 'Continuidad_');
               setHistory([]);
               Toast.show({
                 type: 'success',
@@ -523,191 +533,188 @@ const HistoryScreenContinuidad = () => {
       }
 
       const caudalItems = history.filter(h => h.calculation_type === 'Continuidad_caudal');
-      const contItems   = history.filter(h => h.calculation_type === 'Continuidad_continuidad');
+      const contItems = history.filter(h => h.calculation_type === 'Continuidad_continuidad');
 
       const wb = new ExcelJS.Workbook();
       wb.creator = 'App Hidráulica';
       wb.created = new Date();
 
-      const wsCaudal = wb.addWorksheet('Caudal');
+      // ============================================
+      // HOJA DE CAUDAL
+      // ============================================
+      if (caudalItems.length > 0) {
+        const wsCaudal = wb.addWorksheet('Caudal');
 
-      const caudalHeaders = [
-        'Fecha/Hora',
-        'Caudal (m³/s)',
-        'Tipo de sección',
-        'Diámetro',
-        'Lado',
-        'Ancho (rect)',
-        'Alto (rect)',
-        'Velocidad',
-        'Tipo de llenado',
-        'Altura de llenado',
-      ];
-      wsCaudal.addRow(caudalHeaders);
-
-      const caudalHeaderRow = wsCaudal.getRow(1);
-      caudalHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
-      caudalHeaderRow.eachCell(cell => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFC2FE0C' },
-        };
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      });
-
-      const caudalMaxLen = caudalHeaders.map(h => h.length);
-
-      caudalItems.forEach(it => {
-        let inputs: any = {};
-        try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
-
-        const q   = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
-        const dia = inputs.diameter != null ? parseFloat(String(inputs.diameter).replace(',', '.')) : null;
-        const lad = inputs.side != null ? parseFloat(String(inputs.side).replace(',', '.')) : null;
-        const rw  = inputs.rectWidth != null ? parseFloat(String(inputs.rectWidth).replace(',', '.')) : null;
-        const rh  = inputs.rectHeight != null ? parseFloat(String(inputs.rectHeight).replace(',', '.')) : null;
-        const vel = inputs.velocityCaudal != null ? parseFloat(String(inputs.velocityCaudal).replace(',', '.')) : null;
-        const fh  = inputs.fillHeight != null ? parseFloat(String(inputs.fillHeight).replace(',', '.')) : null;
-
-        const row = wsCaudal.addRow([
-          formatDate(it.timestamp),
-          isFinite(q as number) ? q : null,
-          inputs.sectionType ?? '',
-          isFinite(dia as number) ? dia : null,
-          isFinite(lad as number) ? lad : null,
-          isFinite(rw  as number) ? rw  : null,
-          isFinite(rh  as number) ? rh  : null,
-          isFinite(vel as number) ? vel : null,
-          inputs.fillType ?? '',
-          isFinite(fh  as number) ? fh  : null,
-        ]);
-
-        const fmtWithUnit = (unit?: string) =>
-          unit && String(unit).trim().length > 0 ? `General "${unit}"` : 'General';
-
-        if (isFinite(q as number)) {
-          row.getCell(2).numFmt = `General "m³/s"`;
-        }
-        if (isFinite(dia as number)) {
-          row.getCell(4).numFmt = fmtWithUnit(inputs.diameterUnit);
-        }
-        if (isFinite(lad as number)) {
-          row.getCell(5).numFmt = fmtWithUnit(inputs.sideUnit);
-        }
-        if (isFinite(rw as number)) {
-          row.getCell(6).numFmt = fmtWithUnit(inputs.rectWidthUnit);
-        }
-        if (isFinite(rh as number)) {
-          row.getCell(7).numFmt = fmtWithUnit(inputs.rectHeightUnit);
-        }
-        if (isFinite(vel as number)) {
-          row.getCell(8).numFmt = fmtWithUnit(inputs.velocityCaudalUnit);
-        }
-        if (isFinite(fh as number)) {
-          row.getCell(10).numFmt = fmtWithUnit(inputs.fillHeightUnit);
-        }
-        caudalMaxLen[0] = Math.max(caudalMaxLen[0], String(row.getCell(1).value ?? '').length);
-        if (isFinite(q as number)) {
-          const s = `${q} m³/s`;
-          caudalMaxLen[1] = Math.max(caudalMaxLen[1], s.length);
-        }
-        caudalMaxLen[2] = Math.max(caudalMaxLen[2], String(inputs.sectionType ?? '').length);
-        const lensWithUnits: Array<[number, any, string | undefined]> = [
-          [3, dia, inputs.diameterUnit],
-          [4, lad, inputs.sideUnit],
-          [5, rw, inputs.rectWidthUnit],
-          [6, rh, inputs.rectHeightUnit],
+        const caudalHeaders = [
+          'Fecha/Hora',
+          'Caudal (m³/s)',
+          'Tipo de sección',
+          'Diámetro (m)',
+          'Lado (m)',
+          'Ancho (m)',
+          'Alto (m)',
+          'Velocidad (m/s)',
+          'Tipo de llenado',
+          'Altura de lámina (m)',
         ];
-        lensWithUnits.forEach(([idx, val, unit]) => {
-          const s = isFinite(val as number) ? `${val}${unit ? ` ${unit}` : ''}` : '';
-          caudalMaxLen[idx] = Math.max(caudalMaxLen[idx], s.length);
+
+        wsCaudal.addRow(caudalHeaders);
+        applyHeaderStyle(wsCaudal);
+
+        caudalItems.forEach(it => {
+          let inputs: any = {};
+          try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
+
+          const q = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
+          const dia = inputs.diameter != null ? parseFloat(String(inputs.diameter).replace(',', '.')) : null;
+          const lad = inputs.side != null ? parseFloat(String(inputs.side).replace(',', '.')) : null;
+          const rw = inputs.rectWidth != null ? parseFloat(String(inputs.rectWidth).replace(',', '.')) : null;
+          const rh = inputs.rectHeight != null ? parseFloat(String(inputs.rectHeight).replace(',', '.')) : null;
+          const vel = inputs.velocityCaudal != null ? parseFloat(String(inputs.velocityCaudal).replace(',', '.')) : null;
+          const fh = inputs.fillHeight != null ? parseFloat(String(inputs.fillHeight).replace(',', '.')) : null;
+
+          const row = wsCaudal.addRow([
+            formatDate(it.timestamp),
+            isFinite(q as number) ? q : null,
+            translateSectionValue(inputs.sectionType || '', t),
+            isFinite(dia as number) ? dia : null,
+            isFinite(lad as number) ? lad : null,
+            isFinite(rw as number) ? rw : null,
+            isFinite(rh as number) ? rh : null,
+            isFinite(vel as number) ? vel : null,
+            translateFillValue(inputs.fillType || '', t),
+            isFinite(fh as number) ? fh : null,
+          ]);
+
+          // Aplicar formatos específicos según la unidad
+          applyExcelCell(row, 1); // Fecha
+          applyExcelCell(row, 2, '#,##0.0000 "m³/s"'); // Caudal
+
+          if (inputs.sectionType === 'Circular') {
+            applyExcelCell(row, 4, `#,##0.000 "${inputs.diameterUnit || 'm'}"`); // Diámetro
+          } else if (inputs.sectionType === 'Cuadrada') {
+            applyExcelCell(row, 5, `#,##0.000 "${inputs.sideUnit || 'm'}"`); // Lado
+          } else if (inputs.sectionType === 'Rectangular') {
+            applyExcelCell(row, 6, `#,##0.000 "${inputs.rectWidthUnit || 'm'}"`); // Ancho
+            applyExcelCell(row, 7, `#,##0.000 "${inputs.rectHeightUnit || 'm'}"`); // Alto
+          }
+
+          applyExcelCell(row, 8, `#,##0.00 "${inputs.velocityCaudalUnit || 'm/s'}"`); // Velocidad
+
+          if (inputs.fillType === 'Parcial') {
+            applyExcelCell(row, 10, `#,##0.000 "${inputs.fillHeightUnit || 'm'}"`); // Altura de lámina
+          }
+
+          applyExcelCells(row, [3, 9]); // Tipo de sección y tipo de llenado (texto)
         });
-        {
-          const s = isFinite(vel as number) ? `${vel}${inputs.velocityCaudalUnit ? ` ${inputs.velocityCaudalUnit}` : ''}` : '';
-          caudalMaxLen[7] = Math.max(caudalMaxLen[7], s.length);
-        }
-        caudalMaxLen[8] = Math.max(caudalMaxLen[8], String(inputs.fillType ?? '').length);
-        {
-          const s = isFinite(fh as number) ? `${fh}${inputs.fillHeightUnit ? ` ${inputs.fillHeightUnit}` : ''}` : '';
-          caudalMaxLen[9] = Math.max(caudalMaxLen[9], s.length);
-        }
-      });
 
-      caudalMaxLen.forEach((len, i) => {
-        wsCaudal.getColumn(i + 1).width = Math.min(Math.max(len + 2, 10), 60);
-      });
-      const wsCont = wb.addWorksheet('Continuidad');
+        setColumnWidths(wsCaudal, caudalHeaders.length, 16);
+      }
 
-      const contHeaders = [
-        'Fecha/Hora',
-        'Caudal (m³/s)',
-        'A1',
-        'v1',
-        'A2',
-        'v2',
-      ];
-      wsCont.addRow(contHeaders);
+      // ============================================
+      // HOJA DE CONTINUIDAD
+      // ============================================
+      if (contItems.length > 0) {
+        const wsCont = wb.addWorksheet('Continuidad');
 
-      const contHeaderRow = wsCont.getRow(1);
-      contHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
-      contHeaderRow.eachCell(cell => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFC2FE0C' },
-        };
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      });
+        const contHeaders = [
+          'Fecha/Hora',
+          'Caudal (m³/s)',
+          'A₁ (m²)',
+          'v₁ (m/s)',
+          'A₂ (m²)',
+          'v₂ (m/s)',
+        ];
 
-      const contMaxLen = contHeaders.map(h => h.length);
+        wsCont.addRow(contHeaders);
+        applyHeaderStyle(wsCont);
 
-      contItems.forEach(it => {
-        let inputs: any = {};
-        try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
+        contItems.forEach(it => {
+          let inputs: any = {};
+          try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
 
-        const q  = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
-        const A1 = inputs.A1 != null ? parseFloat(String(inputs.A1).replace(',', '.')) : null;
-        const v1 = inputs.v1 != null ? parseFloat(String(inputs.v1).replace(',', '.')) : null;
-        const A2 = inputs.A2 != null ? parseFloat(String(inputs.A2).replace(',', '.')) : null;
-        const v2 = inputs.v2 != null ? parseFloat(String(inputs.v2).replace(',', '.')) : null;
+          const q = it.result != null ? parseFloat(String(it.result).replace(',', '.')) : null;
+          const A1 = inputs.A1 != null ? parseFloat(String(inputs.A1).replace(',', '.')) : null;
+          const v1 = inputs.v1 != null ? parseFloat(String(inputs.v1).replace(',', '.')) : null;
+          const A2 = inputs.A2 != null ? parseFloat(String(inputs.A2).replace(',', '.')) : null;
+          const v2 = inputs.v2 != null ? parseFloat(String(inputs.v2).replace(',', '.')) : null;
 
-        const row = wsCont.addRow([
-          formatDate(it.timestamp),
-          isFinite(q  as number) ? q  : null,
-          isFinite(A1 as number) ? A1 : null,
-          isFinite(v1 as number) ? v1 : null,
-          isFinite(A2 as number) ? A2 : null,
-          isFinite(v2 as number) ? v2 : null,
-        ]);
+          const row = wsCont.addRow([
+            formatDate(it.timestamp),
+            isFinite(q as number) ? q : null,
+            isFinite(A1 as number) ? A1 : null,
+            isFinite(v1 as number) ? v1 : null,
+            isFinite(A2 as number) ? A2 : null,
+            isFinite(v2 as number) ? v2 : null,
+          ]);
 
-        row.getCell(2).numFmt = `General "m³/s"`;
-        if (isFinite(A1 as number)) row.getCell(3).numFmt = (inputs.A1Unit && inputs.A1Unit.trim()) ? `General "${inputs.A1Unit}"` : 'General';
-        if (isFinite(v1 as number)) row.getCell(4).numFmt = (inputs.v1Unit && inputs.v1Unit.trim()) ? `General "${inputs.v1Unit}"` : 'General';
-        if (isFinite(A2 as number)) row.getCell(5).numFmt = (inputs.A2Unit && inputs.A2Unit.trim()) ? `General "${inputs.A2Unit}"` : 'General';
-        if (isFinite(v2 as number)) row.getCell(6).numFmt = (inputs.v2Unit && inputs.v2Unit.trim()) ? `General "${inputs.v2Unit}"` : 'General';
+          applyExcelCell(row, 1); // Fecha
+          applyExcelCell(row, 2, '#,##0.0000 "m³/s"'); // Caudal
+          applyExcelCell(row, 3, `#,##0.000 "${inputs.A1Unit || 'm²'}"`); // A₁
+          applyExcelCell(row, 4, `#,##0.00 "${inputs.v1Unit || 'm/s'}"`); // v₁
+          applyExcelCell(row, 5, `#,##0.000 "${inputs.A2Unit || 'm²'}"`); // A₂
+          applyExcelCell(row, 6, `#,##0.00 "${inputs.v2Unit || 'm/s'}"`); // v₂
+        });
 
-        // Longitudes visibles para auto ancho
-        contMaxLen[0] = Math.max(contMaxLen[0], String(row.getCell(1).value ?? '').length);
-        contMaxLen[1] = Math.max(contMaxLen[1], isFinite(q as number) ? String(`${q} m³/s`).length : 0);
-        contMaxLen[2] = Math.max(contMaxLen[2], isFinite(A1 as number) ? String(`${A1}${inputs.A1Unit ? `${inputs.A1Unit}` : ''}`).length : 0);
-        contMaxLen[3] = Math.max(contMaxLen[3], isFinite(v1 as number) ? String(`${v1}${inputs.v1Unit ? `${inputs.v1Unit}` : ''}`).length : 0);
-        contMaxLen[4] = Math.max(contMaxLen[4], isFinite(A2 as number) ? String(`${A2}${inputs.A2Unit ? `${inputs.A2Unit}` : ''}`).length : 0);
-        contMaxLen[5] = Math.max(contMaxLen[5], isFinite(v2 as number) ? String(`${v2}${inputs.v2Unit ? `${inputs.v2Unit}` : ''}`).length : 0);
-      });
+        setColumnWidths(wsCont, contHeaders.length, 18);
+      }
 
-      contMaxLen.forEach((len, i) => {
-        wsCont.getColumn(i + 1).width = Math.min(Math.max(len + 2, 10), 60);
-      });
+      if (history.length > 0) {
+        const wsResumen = wb.addWorksheet('Resumen');
 
+        const resumenHeaders = ['Métrica', 'Valor'];
+        wsResumen.addRow(resumenHeaders);
+        applyHeaderStyle(wsResumen);
+
+        // Calcular estadísticas
+        const totalCalculos = history.length;
+        const totalCaudal = history.filter(h => h.calculation_type === 'Continuidad_caudal').length;
+        const totalContinuidad = history.filter(h => h.calculation_type === 'Continuidad_continuidad').length;
+
+        // Obtener fechas
+        const fechas = history.map(h => h.timestamp);
+        const fechaMasAntigua = fechas.length > 0 ? Math.min(...fechas) : null;
+        const fechaMasReciente = fechas.length > 0 ? Math.max(...fechas) : null;
+
+        // Calcular promedio de caudal (solo para items con resultado válido)
+        const caudalesValidos = history
+          .map(h => parseFloat(String(h.result).replace(',', '.')))
+          .filter(q => isFinite(q) && q > 0);
+        const promedioCaudal = caudalesValidos.length > 0 
+          ? caudalesValidos.reduce((a, b) => a + b, 0) / caudalesValidos.length 
+          : 0;
+
+        const row1 = wsResumen.addRow(['Total de cálculos', totalCalculos]);
+        const row2 = wsResumen.addRow(['Cálculos de caudal', totalCaudal]);
+        const row3 = wsResumen.addRow(['Cálculos de continuidad', totalContinuidad]);
+        const row4 = wsResumen.addRow(['Primer cálculo', fechaMasAntigua ? formatDate(fechaMasAntigua) : 'N/A']);
+        const row5 = wsResumen.addRow(['Último cálculo', fechaMasReciente ? formatDate(fechaMasReciente) : 'N/A']);
+        const row6 = wsResumen.addRow(['Promedio de caudal (m³/s)', promedioCaudal]);
+
+        // Aplicar formato de texto a la primera columna de cada fila
+        [row1, row2, row3, row4, row5, row6].filter(Boolean).forEach(row => {
+          applyExcelCells(row, [1]); // Formato de texto para la columna 1
+        });
+        
+        // Luego aplicar formatos específicos a los valores numéricos
+        applyExcelCell(row1, 2, '#,##0');
+        applyExcelCell(row2, 2, '#,##0');
+        applyExcelCell(row3, 2, '#,##0');
+        applyExcelCell(row6, 2, '#,##0.0000 "m³/s"');
+
+        setColumnWidths(wsResumen, 2, 25);
+      }
+
+      // Exportar el archivo
       const buffer = await wb.xlsx.writeBuffer();
       const base64 = base64FromArrayBuffer(buffer);
-      const fileName = `Valve_Historial_Continuidad.xlsx`;
+      const fileName = `Continuidad_Historial_${new Date().toISOString().split('T')[0]}.xlsx`;
       const path = `${RNFS.CachesDirectoryPath}/${fileName}`;
+
       await RNFS.writeFile(path, base64, 'base64');
 
       await Share.open({
-        title: 'Exportar historial',
+        title: 'Exportar historial de Continuidad',
         url: 'file://' + path,
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         failOnCancel: false,
@@ -719,6 +726,7 @@ const HistoryScreenContinuidad = () => {
         text1: t('common.success'),
         text2: 'Historial exportado correctamente',
       });
+
     } catch (e) {
       console.error('Export error:', e);
       Toast.show({

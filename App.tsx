@@ -64,6 +64,10 @@ import EnergiaBernoulliCalc from './screens/calculators/4_EnergiaBernoulli/Energ
 import OptionsScreenEnergiaBernoulli from './screens/calculators/4_EnergiaBernoulli/OptionsScreenEnergiaBernoulli';
 import HistoryScreenEnergiaBernoulli from './screens/calculators/4_EnergiaBernoulli/HistoryScreenEnergiaBernoulli';
 
+// 5_GEOMETRIA SECCIONES
+import GeometriaSeccionesCalc from './screens/calculators/5_GeometriaSecciones/GeometriaSeccionesCalc';
+import OptionsScreenGeometria from './screens/calculators/5_GeometriaSecciones/OptionsScreenGeometria';
+
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
 import HistoryScreenColebrook from './screens/calculators/Ffactor/HistoryScreenColebrook';
@@ -108,6 +112,8 @@ export type RootStackParamList = {
   EnergiaBernoulliCalc: undefined;
   OptionsScreenEnergiaBernoulli: undefined;
   HistoryScreenEnergiaBernoulli: undefined;
+  GeometriaSeccionesCalc: undefined;
+  OptionsScreenGeometria: undefined;
 };
 
 export type RootTabParamList = {
@@ -425,6 +431,14 @@ const App = () => {
                       }}
                     />
                     <Stack.Screen
+                      name="GeometriaSeccionesCalc"
+                      component={GeometriaSeccionesCalc}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                      }}
+                    />
+                    <Stack.Screen
                       name="EnergiaBernoulliCalc"
                       component={EnergiaBernoulliCalc}
                       options={{
@@ -435,6 +449,14 @@ const App = () => {
                     <Stack.Screen
                       name="OptionsScreen"
                       component={OptionsScreen}
+                      options={{
+                        headerShown: false,
+                        cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="OptionsScreenGeometria"
+                      component={OptionsScreenGeometria}
                       options={{
                         headerShown: false,
                         cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,

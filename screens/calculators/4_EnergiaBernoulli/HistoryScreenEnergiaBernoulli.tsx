@@ -23,11 +23,11 @@ import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast
 import { getDBConnection, getHistory, deleteHistory } from '../../../src/services/database';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
-
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 
+// Configuración visual de los mensajes Toast
 const toastConfig = {
   success: (props: BaseToastProps) => (
     <BaseToast
@@ -61,6 +61,7 @@ const toastConfig = {
   ),
 };
 
+// Tipos de datos del historial
 interface HistoryItem {
   id: number;
   calculation_type: 'EnergiaBernoulli_ideal' | 'EnergiaBernoulli_losses' | 'EnergiaBernoulli_cavitation';
@@ -69,11 +70,18 @@ interface HistoryItem {
   timestamp: number;
 }
 
+type ParsedInputs = Record<string, any>;
+
+// Constantes de layout para el gesto de deslizamiento de las tarjetas
 const { width } = Dimensions.get('window');
 const ORIGINAL_WIDTH = width - 40;
 const BUTTON_SIZE = 45;
 const REVEAL_OFFSET = -(BUTTON_SIZE + 20);
 
+// Utilidad para restringir un valor dentro de un rango
+const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+
+// Formatea un timestamp a cadena legible con fecha y hora
 const formatDate = (timestamp: number) => {
   const date = new Date(timestamp);
   return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
@@ -82,76 +90,92 @@ const formatDate = (timestamp: number) => {
   })}`;
 };
 
-type ParsedInputs = Record<string, any>;
-
+// Construye el texto de entradas para mostrar en la tarjeta del historial
 const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k: string, vars?: any) => string) => {
   const mode = item.calculation_type.split('_')[1];
   let inputString = '';
 
+  // Ya NO mostramos la variable incógnita aquí, ahora va en las secciones
+
   if (mode === 'ideal' || mode === 'losses') {
-    inputString += `P₁: ${parsedInputs.P1 ?? 'N/A'} ${parsedInputs.P1Unit ?? ''}\n`;
-    inputString += `z₁: ${parsedInputs.z1 ?? 'N/A'} ${parsedInputs.z1Unit ?? ''}\n`;
-    inputString += `V₁: ${parsedInputs.V1 ?? 'N/A'} ${parsedInputs.V1Unit ?? ''}\n`;
-    inputString += `P₂: ${parsedInputs.P2 ?? 'N/A'} ${parsedInputs.P2Unit ?? ''}\n`;
-    inputString += `z₂: ${parsedInputs.z2 ?? 'N/A'} ${parsedInputs.z2Unit ?? ''}\n`;
-    inputString += `V₂: ${parsedInputs.V2 ?? 'N/A'} ${parsedInputs.V2Unit ?? ''}\n`;
-    inputString += `γ: ${parsedInputs.gamma ?? 'N/A'} ${parsedInputs.gammaUnit ?? ''}\n`;
-    inputString += `g: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
-    
+    inputString += `${t('energiaBernoulliCalc.section1') || 'Sección 1'}:\n`;
+    inputString += `  ${t('energiaBernoulliCalc.labels.P1')}: ${parsedInputs.P1 ?? 'N/A'} ${parsedInputs.P1Unit ?? ''}\n`;
+    inputString += `  ${t('energiaBernoulliCalc.labels.z1')}: ${parsedInputs.z1 ?? 'N/A'} ${parsedInputs.z1Unit ?? ''}\n`;
+    inputString += `  ${t('energiaBernoulliCalc.labels.V1')}: ${parsedInputs.V1 ?? 'N/A'} ${parsedInputs.V1Unit ?? ''}\n`;
     if (parsedInputs.alpha1 && parsedInputs.alpha1 !== '1') {
-      inputString += `α₁: ${parsedInputs.alpha1}\n`;
+      inputString += `  α₁: ${parsedInputs.alpha1}\n`;
     }
+
+    inputString += `\n${t('energiaBernoulliCalc.section2') || 'Sección 2'}:\n`;
+    inputString += `  ${t('energiaBernoulliCalc.labels.P2')}: ${parsedInputs.P2 ?? 'N/A'} ${parsedInputs.P2Unit ?? ''}\n`;
+    inputString += `  ${t('energiaBernoulliCalc.labels.z2')}: ${parsedInputs.z2 ?? 'N/A'} ${parsedInputs.z2Unit ?? ''}\n`;
+    inputString += `  ${t('energiaBernoulliCalc.labels.V2')}: ${parsedInputs.V2 ?? 'N/A'} ${parsedInputs.V2Unit ?? ''}\n`;
     if (parsedInputs.alpha2 && parsedInputs.alpha2 !== '1') {
-      inputString += `α₂: ${parsedInputs.alpha2}\n`;
+      inputString += `  α₂: ${parsedInputs.alpha2}\n`;
     }
-    if (parsedInputs.hb) {
-      inputString += `hB: ${parsedInputs.hb} ${parsedInputs.hbUnit ?? ''}\n`;
-    }
-    if (parsedInputs.ht) {
-      inputString += `hT: ${parsedInputs.ht} ${parsedInputs.htUnit ?? ''}\n`;
-    }
+
+    inputString += `\n${t('energiaBernoulliCalc.fluidProps') || 'Propiedades del fluido'}:\n`;
+    inputString += `  ${t('energiaBernoulliCalc.labels.gamma')}: ${parsedInputs.gamma ?? 'N/A'} ${parsedInputs.gammaUnit ?? ''}\n`;
+    inputString += `  ${t('energiaBernoulliCalc.labels.g')}: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
+
     if (mode === 'losses') {
+      if (parsedInputs.hb || parsedInputs.ht) {
+        inputString += `\n${t('energiaBernoulliCalc.pumpTurbine') || 'Bomba/Turbina'}:\n`;
+        if (parsedInputs.hb) {
+          inputString += `  ${t('energiaBernoulliCalc.labels.hb')}: ${parsedInputs.hb} ${parsedInputs.hbUnit ?? ''}\n`;
+        }
+        if (parsedInputs.ht) {
+          inputString += `  ${t('energiaBernoulliCalc.labels.ht')}: ${parsedInputs.ht} ${parsedInputs.htUnit ?? ''}\n`;
+        }
+      }
+
+      inputString += `\n${t('energiaBernoulliCalc.losses') || 'Pérdidas'}:\n`;
       if (parsedInputs.lossInputType === 'direct') {
-        inputString += `hL: ${parsedInputs.hL ?? 'N/A'} ${parsedInputs.hLUnit ?? ''}\n`;
+        inputString += `  ${t('energiaBernoulliCalc.labels.hL')}: ${parsedInputs.hL ?? 'N/A'} ${parsedInputs.hLUnit ?? ''}\n`;
       } else {
-        inputString += `L: ${parsedInputs.L ?? 'N/A'} ${parsedInputs.LUnit ?? ''}\n`;
-        inputString += `D₁: ${parsedInputs.D1 ?? 'N/A'} ${parsedInputs.D1Unit ?? ''}\n`;
-        inputString += `f: ${parsedInputs.f ?? 'N/A'}\n`;
-        inputString += `K: ${parsedInputs.K ?? 'N/A'}\n`;
+        inputString += `  ${t('energiaBernoulliCalc.labels.L')}: ${parsedInputs.L ?? 'N/A'} ${parsedInputs.LUnit ?? ''}\n`;
+        inputString += `  ${t('energiaBernoulliCalc.labels.D1')}: ${parsedInputs.D1 ?? 'N/A'} ${parsedInputs.D1Unit ?? ''}\n`;
+        inputString += `  ${t('energiaBernoulliCalc.labels.f')}: ${parsedInputs.f ?? 'N/A'}\n`;
+        inputString += `  ${t('energiaBernoulliCalc.labels.K')}: ${parsedInputs.K ?? 'N/A'}\n`;
       }
     }
+
   } else if (mode === 'cavitation') {
-    inputString += `${t('energiaBernoulliCalc.systemType') || 'Sistema'}: ${parsedInputs.cavitationSystemType === 'closed' ? 'Cerrado' : 'Abierto'}\n`;
-    
+    // El código para cavitación se mantiene igual
+    inputString += `${t('energiaBernoulliCalc.systemType') || 'Tipo de sistema'}: ${parsedInputs.cavitationSystemType === 'closed' ? (t('energiaBernoulliCalc.closed') || 'Cerrado') : (t('energiaBernoulliCalc.open') || 'Abierto')}\n`;
+
     if (parsedInputs.cavitationSystemType === 'closed') {
-      inputString += `P_s: ${parsedInputs.Ps ?? 'N/A'} ${parsedInputs.PsUnit ?? ''}\n`;
-      inputString += `V_s: ${parsedInputs.Vs ?? 'N/A'} ${parsedInputs.VsUnit ?? ''}\n`;
+      inputString += `\n${t('energiaBernoulliCalc.closedSystem') || 'Sistema Cerrado'}:\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.Ps')}: ${parsedInputs.Ps ?? 'N/A'} ${parsedInputs.PsUnit ?? ''}\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.Vs')}: ${parsedInputs.Vs ?? 'N/A'} ${parsedInputs.VsUnit ?? ''}\n`;
     } else {
-      inputString += `P_atm: ${parsedInputs.Patm ?? 'N/A'} ${parsedInputs.PatmUnit ?? ''}\n`;
-      inputString += `z₀: ${parsedInputs.z0 ?? 'N/A'} ${parsedInputs.z0Unit ?? ''}\n`;
-      inputString += `z_s: ${parsedInputs.zs ?? 'N/A'} ${parsedInputs.zsUnit ?? ''}\n`;
-      inputString += `h_fs: ${parsedInputs.hfs ?? 'N/A'} ${parsedInputs.hfsUnit ?? ''}\n`;
+      inputString += `\n${t('energiaBernoulliCalc.openSystem') || 'Sistema Abierto'}:\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.Patm')}: ${parsedInputs.Patm ?? 'N/A'} ${parsedInputs.PatmUnit ?? ''}\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.z0')}: ${parsedInputs.z0 ?? 'N/A'} ${parsedInputs.z0Unit ?? ''}\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.zs')}: ${parsedInputs.zs ?? 'N/A'} ${parsedInputs.zsUnit ?? ''}\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.hfs')}: ${parsedInputs.hfs ?? 'N/A'} ${parsedInputs.hfsUnit ?? ''}\n`;
     }
 
+    inputString += `\n${t('energiaBernoulliCalc.fluidProps') || 'Propiedades del fluido'}:\n`;
     if (parsedInputs.useRhoForGamma) {
-      inputString += `ρ: ${parsedInputs.rho ?? 'N/A'} ${parsedInputs.rhoUnit ?? ''}\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.rho')}: ${parsedInputs.rho ?? 'N/A'} ${parsedInputs.rhoUnit ?? ''}\n`;
     } else {
-      inputString += `γ: ${parsedInputs.gamma ?? 'N/A'} ${parsedInputs.gammaUnit ?? ''}\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.gamma')}: ${parsedInputs.gamma ?? 'N/A'} ${parsedInputs.gammaUnit ?? ''}\n`;
     }
+    inputString += `  ${t('energiaBernoulliCalc.labels.g')}: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
 
-    inputString += `g: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
-
+    inputString += `\n${t('energiaBernoulliCalc.vaporPressure') || 'Presión de Vapor'}:\n`;
     if (parsedInputs.useTempForPv) {
-      inputString += `T: ${parsedInputs.temperatura ?? 'N/A'} ${parsedInputs.temperaturaUnit ?? ''}\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.temperatura')}: ${parsedInputs.temperatura ?? 'N/A'} ${parsedInputs.temperaturaUnit ?? ''}\n`;
     } else {
-      inputString += `Pv: ${parsedInputs.Pv ?? 'N/A'} ${parsedInputs.PvUnit ?? ''}\n`;
+      inputString += `  ${t('energiaBernoulliCalc.labels.Pv')}: ${parsedInputs.Pv ?? 'N/A'} ${parsedInputs.PvUnit ?? ''}\n`;
     }
 
     if (parsedInputs.resultGamma) {
-      inputString += `γ calc: ${parsedInputs.resultGamma} N/m³\n`;
+      inputString += `  γ (calc): ${parsedInputs.resultGamma} N/m³\n`;
     }
     if (parsedInputs.resultPv) {
-      inputString += `Pv calc: ${parsedInputs.resultPv} Pa\n`;
+      inputString += `  Pv (calc): ${parsedInputs.resultPv} Pa\n`;
     }
   }
 
@@ -162,6 +186,11 @@ const buildCopyText = (item: HistoryItem, parsedInputs: ParsedInputs, formattedR
   const mode = item.calculation_type.split('_')[1];
   let textToCopy = '';
 
+  const hasUnknownVariable = parsedInputs.unknownVariable && 
+                      parsedInputs.unknownVariable.value && 
+                      parsedInputs.unknownVariable.value !== '';
+
+  // Mostrar el resultado principal (diferencia de energía para ideal/losses, NPSHa para cavitación)
   if (mode === 'cavitation') {
     textToCopy += `${t('energiaBernoulliCalc.npsha') || 'NPSHa'}: ${formattedResult} m\n`;
     if (parsedInputs.resultCavitationMargin) {
@@ -235,12 +264,54 @@ const buildCopyText = (item: HistoryItem, parsedInputs: ParsedInputs, formattedR
   return textToCopy;
 };
 
+// Aplica formato de número, alineación central a una celda de Excel
+const applyExcelCell = (row: ExcelJS.Row, col: number, numFmt?: string) => {
+  const cell = row.getCell(col);
+  if (numFmt) cell.numFmt = numFmt;
+  cell.alignment = { vertical: 'middle', horizontal: 'center' };
+};
+
+// Aplica el mismo formato a un conjunto de columnas de la misma fila
+const applyExcelCells = (row: ExcelJS.Row, cols: number[], numFmt?: string) => {
+  cols.forEach(col => applyExcelCell(row, col, numFmt));
+};
+
+// Aplica el estilo de encabezado a la primera fila de una hoja de Excel
+const applyHeaderStyle = (sheet: ExcelJS.Worksheet) => {
+  const headerRow = sheet.getRow(1);
+  headerRow.eachCell(cell => {
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    cell.font = { bold: true };
+  });
+};
+
+// Ajusta el ancho de todas las columnas de una hoja al mismo valor
+const setColumnWidths = (sheet: ExcelJS.Worksheet, count: number, width: number = 18) => {
+  for (let i = 1; i <= count; i++) {
+    sheet.getColumn(i).width = width;
+  }
+};
+
+// Comparador para evitar re-renders innecesarios en las tarjetas del historial
+function areEqualHistoryCard(prev: HistoryCardProps, next: HistoryCardProps) {
+  return (
+    prev.isFirst === next.isFirst &&
+    prev.item.id === next.item.id &&
+    prev.item.result === next.item.result &&
+    prev.item.inputs === next.item.inputs &&
+    prev.item.timestamp === next.item.timestamp &&
+    prev.item.calculation_type === next.item.calculation_type
+  );
+}
+
 type HistoryCardProps = {
   item: HistoryItem;
   isFirst: boolean;
   onDelete: (id: number) => void;
 };
 
+// Tarjeta individual del historial con gesto de deslizamiento para revelar acciones
 const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) => {
   const { formatNumber } = useContext(PrecisionDecimalContext);
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
@@ -276,6 +347,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
     [selectedDecimalSeparator]
   );
 
+  // Convierte un valor crudo en string con el formato de número de la aplicación
   const formatValue = useCallback(
     (raw: string): string => {
       if (raw == null || raw === '') return 'N/A';
@@ -295,24 +367,25 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
   }, [item.inputs]);
 
   const mode = item.calculation_type.split('_')[1];
-  
-  // Determinar el resultado principal según el modo
-  let mainResult = '';
-  let mainLabel = '';
-  
-  if (mode === 'cavitation') {
-    mainResult = parsedInputs.resultNPSHa || item.result;
-    mainLabel = t('energiaBernoulliCalc.npsha') || 'NPSHa';
-  } else {
-    mainResult = item.result;
-    mainLabel = t('energiaBernoulliCalc.energyDifference') || 'Diferencia de energía';
-  }
-  
+
+  const mainResult = mode === 'cavitation' 
+  ? (parsedInputs.resultNPSHa || item.result)
+  : item.result;
+
   const formattedMainResult = useMemo(() => formatValue(mainResult), [mainResult, formatValue]);
+
+  const mainUnit = 'm';
+
   const inputsString = useMemo(() => buildInputsString(item, parsedInputs, t), [item, parsedInputs, t]);
+
+  const mainLabel = mode === 'cavitation'
+  ? (t('energiaBernoulliCalc.npsha') || 'NPSHa')
+  : (t('energiaBernoulliCalc.energyDifference') || 'Diferencia de energía');
   const dateStr = useMemo(() => formatDate(item.timestamp), [item.timestamp]);
 
+  // Valores animados para el deslizamiento horizontal de la tarjeta
   const translateX = useRef(new Animated.Value(0)).current;
+
   const buttonsOpacity = useRef(
     translateX.interpolate({
       inputRange: [REVEAL_OFFSET, 0],
@@ -320,6 +393,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
       extrapolate: 'clamp',
     })
   ).current;
+
   const buttonsTranslateY = useRef(
     translateX.interpolate({
       inputRange: [REVEAL_OFFSET, 0],
@@ -330,23 +404,21 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
 
   const isRevealed = useRef(false);
 
+  // Muestra los botones de acción con una animación en la primera tarjeta al cargar la pantalla
   useEffect(() => {
     if (!isFirst) return;
     const timeoutId = setTimeout(() => {
       isRevealed.current = true;
-      Animated.parallel([
-        Animated.timing(translateX, {
-          toValue: REVEAL_OFFSET,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      Animated.timing(translateX, {
+        toValue: REVEAL_OFFSET,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
     }, 500);
     return () => clearTimeout(timeoutId);
   }, [isFirst, translateX]);
 
-  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
-
+  // Gesture handler para el deslizamiento horizontal que revela las acciones
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: (_, g) => Math.abs(g.dx) > Math.abs(g.dy),
@@ -382,7 +454,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
   }, [item, parsedInputs, formattedMainResult, t]);
 
   return (
-    <View style={styles.THISCONTAINER}>
+    <View style={styles.cardWrapper}>
       <Animated.View
         style={[
           styles.optionsContainerMain,
@@ -396,9 +468,9 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
               {mainLabel}:
             </Text>
             <Text style={[styles.resultValue, { color: themeColors.text, fontSize: 24 * fontSizeFactor }]}>
-              {formattedMainResult} {mode === 'cavitation' ? 'm' : 'm'}
+              {formattedMainResult} {mainUnit}
             </Text>
-            
+
             {mode === 'cavitation' && parsedInputs.resultCavitationMargin && (
               <>
                 <Text style={[styles.resultLabel, { color: themeColors.text, fontSize: 14 * fontSizeFactor, marginTop: 5 }]}>
@@ -410,10 +482,21 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
               </>
             )}
 
+            {mode === 'cavitation' && parsedInputs.resultPabs && (
+              <>
+                <Text style={[styles.resultLabel, { color: themeColors.text, fontSize: 14 * fontSizeFactor, marginTop: 5 }]}>
+                  {t('energiaBernoulliCalc.pabs') || 'Presión absoluta'}:
+                </Text>
+                <Text style={[styles.resultValue, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>
+                  {formatValue(parsedInputs.resultPabs)} Pa
+                </Text>
+              </>
+            )}
+
             <Text style={[styles.inputsText, { color: currentTheme === 'dark' ? 'rgb(210, 210, 210)' : 'rgb(50, 50, 50)', fontSize: 14 * fontSizeFactor }]}>
               {inputsString}
             </Text>
-            
+
             <Text style={[styles.timestampText, { color: currentTheme === 'dark' ? 'rgb(170, 170, 170)' : 'rgb(150, 150, 150)', fontSize: 12 * fontSizeFactor }]}>
               {t('history.savedOn') + ' ' + dateStr}
             </Text>
@@ -439,17 +522,7 @@ const HistoryCard = React.memo(({ item, isFirst, onDelete }: HistoryCardProps) =
   );
 }, areEqualHistoryCard);
 
-function areEqualHistoryCard(prev: HistoryCardProps, next: HistoryCardProps) {
-  return (
-    prev.isFirst === next.isFirst &&
-    prev.item.id === next.item.id &&
-    prev.item.result === next.item.result &&
-    prev.item.inputs === next.item.inputs &&
-    prev.item.timestamp === next.item.timestamp &&
-    prev.item.calculation_type === next.item.calculation_type
-  );
-}
-
+// Pantalla principal del historial de Energía de Bernoulli
 const HistoryScreenEnergiaBernoulli = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const dbRef = useRef<any>(null);
@@ -483,33 +556,17 @@ const HistoryScreenEnergiaBernoulli = () => {
     };
   }, [currentTheme]);
 
+  // Carga el historial desde la base de datos filtrando solo entradas de EnergiaBernoulli
   const loadHistory = useCallback(async () => {
     try {
       if (!dbRef.current) {
         dbRef.current = await getDBConnection();
       }
       const fetched = await getHistory(dbRef.current);
-      // Filtrar solo los items de EnergiaBernoulli
-      const filtered = fetched.filter((item: HistoryItem) => 
+      const filtered = fetched.filter((item: HistoryItem) =>
         item.calculation_type.startsWith('EnergiaBernoulli_')
       );
-      setHistory((prev) => {
-        const sameLength = prev.length === filtered.length;
-        if (sameLength) {
-          const same = prev.every((p, i) => {
-            const n = filtered[i];
-            return (
-              p.id === n.id &&
-              p.result === n.result &&
-              p.inputs === n.inputs &&
-              p.timestamp === n.timestamp &&
-              p.calculation_type === n.calculation_type
-            );
-          });
-          if (same) return prev;
-        }
-        return filtered;
-      });
+      setHistory(filtered);
     } catch (error) {
       console.error('Error al cargar el historial:', error);
     }
@@ -521,6 +578,7 @@ const HistoryScreenEnergiaBernoulli = () => {
     }, [loadHistory])
   );
 
+  // Elimina un registro individual del historial por su id
   const handleDeleteItem = useCallback(
     async (id: number) => {
       const db = dbRef.current;
@@ -537,6 +595,7 @@ const HistoryScreenEnergiaBernoulli = () => {
     [t]
   );
 
+  // Muestra un diálogo de confirmación antes de borrar todo el historial
   const handleResetPress = useCallback(() => {
     if (history.length === 0) {
       Toast.show({
@@ -556,7 +615,7 @@ const HistoryScreenEnergiaBernoulli = () => {
           onPress: async () => {
             const db = dbRef.current;
             if (db) {
-              await deleteHistory(db, -1);
+              await deleteHistory(db, -1, 'EnergiaBernoulli_');
               setHistory([]);
               Toast.show({
                 type: 'success',
@@ -571,6 +630,7 @@ const HistoryScreenEnergiaBernoulli = () => {
     );
   }, [history.length, t]);
 
+  // Genera y comparte el archivo Excel con el historial completo dividido por hojas
   const handleExportExcel = useCallback(async () => {
     try {
       if (history.length === 0) {
@@ -590,123 +650,193 @@ const HistoryScreenEnergiaBernoulli = () => {
       wb.creator = 'App Hidráulica';
       wb.created = new Date();
 
-      // Hoja para Bernoulli Ideal
+      // Hoja de Bernoulli Ideal
       if (idealItems.length > 0) {
         const wsIdeal = wb.addWorksheet('Bernoulli Ideal');
         const idealHeaders = [
-          'Fecha/Hora', 'Diferencia Energía (m)', 'P₁', 'z₁', 'V₁', 'P₂', 'z₂', 'V₂',
-          'γ', 'g', 'α₁', 'α₂', 'hB', 'hT'
+          'Fecha/Hora',
+          'Diferencia Energía',
+          'P₁',
+          'z₁',
+          'V₁',
+          'P₂',
+          'z₂',
+          'V₂',
+          'γ',
+          'g',
+          'α₁',
+          'α₂',
+          'hB',
+          'hT',
         ];
         wsIdeal.addRow(idealHeaders);
-        
-        const idealHeaderRow = wsIdeal.getRow(1);
-        idealHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
-        idealHeaderRow.eachCell(cell => {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        });
+        applyHeaderStyle(wsIdeal);
 
         idealItems.forEach(it => {
           let inputs: any = {};
           try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
-          
-          wsIdeal.addRow([
+
+          const row = wsIdeal.addRow([
             formatDate(it.timestamp),
             parseFloat(it.result) || 0,
-            inputs.P1 || 0, inputs.z1 || 0, inputs.V1 || 0,
-            inputs.P2 || 0, inputs.z2 || 0, inputs.V2 || 0,
-            inputs.gamma || 0, inputs.g || 0,
-            inputs.alpha1 || 1, inputs.alpha2 || 1,
-            inputs.hb || 0, inputs.ht || 0,
+            parseFloat(inputs.P1) || 0,
+            parseFloat(inputs.z1) || 0,
+            parseFloat(inputs.V1) || 0,
+            parseFloat(inputs.P2) || 0,
+            parseFloat(inputs.z2) || 0,
+            parseFloat(inputs.V2) || 0,
+            parseFloat(inputs.gamma) || 0,
+            parseFloat(inputs.g) || 0,
+            parseFloat(inputs.alpha1) || 1,
+            parseFloat(inputs.alpha2) || 1,
+            parseFloat(inputs.hb) || 0,
+            parseFloat(inputs.ht) || 0,
           ]);
+
+          applyExcelCell(row, 1);
+          applyExcelCell(row, 2, '#,##0.00 "m"');
+          applyExcelCell(row, 3, '#,##0.00 "Pa"');
+          applyExcelCell(row, 4, '#,##0.00 "m"');
+          applyExcelCell(row, 5, '#,##0.00 "m/s"');
+          applyExcelCell(row, 6, '#,##0.00 "Pa"');
+          applyExcelCell(row, 7, '#,##0.00 "m"');
+          applyExcelCell(row, 8, '#,##0.00 "m/s"');
+          applyExcelCell(row, 9, '#,##0.00 "N/m³"');
+          applyExcelCell(row, 10, '#,##0.00 "m/s²"');
+          applyExcelCell(row, 11);
+          applyExcelCell(row, 12);
+          applyExcelCell(row, 13, '#,##0.00 "m"');
+          applyExcelCell(row, 14, '#,##0.00 "m"');
         });
 
-        // Ajustar anchos
-        idealHeaders.forEach((_, i) => {
-          wsIdeal.getColumn(i + 1).width = 15;
-        });
+        setColumnWidths(wsIdeal, idealHeaders.length);
       }
 
-      // Hoja para Bernoulli con Pérdidas
+      // Hoja de Bernoulli con Pérdidas
       if (lossesItems.length > 0) {
         const wsLosses = wb.addWorksheet('Bernoulli con Pérdidas');
         const lossesHeaders = [
-          'Fecha/Hora', 'Diferencia Energía (m)', 'P₁', 'z₁', 'V₁', 'P₂', 'z₂', 'V₂',
-          'γ', 'g', 'α₁', 'α₂', 'hB', 'hT', 'Tipo Pérdida', 'hL', 'L', 'D₁', 'f', 'K'
+          'Fecha/Hora',
+          'Diferencia Energía',
+          'P₁',
+          'z₁',
+          'V₁',
+          'P₂',
+          'z₂',
+          'V₂',
+          'γ',
+          'g',
+          'α₁',
+          'α₂',
+          'hB',
+          'hT',
+          'Tipo Pérdida',
+          'hL',
+          'L',
+          'D₁',
+          'f',
+          'K',
         ];
         wsLosses.addRow(lossesHeaders);
-        
-        const lossesHeaderRow = wsLosses.getRow(1);
-        lossesHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
-        lossesHeaderRow.eachCell(cell => {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        });
+        applyHeaderStyle(wsLosses);
 
         lossesItems.forEach(it => {
           let inputs: any = {};
           try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
-          
-          wsLosses.addRow([
+
+          const row = wsLosses.addRow([
             formatDate(it.timestamp),
             parseFloat(it.result) || 0,
-            inputs.P1 || 0, inputs.z1 || 0, inputs.V1 || 0,
-            inputs.P2 || 0, inputs.z2 || 0, inputs.V2 || 0,
-            inputs.gamma || 0, inputs.g || 0,
-            inputs.alpha1 || 1, inputs.alpha2 || 1,
-            inputs.hb || 0, inputs.ht || 0,
+            parseFloat(inputs.P1) || 0,
+            parseFloat(inputs.z1) || 0,
+            parseFloat(inputs.V1) || 0,
+            parseFloat(inputs.P2) || 0,
+            parseFloat(inputs.z2) || 0,
+            parseFloat(inputs.V2) || 0,
+            parseFloat(inputs.gamma) || 0,
+            parseFloat(inputs.g) || 0,
+            parseFloat(inputs.alpha1) || 1,
+            parseFloat(inputs.alpha2) || 1,
+            parseFloat(inputs.hb) || 0,
+            parseFloat(inputs.ht) || 0,
             inputs.lossInputType || '',
-            inputs.hL || 0,
-            inputs.L || 0, inputs.D1 || 0,
-            inputs.f || 0, inputs.K || 0,
+            parseFloat(inputs.hL) || 0,
+            parseFloat(inputs.L) || 0,
+            parseFloat(inputs.D1) || 0,
+            parseFloat(inputs.f) || 0,
+            parseFloat(inputs.K) || 0,
           ]);
+
+          applyExcelCell(row, 1);
+          applyExcelCells(row, [2, 4, 5, 7, 8, 13, 14, 16, 17, 18], '#,##0.00 "m"');
+          applyExcelCells(row, [3, 6], '#,##0.00 "Pa"');
+          applyExcelCell(row, 9, '#,##0.00 "N/m³"');
+          applyExcelCell(row, 10, '#,##0.00 "m/s²"');
+          applyExcelCells(row, [11, 12, 15, 19, 20]);
         });
 
-        lossesHeaders.forEach((_, i) => {
-          wsLosses.getColumn(i + 1).width = 15;
-        });
+        setColumnWidths(wsLosses, lossesHeaders.length);
       }
 
-      // Hoja para Cavitación
+      // Hoja de Cavitación
       if (cavitationItems.length > 0) {
         const wsCav = wb.addWorksheet('Cavitación');
         const cavHeaders = [
-          'Fecha/Hora', 'NPSHa (m)', 'Margen (m)', 'Pabs (Pa)',
-          'Tipo Sistema', 'P_s', 'V_s', 'P_atm', 'z₀', 'z_s', 'h_fs',
-          'ρ/γ', 'g', 'T/Pv', 'γ calc', 'Pv calc'
+          'Fecha/Hora',
+          'NPSHa',
+          'Margen',
+          'Pabs',
+          'Tipo Sistema',
+          'P_s',
+          'V_s',
+          'P_atm',
+          'z₀',
+          'z_s',
+          'h_fs',
+          'ρ/γ',
+          'g',
+          'T / Pv',
+          'γ calc',
+          'Pv calc',
         ];
         wsCav.addRow(cavHeaders);
-        
-        const cavHeaderRow = wsCav.getRow(1);
-        cavHeaderRow.font = { bold: true, color: { argb: 'FF000000' } };
-        cavHeaderRow.eachCell(cell => {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC2FE0C' } };
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        });
+        applyHeaderStyle(wsCav);
 
         cavitationItems.forEach(it => {
           let inputs: any = {};
           try { inputs = JSON.parse(it.inputs || '{}'); } catch { inputs = {}; }
-          
-          wsCav.addRow([
+
+          const row = wsCav.addRow([
             formatDate(it.timestamp),
             parseFloat(inputs.resultNPSHa) || 0,
             parseFloat(inputs.resultCavitationMargin) || 0,
             parseFloat(inputs.resultPabs) || 0,
-            inputs.cavitationSystemType || '',
-            inputs.Ps || 0, inputs.Vs || 0,
-            inputs.Patm || 0, inputs.z0 || 0, inputs.zs || 0, inputs.hfs || 0,
-            inputs.useRhoForGamma ? (inputs.rho || 0) : (inputs.gamma || 0),
-            inputs.g || 0,
-            inputs.useTempForPv ? (inputs.temperatura || 0) : (inputs.Pv || 0),
-            inputs.resultGamma || 0,
-            inputs.resultPv || 0,
+            inputs.cavitationSystemType === 'closed' ? 'Cerrado' : 'Abierto',
+            parseFloat(inputs.Ps) || 0,
+            parseFloat(inputs.Vs) || 0,
+            parseFloat(inputs.Patm) || 0,
+            parseFloat(inputs.z0) || 0,
+            parseFloat(inputs.zs) || 0,
+            parseFloat(inputs.hfs) || 0,
+            parseFloat(inputs.useRhoForGamma ? (inputs.rho || 0) : (inputs.gamma || 0)),
+            parseFloat(inputs.g) || 0,
+            parseFloat(inputs.useTempForPv ? (inputs.temperatura || 0) : (inputs.Pv || 0)),
+            parseFloat(inputs.resultGamma) || 0,
+            parseFloat(inputs.resultPv) || 0,
           ]);
+
+          applyExcelCell(row, 1);
+          applyExcelCells(row, [2, 3, 9, 10, 11], '#,##0.00 "m"');
+          applyExcelCells(row, [4, 6, 8, 16], '#,##0.00 "Pa"');
+          applyExcelCell(row, 7, '#,##0.00 "m/s"');
+          applyExcelCell(row, 12, `#,##0.00 "${inputs.useRhoForGamma ? 'kg/m³' : 'N/m³'}"`);
+          applyExcelCell(row, 13, '#,##0.00 "m/s²"');
+          applyExcelCell(row, 14, `#,##0.00 "${inputs.useTempForPv ? '°C' : 'Pa'}"`);
+          applyExcelCell(row, 15, '#,##0.00 "N/m³"');
+          applyExcelCell(row, 5);
         });
 
-        cavHeaders.forEach((_, i) => {
-          wsCav.getColumn(i + 1).width = 15;
-        });
+        setColumnWidths(wsCav, cavHeaders.length);
       }
 
       const buffer = await wb.xlsx.writeBuffer();
@@ -775,33 +905,31 @@ const HistoryScreenEnergiaBernoulli = () => {
             <View style={styles.headerContainer}>
               <View style={styles.leftIconsContainer}>
                 <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
-                  <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.goBack()}>
+                  <Pressable
+                    style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                    onPress={() => navigation.goBack()}
+                  >
                     <Icon2 name="chevron-left" size={22} color={themeColors.icon} />
                   </Pressable>
                 </View>
               </View>
 
               <View style={styles.rightIconsContainer}>
-                <View style={styles.rightIconsContainer}>
-                  <View style={[styles.iconWrapper2, { experimental_backgroundImage: themeColors.gradient }]}>
-                    <Pressable
-                      style={[
-                        styles.iconContainer,
-                        { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }
-                      ]}
-                      onPress={handleExportExcel}
-                    >
-                      <MCIcon name="export-variant" size={20} color={themeColors.icon} />
-                    </Pressable>
-                  </View>
-                  <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
-                    <Pressable
-                      style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
-                      onPress={handleResetPress}
-                    >
-                      <Icon2 name="trash" size={20} color={themeColors.icon} />
-                    </Pressable>
-                  </View>
+                <View style={[styles.iconWrapper2, { experimental_backgroundImage: themeColors.gradient }]}>
+                  <Pressable
+                    style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                    onPress={handleExportExcel}
+                  >
+                    <MCIcon name="export-variant" size={20} color={themeColors.icon} />
+                  </Pressable>
+                </View>
+                <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
+                  <Pressable
+                    style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                    onPress={handleResetPress}
+                  >
+                    <Icon2 name="trash" size={20} color={themeColors.icon} />
+                  </Pressable>
                 </View>
               </View>
             </View>
@@ -963,7 +1091,7 @@ const styles = StyleSheet.create({
     color: 'rgb(180, 180, 180)',
     fontFamily: 'SFUIDisplay-Medium',
   },
-  THISCONTAINER: {
+  cardWrapper: {
     position: 'relative',
   },
   buttonsContainer: {

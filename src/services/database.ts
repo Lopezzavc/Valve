@@ -51,9 +51,24 @@ export const getHistory = async (db: SQLiteDatabase) => {
   return historyItems;
 };
 
-export const deleteHistory = async (db: SQLiteDatabase, id: number) => {
-  const query = `DELETE FROM history;`;
-  await db.executeSql(query);
+// Versión corregida:
+export const deleteHistory = async (
+  db: SQLiteDatabase, 
+  id: number, 
+  calculationType?: string  // Nuevo parámetro opcional
+): Promise<void> => {
+  if (id === -1) {
+    if (calculationType) {
+      // Eliminar solo los registros de un tipo específico
+      await db.executeSql('DELETE FROM history WHERE calculation_type LIKE ?;', [`${calculationType}%`]);
+    } else {
+      // Eliminar todo el historial (para compatibilidad hacia atrás)
+      await db.executeSql('DELETE FROM history;');
+    }
+  } else {
+    // Eliminar un elemento específico
+    await db.executeSql('DELETE FROM history WHERE id = ?;', [id]);
+  }
 };
 
 // ===================== FAVORITES (NUEVO) =====================

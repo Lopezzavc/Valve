@@ -28,6 +28,10 @@
   import { FontSizeContext } from '../../../contexts/FontSizeContext';
   import { KeyboardAwareScrollView, KeyboardToolbar } from 'react-native-keyboard-controller';
 
+  import Decimal from 'decimal.js';
+
+  Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
+
   // Tipos de navegación
   type RootStackParamList = {
     OptionsScreen: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
@@ -74,10 +78,10 @@
     prevRectHeightUnit: string;
     prevFillHeightUnit: string;
     prevVelocityCaudalUnit: string;
-    prevA1Unit: 'm²';
-    prevV1Unit: 'm/s';
-    prevA2Unit: 'm²';
-    prevV2Unit: 'm/s';
+    prevA1Unit: string;
+    prevV1Unit: string;
+    prevA2Unit: string;
+    prevV2Unit: string;
     resultCaudal: number;
     resultA1: string;
     resultV1: string;
@@ -90,6 +94,14 @@
     lockedField: string | null;
     invalidFields: string[];
     autoCalculatedField: 'A1' | 'V1' | 'A2' | 'V2' | null;
+    
+    // NUEVO: Variable desconocida para mostrar en el resultado principal
+    unknownVariable: {
+      name: string;
+      label: string;
+      unit: string;
+      value: string;
+    } | null;
   }
 
   // Métricas internas de los botones
@@ -205,6 +217,7 @@
     lockedField: null,
     invalidFields: [],
     autoCalculatedField: null,
+    unknownVariable: null,
   });
 
   // Componente principal
@@ -342,8 +355,9 @@
 
     // Helpers
     const formatResult = useCallback((num: number): string => {
-      if (isNaN(num)) return '';
-      const fixed = num.toFixed(15);
+      if (isNaN(num) || !isFinite(num)) return '';
+      const decimalNum = new Decimal(num);
+      const fixed = decimalNum.toFixed(15);
       return fixed.replace(/\.?0+$/, '');
     }, []);
 
@@ -355,11 +369,18 @@
     ): string => {
       const cleanValue = value.replace(',', '.');
       if (cleanValue === '' || isNaN(parseFloat(cleanValue))) return value;
-      const numValue = parseFloat(cleanValue);
+    
+      const decimalValue = new Decimal(cleanValue);
       const fromFactor = conversionFactors[category][fromUnit];
       const toFactor = conversionFactors[category][toUnit];
+      
       if (!fromFactor || !toFactor) return value;
-      const convertedValue = (numValue * fromFactor) / toFactor;
+      
+      const convertedValue = decimalValue
+        .mul(new Decimal(fromFactor))
+        .div(new Decimal(toFactor))
+        .toNumber();
+        
       return formatResult(convertedValue);
     }, [formatResult]);
 
@@ -368,13 +389,12 @@
     }, [selectedDecimalSeparator]);
 
     const calculateCaudal = useCallback(() => {
-      // 1) VALIDACIÓN PRIMERO (marca en rojo si falta algo)
       const requiredIds: string[] = ['velocityCaudal'];
       if (state.sectionType === 'Circular') requiredIds.push('diameter');
       if (state.sectionType === 'Cuadrada') requiredIds.push('side');
       if (state.sectionType === 'Rectangular') requiredIds.push('rectWidth', 'rectHeight');
       if (state.fillType === 'Parcial') requiredIds.push('fillHeight');
-        
+
       const missing = requiredIds.filter((id) => {
         const raw = (state as any)[id] as string;
         const val = raw?.replace(',', '.');
@@ -382,97 +402,115 @@
       });
     
       if (missing.length > 0) {
-        // ➜ pinta en rojo (incluye el caso "todo vacío") y no calcula
         setState((prev) => ({
           ...prev,
           invalidFields: missing,
           autoCalculatedField: null,
           resultCaudal: 0,
+          unknownVariable: null, // NUEVO
         }));
         return;
       } else {
-        // ➜ limpia rojos si todo está OK
         setState((prev) => ({ ...prev, invalidFields: [], autoCalculatedField: null }));
       }
     
-      // 2) PARSEAR Y CALCULAR (ya validado)
-      const vel =
-        parseFloat(state.velocityCaudal.replace(',', '.')) *
-        conversionFactors.velocity[state.velocityCaudalUnit];
+      const vel = new Decimal(state.velocityCaudal.replace(',', '.'))
+        .mul(new Decimal(conversionFactors.velocity[state.velocityCaudalUnit]));
     
-      let area = 0;
+      let area = new Decimal(0);
     
       switch (state.sectionType) {
         case 'Circular': {
-          const d =
-            parseFloat(state.diameter.replace(',', '.')) *
-            conversionFactors.length[state.diameterUnit];
-          const R = d / 2;
+          const d = new Decimal(state.diameter.replace(',', '.'))
+            .mul(new Decimal(conversionFactors.length[state.diameterUnit]));
+          const R = d.div(2);
           if (state.fillType === 'Total') {
-            area = Math.PI * R * R;
+            area = new Decimal(Math.PI).mul(R).mul(R);
           } else {
-            const h =
-              parseFloat(state.fillHeight.replace(',', '.')) *
-              conversionFactors.length[state.fillHeightUnit];
-            const h_clamped = Math.min(Math.max(h, 0), d);
-            const theta = 2 * Math.acos((R - h_clamped) / R);
-            area = (R * R / 2) * (theta - Math.sin(theta));
+            const h = new Decimal(state.fillHeight.replace(',', '.'))
+              .mul(new Decimal(conversionFactors.length[state.fillHeightUnit]));
+            const h_clamped = Decimal.max(Decimal.min(h, d), 0);
+            const theta = new Decimal(2).mul(
+              Decimal.acos(
+                R.minus(h_clamped).div(R).toNumber()
+              )
+            );
+            area = R.pow(2).div(2).mul(theta.minus(Decimal.sin(theta.toNumber())));
           }
           break;
         }
         case 'Cuadrada': {
-          const s =
-            parseFloat(state.side.replace(',', '.')) *
-            conversionFactors.length[state.sideUnit];
+          const s = new Decimal(state.side.replace(',', '.'))
+            .mul(new Decimal(conversionFactors.length[state.sideUnit]));
           if (state.fillType === 'Total') {
-            area = s * s;
+            area = s.mul(s);
           } else {
-            const h =
-              parseFloat(state.fillHeight.replace(',', '.')) *
-              conversionFactors.length[state.fillHeightUnit];
-            const h_clamped = Math.min(Math.max(h, 0), s);
-            area = s * h_clamped;
+            const h = new Decimal(state.fillHeight.replace(',', '.'))
+              .mul(new Decimal(conversionFactors.length[state.fillHeightUnit]));
+            const h_clamped = Decimal.max(Decimal.min(h, s), 0);
+            area = s.mul(h_clamped);
           }
           break;
         }
         case 'Rectangular': {
-          const w =
-            parseFloat(state.rectWidth.replace(',', '.')) *
-            conversionFactors.length[state.rectWidthUnit];
-          const h0 =
-            parseFloat(state.rectHeight.replace(',', '.')) *
-            conversionFactors.length[state.rectHeightUnit];
+          const w = new Decimal(state.rectWidth.replace(',', '.'))
+            .mul(new Decimal(conversionFactors.length[state.rectWidthUnit]));
+          const h0 = new Decimal(state.rectHeight.replace(',', '.'))
+            .mul(new Decimal(conversionFactors.length[state.rectHeightUnit]));
           if (state.fillType === 'Total') {
-            area = w * h0;
+            area = w.mul(h0);
           } else {
-            const h =
-              parseFloat(state.fillHeight.replace(',', '.')) *
-              conversionFactors.length[state.fillHeightUnit];
-            const h_clamped = Math.min(Math.max(h, 0), h0);
-            area = w * h_clamped;
+            const h = new Decimal(state.fillHeight.replace(',', '.'))
+              .mul(new Decimal(conversionFactors.length[state.fillHeightUnit]));
+            const h_clamped = Decimal.max(Decimal.min(h, h0), 0);
+            area = w.mul(h_clamped);
           }
           break;
         }
       }
     
-      setState((prev) => ({ ...prev, resultCaudal: area * vel }));
+      const caudal = area.mul(vel);
+
+      setState((prev) => ({ 
+        ...prev, 
+        resultCaudal: caudal.toNumber(),
+        unknownVariable: null, // NUEVO: Limpiar variable desconocida en modo caudal
+      }));
     }, [state]);
 
     const calculateContinuity = useCallback(() => {
-      const a1 = state.A1 ? parseFloat(state.A1.replace(',', '.')) * conversionFactors.area[state.A1Unit] : NaN;
-      const vv1 = state.v1 ? parseFloat(state.v1.replace(',', '.')) * conversionFactors.velocity[state.v1Unit] : NaN;
-      const a2 = state.A2 ? parseFloat(state.A2.replace(',', '.')) * conversionFactors.area[state.A2Unit] : NaN;
-      const vv2 = state.v2 ? parseFloat(state.v2.replace(',', '.')) * conversionFactors.velocity[state.v2Unit] : NaN;
+      // Convertir a Decimal.js con factores de conversión
+      const a1 = state.A1 
+        ? new Decimal(state.A1.replace(',', '.'))
+            .mul(new Decimal(conversionFactors.area[state.A1Unit])) 
+        : new Decimal(NaN);
+      const vv1 = state.v1 
+        ? new Decimal(state.v1.replace(',', '.'))
+            .mul(new Decimal(conversionFactors.velocity[state.v1Unit])) 
+        : new Decimal(NaN);
+      const a2 = state.A2 
+        ? new Decimal(state.A2.replace(',', '.'))
+            .mul(new Decimal(conversionFactors.area[state.A2Unit])) 
+        : new Decimal(NaN);
+      const vv2 = state.v2 
+        ? new Decimal(state.v2.replace(',', '.'))
+            .mul(new Decimal(conversionFactors.velocity[state.v2Unit])) 
+        : new Decimal(NaN);
 
-      const valids = [!isNaN(a1), !isNaN(vv1), !isNaN(a2), !isNaN(vv2)];
+      const valids = [
+        !a1.isNaN(), 
+        !vv1.isNaN(), 
+        !a2.isNaN(), 
+        !vv2.isNaN()
+      ];
       const validCount = valids.filter(Boolean).length;
-
-      const inputsMap = { A1: a1, V1: vv1, A2: a2, V2: vv2 };
-
-      const emptyIds = Object.entries(inputsMap)
-        .filter(([, v]) => isNaN(v as number))
-        .map(([k]) => k);
-
+    
+      const emptyIds: string[] = [];
+      if (a1.isNaN()) emptyIds.push('A1');
+      if (vv1.isNaN()) emptyIds.push('V1');
+      if (a2.isNaN()) emptyIds.push('A2');
+      if (vv2.isNaN()) emptyIds.push('V2');
+    
       if (validCount !== 3) {
         setState((prev) => ({
           ...prev,
@@ -481,70 +519,125 @@
           resultV1: '',
           resultA2: '',
           resultV2: '',
-          invalidFields: emptyIds,         // ⬅️ pinta rojo lo que falte
-          autoCalculatedField: null,       // ⬅️ sin azul
+          invalidFields: emptyIds,
+          autoCalculatedField: null,
+          unknownVariable: null,
         }));
         return;
       }
-
+    
       let missing: 'A1' | 'V1' | 'A2' | 'V2' | null = null;
-        if (isNaN(a1)) missing = 'A1';
-        else if (isNaN(vv1)) missing = 'V1';
-        else if (isNaN(a2)) missing = 'A2';
-        else if (isNaN(vv2)) missing = 'V2';
-
-      let newQ = 0;
-      if (!isNaN(a1) && !isNaN(vv1)) newQ = a1 * vv1;
-      else if (!isNaN(a2) && !isNaN(vv2)) newQ = a2 * vv2;
-
-      const newState: Partial<CalculatorState> = { resultCaudal: newQ };
-
+      if (a1.isNaN()) missing = 'A1';
+      else if (vv1.isNaN()) missing = 'V1';
+      else if (a2.isNaN()) missing = 'A2';
+      else if (vv2.isNaN()) missing = 'V2';
+    
+      let newQ = new Decimal(0);
+      if (!a1.isNaN() && !vv1.isNaN()) newQ = a1.mul(vv1);
+      else if (!a2.isNaN() && !vv2.isNaN()) newQ = a2.mul(vv2);
+    
+      const newState: Partial<CalculatorState> = { 
+        resultCaudal: newQ.toNumber(),
+        unknownVariable: null
+      };
+    
+      // Mapeo de etiquetas para traducción
+      const labelMap = {
+        'A1': t('continuidadCalc.labels.A1') || 'Área (A₁)',
+        'V1': t('continuidadCalc.labels.v1') || 'Velocidad (v₁)',
+        'A2': t('continuidadCalc.labels.A2') || 'Área (A₂)',
+        'V2': t('continuidadCalc.labels.v2') || 'Velocidad (v₂)',
+      };
+    
+      const unitMap = {
+        'A1': state.A1Unit,
+        'V1': state.v1Unit,
+        'A2': state.A2Unit,
+        'V2': state.v2Unit,
+      };
+    
       switch (missing) {
         case 'A1': {
-          if (vv1 === 0) break;
-          const calc_si = (a2 * vv2) / vv1;
-          if (!isNaN(calc_si) && isFinite(calc_si)) {
-            const resultInTargetUnit = calc_si / conversionFactors.area[state.A1Unit];
-            newState.resultA1 = formatResult(resultInTargetUnit);
+          if (vv1.isZero()) break;
+          const calc_si = a2.mul(vv2).div(vv1);
+          if (!calc_si.isNaN() && calc_si.isFinite()) {
+            const resultInTargetUnit = calc_si
+              .div(new Decimal(conversionFactors.area[state.A1Unit]))
+              .toNumber();
+            const formattedResult = formatResult(resultInTargetUnit);
+            newState.resultA1 = formattedResult;
+            newState.unknownVariable = {
+              name: 'A₁',
+              label: labelMap['A1'],
+              unit: unitMap['A1'],
+              value: formattedResult
+            };
           }
           break;
         }
         case 'V1': {
-          if (a1 === 0) break;
-          const calc_si = (a2 * vv2) / a1;
-          if (!isNaN(calc_si) && isFinite(calc_si)) {
-            const resultInTargetUnit = calc_si / conversionFactors.velocity[state.v1Unit];
-            newState.resultV1 = formatResult(resultInTargetUnit);
+          if (a1.isZero()) break;
+          const calc_si = a2.mul(vv2).div(a1);
+          if (!calc_si.isNaN() && calc_si.isFinite()) {
+            const resultInTargetUnit = calc_si
+              .div(new Decimal(conversionFactors.velocity[state.v1Unit]))
+              .toNumber();
+            const formattedResult = formatResult(resultInTargetUnit);
+            newState.resultV1 = formattedResult;
+            newState.unknownVariable = {
+              name: 'v₁',
+              label: labelMap['V1'],
+              unit: unitMap['V1'],
+              value: formattedResult
+            };
           }
           break;
         }
         case 'A2': {
-          if (vv2 === 0) break;
-          const calc_si = (a1 * vv1) / vv2;
-          if (!isNaN(calc_si) && isFinite(calc_si)) {
-            const resultInTargetUnit = calc_si / conversionFactors.area[state.A2Unit];
-            newState.resultA2 = formatResult(resultInTargetUnit);
+          if (vv2.isZero()) break;
+          const calc_si = a1.mul(vv1).div(vv2);
+          if (!calc_si.isNaN() && calc_si.isFinite()) {
+            const resultInTargetUnit = calc_si
+              .div(new Decimal(conversionFactors.area[state.A2Unit]))
+              .toNumber();
+            const formattedResult = formatResult(resultInTargetUnit);
+            newState.resultA2 = formattedResult;
+            newState.unknownVariable = {
+              name: 'A₂',
+              label: labelMap['A2'],
+              unit: unitMap['A2'],
+              value: formattedResult
+            };
           }
           break;
         }
         case 'V2': {
-          if (a2 === 0) break;
-          const calc_si = (a1 * vv1) / a2;
-          if (!isNaN(calc_si) && isFinite(calc_si)) {
-            const resultInTargetUnit = calc_si / conversionFactors.velocity[state.v2Unit];
-            newState.resultV2 = formatResult(resultInTargetUnit);
+          if (a2.isZero()) break;
+          const calc_si = a1.mul(vv1).div(a2);
+          if (!calc_si.isNaN() && calc_si.isFinite()) {
+            const resultInTargetUnit = calc_si
+              .div(new Decimal(conversionFactors.velocity[state.v2Unit]))
+              .toNumber();
+            const formattedResult = formatResult(resultInTargetUnit);
+            newState.resultV2 = formattedResult;
+            newState.unknownVariable = {
+              name: 'v₂',
+              label: labelMap['V2'],
+              unit: unitMap['V2'],
+              value: formattedResult
+            };
           }
           break;
         }
       }
-
+    
       setState((prev) => ({
         ...prev,
         ...newState,
         invalidFields: [],
         autoCalculatedField: missing,
       }));
-    }, [state, formatResult]);
+    }, [state, formatResult, t]);
 
     const handleCalculate = useCallback(() => {
       state.mode === 'caudal' ? calculateCaudal() : calculateContinuity();
@@ -778,6 +871,36 @@
       }
     };
 
+    // Genera el texto de la etiqueta del resultado principal
+    const getMainResultLabel = useCallback(() => {
+      if (state.unknownVariable) {
+        const unit = state.unknownVariable.unit ? ` (${state.unknownVariable.unit})` : '';
+        return `${state.unknownVariable.label} ${unit}`;
+      }
+    
+      return t('continuidadCalc.flow');
+    }, [state.unknownVariable, t]);
+
+    // Devuelve el valor numérico principal a mostrar
+    const getMainResultValue = useCallback(() => {
+      if (state.unknownVariable) {
+        return state.unknownVariable.value || '0';
+      }
+    
+      return formatResult(state.resultCaudal) || '0';
+    }, [state.unknownVariable, state.resultCaudal, formatResult]);
+
+    // Indica si debe mostrar placeholder
+    const shouldShowPlaceholderLabel = useCallback(() => {
+      if (state.unknownVariable) {
+        return false;
+      }
+      if (state.mode === 'caudal') {
+        return state.resultCaudal === 0;
+      }
+      return state.resultCaudal === 0 && !state.unknownVariable;
+    }, [state.mode, state.unknownVariable, state.resultCaudal]);
+
     const renderInput = useCallback((
       label: string,
       value: string,
@@ -899,13 +1022,28 @@
                     if (resultVal && resultField) {
                       convertedResultValue = convertValue(resultVal, prevUnit, option, category as any);
                     }
-                    setState((prev) => ({
-                      ...prev,
-                      [field]: convertedInputValue,
-                      [prevField]: option,
-                      [`${field}Unit`]: option,
-                      ...(resultField && convertedResultValue ? { [resultField]: convertedResultValue } as any : {}),
-                    }));
+                    setState((prev) => {
+                      let updatedUnknown = prev.unknownVariable;
+                      if (updatedUnknown && 
+                          ((field === 'A1' && updatedUnknown.name === 'A₁') ||
+                           (field === 'v1' && updatedUnknown.name === 'v₁') ||
+                           (field === 'A2' && updatedUnknown.name === 'A₂') ||
+                           (field === 'v2' && updatedUnknown.name === 'v₂'))) {
+                        updatedUnknown = {
+                          ...updatedUnknown,
+                          unit: option,
+                          value: convertedResultValue || updatedUnknown.value
+                        };
+                      }
+                      return {
+                        ...prev,
+                        [field]: convertedInputValue,
+                        [prevField]: option,
+                        [`${field}Unit`]: option,
+                        ...(resultField && convertedResultValue ? { [resultField]: convertedResultValue } as any : {}),
+                        unknownVariable: updatedUnknown,
+                      };
+                    });
                   };
 
                   switch (label) {
@@ -1121,7 +1259,9 @@
             <View style={styles.resultsContainerMain}>
               <Pressable style={styles.resultsContainer} onPress={handleSaveHistory}>
                 <View style={styles.saveButton}>
-                  <Text style={[styles.saveButtonText, { fontSize: 14 * fontSizeFactor }]}>{t('continuidadCalc.saveToHistory')}</Text>
+                  <Text style={[styles.saveButtonText, { fontSize: 14 * fontSizeFactor }]}>
+                    {t('continuidadCalc.saveToHistory')}
+                  </Text>
                   <Icon name="plus" size={16 * fontSizeFactor} color="rgba(255, 255, 255, 0.4)" style={styles.plusIcon} />
                 </View>
                 <View style={styles.imageContainer}>
@@ -1130,7 +1270,6 @@
                       source={backgroundImage}
                       style={StyleSheet.absoluteFillObject}
                     />
-                    {/* superposición para modo oscuro */}
                     {currentTheme === 'dark' && (
                       <View
                         pointerEvents="none"
@@ -1140,24 +1279,30 @@
                         }}
                       />
                     )}
-                    <View style={styles.caudalLabel}>
+                    <View style={[styles.caudalLabel, { backgroundColor: 'rgba(142, 142, 142, 0.1)' }]}>
                       <Text
                         style={[
                           styles.flowLabel,
-                          { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 14 * fontSizeFactor }
+                          { 
+                            color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', 
+                            fontSize: 16 * fontSizeFactor 
+                          }
                         ]}
                       >
-                        {t('continuidadCalc.flow')}
+                        {shouldShowPlaceholderLabel() ? 'な' : getMainResultLabel()}
                       </Text>
                     </View>
                     <View style={styles.flowValueContainer}>
                       <Text
                         style={[
                           styles.flowValue,
-                          { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 30 * fontSizeFactor }
+                          { 
+                            color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', 
+                            fontSize: 30 * fontSizeFactor 
+                          }
                         ]}
                       >
-                        {adjustDecimalSeparator(formatNumber(state.resultCaudal))}
+                        {adjustDecimalSeparator(formatNumber(parseFloat(getMainResultValue())))}
                       </Text>
                     </View>
                   </View>
@@ -1360,9 +1505,9 @@ const styles = StyleSheet.create({
     position: 'relative' 
   },
   caudalLabel: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+    backgroundColor: 'rgba(142, 142, 142, 0.1)', 
     borderWidth: 1, 
-    borderColor: 'rgba(255, 255, 255, 0.4)', 
+    borderColor: 'rgba(104, 104, 104, 0.2)', 
     borderRadius: 14, 
     marginLeft: 11, 
     marginTop: 11, 
@@ -1370,7 +1515,7 @@ const styles = StyleSheet.create({
     minWidth: 90, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    paddingHorizontal: 5 
+    paddingHorizontal: 12,
   },
   flowLabel: { 
     fontSize: 14, 
