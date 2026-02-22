@@ -21,6 +21,7 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { ThemeContext } from '../../../contexts/ThemeContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
+import { CommonActions } from '@react-navigation/native';
 
 import { calculatorsDef } from '../../../src/data/calculators';
 
@@ -120,13 +121,9 @@ const SearchScreen = () => {
   const [query, setQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('none');
 
-  // Efecto para detectar el número mágico
   useEffect(() => {
     if (query === '310807' && !showEasterEgg) {
-      // Ocultar teclado
       Keyboard.dismiss();
-      
-      // Mostrar easter egg con animación
       setShowEasterEgg(true);
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -142,7 +139,19 @@ const SearchScreen = () => {
         }),
       ]).start();
     }
-  }, [query, showEasterEgg]);
+
+    if (query.toLowerCase() === 'testfunc') {
+      setQuery('');
+
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'testFunc' as any }],
+        })
+      );
+
+    }
+  }, [query, showEasterEgg, navigation]);
 
   const handleCloseEasterEgg = () => {
     Animated.parallel([
@@ -158,7 +167,7 @@ const SearchScreen = () => {
       }),
     ]).start(() => {
       setShowEasterEgg(false);
-      setQuery(''); // Opcional: limpiar el query después de cerrar
+      setQuery('');
     });
   };
 

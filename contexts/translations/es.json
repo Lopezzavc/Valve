@@ -38,6 +38,12 @@
       "title": "Restablecer ajustes",
       "message": "¿Estás seguro de que quieres restablecer todos los ajustes a su configuración predeterminada?",
       "confirm": "Restablecer"
+    },
+    "initialScreen": {
+      "title": "Pantalla Inicial",
+      "description": "Selecciona qué pantalla quieres ver al abrir la aplicación",
+      "home": "Pantalla Principal",
+      "fav": "Favoritos"
     }
   },
   "search": {
@@ -200,7 +206,8 @@
   },
   "home": {
     "calculatorsTitle": "Menú Principal",
-    "pressureDuctsTitle": "Calculadoras"
+    "pressureDuctsTitle": "Calculadoras",
+    "marquee": "Esta es una versión Beta, es normal que hayan errores"
   },
   "bernoulliCalc": {
     "title": "Principio de Bernoulli",
@@ -537,25 +544,48 @@
     "cardTitle1":"Calculadora Geométrica de Secciones",
     "cardDesc1":"Calcula área, perímetro y radio hidráulico de diferentes tipos de secciones.",
     "title": "Geometría de Secciones",
-    "calculator": "Calculadora",
-    "saveToHistory": "Guardar en historial",
-    "result": "Resultado",
-    "mode": {
-      "caudal": "Cálculo de Caudal",
-      "continuidad": "Ecuación de Continuidad"
-    },
+    "y2": "Tirante (y₂)",
+    "area": "Área",
+    "perimeter": "Perímetro",
+    "hydraulicRadius": "Radio hidráulico",
+    "topWidth": "Ancho superficial",
+    "shearStress": "Esfuerzo cortante",
+    "shearVelocity": "Velocidad de corte",
+    "sectionProps": "Propiedades de la sección",
+    "section1": "Geometría 1",
+    "section2": "Geometría 2",
+    "flowProps": "Propiedades del flujo",
+    "dimensions": "Dimensiones",
+    "material": "Material",
+    "selected": "Seleccionado",
+    "custom": "Personalizado",
+    "result": "Radio hidráulico",
     "labels": {
       "sectionType": "Tipo de sección",
+      "A1": "A₁",
+      "Rh1": "Rh₁",
+      "B1": "B₁",
+      "A2": "A₂",
+      "Rh2": "Rh₂",
+      "B2": "B₂",
+      "n": "n",
+      "S0": "S₀",
+      "Q": "Q",
+      "b": "b",
+      "y": "y",
+      "z": "z",
+      "materialType": "Tipo de material",
+      "material": "Material",
       "diametro": "Diámetro",
       "tirante": "Tirante",
       "base": "Base",
-      "talud": "Talud (z)",
-      "K": "Parámetro K",
-      "A": "Área (A)",
-      "P": "Perímetro (P)",
-      "R": "Radio Hidráulico (R)",
-      "T": "Ancho superficial (T)",
-      "Dh": "Profundidad hidráulica (Dh)"
+      "talud": "Talud",
+      "K": "K",
+      "A": "Área",
+      "P": "Perímetro",
+      "R": "Radio hidráulico",
+      "T": "Ancho superficial",
+      "Dh": "Profundidad hidráulica"
     },
     "options": {
       "sectionType": {

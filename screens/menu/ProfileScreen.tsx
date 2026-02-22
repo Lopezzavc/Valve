@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   subtitleContainer: {
-    backgroundColor: 'rgb(194, 254, 12)',
+    backgroundColor: '#FFD700',
     padding: 5,
     paddingHorizontal: 10,
   },

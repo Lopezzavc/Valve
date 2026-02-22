@@ -1088,7 +1088,7 @@ const GeometriaSeccionesCalc: React.FC = () => {
         DhUnit: state.DhUnit,
       };
       const result = state.unknownVariable?.value || formatResult(state.resultPrincipal);
-      await saveCalculation(db, 'GeometriaSeccionesCalc', JSON.stringify(inputs), result);
+      await saveCalculation(db, 'GeometriaSecciones_dimensions', JSON.stringify(inputs), result);
       Toast.show({ type: 'success', text1: t('common.success'), text2: t('geometriaSeccionesCalc.toasts.saved') });
     } catch (error) {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('geometriaSeccionesCalc.toasts.saveError') });
@@ -1345,7 +1345,7 @@ const GeometriaSeccionesCalc: React.FC = () => {
           <View style={styles.resultsContainerMain}>
             <Pressable style={styles.resultsContainer} onPress={handleSaveHistory}>
               <View style={styles.saveButton}>
-                <Text style={[styles.saveButtonText, { fontSize: 14 * fontSizeFactor }]}>{t('geometriaSeccionesCalc.saveToHistory')}</Text>
+                <Text style={[styles.saveButtonText, { fontSize: 14 * fontSizeFactor }]}>{t('energiaBernoulliCalc.saveToHistory')}</Text>
                 <Icon name="plus" size={16 * fontSizeFactor} color="rgba(255, 255, 255, 0.4)" style={styles.plusIcon} />
               </View>
               <View style={styles.imageContainer}>

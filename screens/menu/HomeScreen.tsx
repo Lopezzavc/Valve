@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef, useContext } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated, LayoutChangeEvent } from 'react-native';
+import React, { useState, useEffect, useMemo, useRef, useContext, useCallback } from 'react';
+import { View, Text, StyleSheet, Pressable, Animated, LayoutChangeEvent, useWindowDimensions, Easing } from 'react-native';
 import { Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -167,6 +167,65 @@ const HomeScreen = () => {
   const { t } = useContext(LanguageContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
   const preloadOnceRef = useRef<Promise<void> | null>(null);
+
+  // AGREGAR ESTAS VARIABLES Y HOOKS PARA LA MARQUESINA
+  const MARQUEE_TEXT = t('home.marquee');
+  const GAP = 40;
+  const SPEED = 60;
+  const FONT_SIZE = 16;
+  const STRIP_HEIGHT = 30;
+  const INITIAL_COPIES = 200;
+
+  const { width: screenWidth } = useWindowDimensions();
+  const unitRef = useRef(0);
+  const animValue = useRef(new Animated.Value(0)).current;
+  const measured = useRef(false);
+
+  const [copiesCount, setCopiesCount] = useState(INITIAL_COPIES);
+  const [trackWidth, setTrackWidth] = useState<number | undefined>(undefined);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    if (!isAnimating) return;
+
+    const unit = unitRef.current;
+    const duration = (unit / SPEED) * 1000;
+
+    animValue.setValue(0);
+
+    const anim = Animated.loop(
+      Animated.timing(animValue, {
+        toValue: -unit,
+        duration,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+
+    anim.start();
+    return () => anim.stop();
+  }, [isAnimating, animValue]);
+
+  const handleFirstTextLayout = useCallback(
+    (e: { nativeEvent: { layout: { width: number } } }) => {
+      if (measured.current) return;
+      const textW = e.nativeEvent.layout.width;
+      if (textW <= 0) return;
+
+      measured.current = true;
+
+      const unit = textW + GAP;
+      unitRef.current = unit;
+
+      const count = Math.ceil(screenWidth / unit) + 2;
+      const tWidth = count * unit;
+
+      setCopiesCount(count);
+      setTrackWidth(tWidth);
+      setIsAnimating(true);
+    },
+    [screenWidth],
+  );
 
   const startPreloadContinuidad = () => {
     if (preloadOnceRef.current) return;
@@ -360,6 +419,30 @@ const HomeScreen = () => {
             </MaskedView>
             <Icon name="plus" size={22} color={themeColors.icon} style={styles.buttonIcon} />
           </Pressable>
+        </View>
+      </View>
+
+      {/* MARQUESINA */}
+      <View style={styles.marqueeWrapper}>
+        <View style={styles.clipView}>
+          <Animated.View
+            style={[
+              styles.marqueeTrack,
+              trackWidth !== undefined && { width: trackWidth },
+              isAnimating && { transform: [{ translateX: animValue }] },
+            ]}
+          >
+            {Array.from({ length: copiesCount }).map((_, i) => (
+              <Text
+                key={i}
+                style={styles.marqueeText}
+                numberOfLines={1}
+                onLayout={i === 0 ? handleFirstTextLayout : undefined}
+              >
+                {MARQUEE_TEXT}
+              </Text>
+            ))}
+          </Animated.View>
         </View>
       </View>
 
@@ -569,6 +652,36 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: 'center',
     width: '100%',
+  },
+  marqueeWrapper: {
+    width: '100%',
+    height: 30,
+    maxHeight: 30,
+    backgroundColor: '#FFD700',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    marginTop: 10,
+    marginBottom: 0,
+  },
+  clipView: {
+    width: '100%',
+    height: 30,
+    overflow: 'hidden',
+  },
+  marqueeTrack: {
+    position: 'absolute',
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 30,
+  },
+  marqueeText: {
+    fontSize: 16,
+    color: '#000',
+    lineHeight: 30,
+    includeFontPadding: false,
+    flexShrink: 0,
+    marginRight: 40,
+    fontFamily: 'HomeVideo-BLG6G',
   },
 });
 

@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import Icon2 from 'react-native-vector-icons/Feather';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icons3 from 'react-native-vector-icons/AntDesign';
 
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -12,6 +13,8 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 
+import { InitialScreenContext } from '../../../contexts/InitialScreenContext';
+
 type RootStackParamList = {
   IdiomaScreen: undefined;
   TemaScreen: undefined;
@@ -19,6 +22,7 @@ type RootStackParamList = {
   SeparadorDecimalScreen: undefined;
   PrecisionDecimalScreen: undefined;
   NAScreen: undefined;
+  InitialScreenConfigScreen: undefined;
 };
 
 const SettingsScreen = () => {
@@ -28,6 +32,13 @@ const SettingsScreen = () => {
   const { selectedFontSize, setSelectedFontSize, fontSizeFactor } = useContext(FontSizeContext);
   const { selectedDecimalSeparator, setSelectedDecimalSeparator } = useContext(DecimalSeparatorContext);
   const { selectedPrecision, setSelectedPrecision, setDecimalCountFixed, setDecimalCountScientific, setDecimalCountEngineering } = useContext(PrecisionDecimalContext);
+  const { initialScreen, setInitialScreen } = useContext(InitialScreenContext);
+
+  const getInitialScreenLabel = (key: string) => {
+    if (key === 'HomeScreen') return t?.('settings.initialScreen.home') || 'Home';
+    if (key === 'FavScreen') return t?.('settings.initialScreen.fav') || 'Favoritos';
+    return key;
+  };
 
   const getThemeLabel = (key: string) => {
     if (key === 'Sistema') return t?.('settings.themeSystem') || 'Sistema';
@@ -106,6 +117,7 @@ const SettingsScreen = () => {
     setDecimalCountFixed(12);
     setDecimalCountScientific(5);
     setDecimalCountEngineering(5);
+    setInitialScreen('HomeScreen');
   };
 
   const handleResetPress = () => {
@@ -241,6 +253,26 @@ const SettingsScreen = () => {
             <View style={styles.optionRight}>
               <Text style={[styles.optionSelected, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
                 {getPrecisionLabel(selectedPrecision)}
+              </Text>
+              <Icon2 name="chevron-down" size={20} color={themeColors.icon} />
+            </View>
+          </Pressable>
+
+          <Pressable
+            onPress={() => navigation.navigate('InitialScreenConfigScreen')}
+            style={[styles.optionItem, { backgroundColor: 'transparent' }]}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionLeftIcon}>
+                <Icons3 name="codepen" size={20} color={themeColors.icon} />
+              </View>
+              <Text style={[styles.optionText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+                {t('settings.initialScreen.title')}
+              </Text>
+            </View>
+            <View style={styles.optionRight}>
+              <Text style={[styles.optionSelected, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+                {getInitialScreenLabel(initialScreen)}
               </Text>
               <Icon2 name="chevron-down" size={20} color={themeColors.icon} />
             </View>
