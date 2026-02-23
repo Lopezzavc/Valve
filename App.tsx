@@ -333,8 +333,8 @@ const TabNavigator = () => {
       }}
       initialRouteName={initialScreen}
     >
-      <Tab.Screen name="HomeScreen" component={HomeStackScreen} />
       <Tab.Screen name="FavScreen" component={FavStackScreen} />
+      <Tab.Screen name="HomeScreen" component={HomeStackScreen} />
       <Tab.Screen name="ProfileScreen" component={ProfileStackScreen} />
       <Tab.Screen name="SettingsScreen" component={SettingsStackScreen} />
     </Tab.Navigator>
