@@ -2,7 +2,7 @@ import React, { memo, useCallback, useEffect, useMemo, useState, useContext } fr
 import { View, Text, StyleSheet, Pressable, ScrollView, Linking, InteractionManager } from 'react-native';
 import Icon2 from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
-import MathView from 'react-native-math-view';
+// import MathView from 'react-native-math-view';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
@@ -36,18 +36,6 @@ const EQ_ENTHALPY = String.raw`h + \frac{1}{2}v^2 + gz = \text{constante}`;
 const EQ_POTENTIAL = String.raw`\frac{\partial \phi}{\partial t} + \frac{1}{2}|\nabla \phi|^2 + \frac{p}{\rho} + gz = \text{constante}`;
 
 type EquationProps = { math: string; containerStyle: any; ready: boolean; textColor: string };
-const Equation = memo(({ math, containerStyle, ready, textColor }: EquationProps) => {
-  return (
-    <View style={containerStyle}>
-      {ready ? (
-        <MathView math={math} style={{ color: textColor }} />
-      ) : (
-        <Text selectable={false} accessibilityElementsHidden>
-        </Text>
-      )}
-    </View>
-  );
-});
 
 type ReferenceItemProps = { 
   title: string; 
@@ -156,22 +144,10 @@ const BernoulliTheory = () => {
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph2')}
         </Text>
-        <Equation 
-          math={EQ_BASIC} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph3')}
         </Text>
-        <Equation 
-          math={EQ_GENERAL} 
-          containerStyle={styles.containerEquation2} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph4')}
@@ -180,12 +156,6 @@ const BernoulliTheory = () => {
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph5')}
         </Text>
-        <Equation 
-          math={EQ_HEAD} 
-          containerStyle={styles.containerEquation3} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph6')}
@@ -201,12 +171,6 @@ const BernoulliTheory = () => {
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph9')}
         </Text>
-        <Equation 
-          math={EQ_EXTENDED} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph10')}
@@ -219,12 +183,6 @@ const BernoulliTheory = () => {
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph12')}
         </Text>
-        <Equation 
-          math={EQ_ENTHALPY} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph13')}
@@ -232,12 +190,6 @@ const BernoulliTheory = () => {
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph14')}
         </Text>
-        <Equation 
-          math={EQ_POTENTIAL} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
           {t('theoryBernoulli.paragraphs.paragraph15')}

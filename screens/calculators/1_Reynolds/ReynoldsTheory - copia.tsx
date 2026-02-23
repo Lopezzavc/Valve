@@ -9,58 +9,41 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 
 const REFERENCES: Array<{ title: string; author: string; year: string; url: string }> = [
   {
-    title: 'La Hidrodinámica de Leonhard Euler',
-    author: 'R. M. Velasco y F. J. Uribe',
-    year: '2008',
-    url: 'https://miscelaneamatematica.org/download/tbl_articulos.pdf2.8856729d76d3bdf6.55726962652e706466.pdf',
+    title: 'Osborne Reynolds: scientist, engineer and pioneer',
+    author: 'J. D. Jackson',
+    year: '1995',
+    url: 'https://doi.org/10.1098/rspa.1995.0117',
   },
   {
-    title: 'Introduction to Aerospace Flight Vehicles',
-    author: 'J. Gordon Leishman',
-    year: '2025',
-    url: 'https://eaglepubs.erau.edu/introductiontoaerospaceflightvehicles/chapter/conservation-of-mass-continuity-equation/',
+    title: 'Note on the History of the Reynolds Number',
+    author: 'N. Rott',
+    year: '1990',
+    url: 'https://www.annualreviews.org/content/journals/10.1146/annurev.fl.22.010190.000245',
   },
   {
-    title: 'Euler Equations',
-    author: 'Nasa',
-    year: '2021',
-    url: 'https://www.grc.nasa.gov/www/k-12/airplane/eulereqs.html',
+    title: 'Non-dimensionalization of the Navier–Stokes Equation',
+    author: 'Penn State ME320',
+    year: 'ND',
+    url: 'https://www.me.psu.edu/cimbala/me320web_Fall_2012/pdf/Nondimensionalization_of_NS_equation.pdf?utm_source=chatgpt.com',
   },
   {
-    title: 'Worlds of Flow',
-    author: 'Olivier Darrigol',
-    year: '2005',
-    url: 'https://www.oca.eu/etc7/EE250/texts/darrigol.pdf',
-  },
-  {
-    title: 'Notes on the History of the General Equations of Hydrodynamics',
-    author: 'C. Truesdell',
-    year: '1953',
-    url: 'https://www.homepages.ucl.ac.uk/~uceseug/Fluids3/Extra_Reading/FluidEqHistory.pdf',
-  },
-  {
-    title: 'Hydraulic Design Manual',
-    author: 'Texas Department of Transportation',
-    year: '2019',
-    url: 'https://www.txdot.gov/content/txdotoms/us/en/manuals/des/hyd/chapter-6--hydraulic-principles/section-1--open-channel-flow/continuity-and-velocity.html',
-  },
-  {
-    title: 'Chapter 4: Volumetric Flowrate, Velocity and the Continuity Equation',
-    author: 'Donald V. Chase',
-    year: '2022',
-    url: 'https://ecommons.udayton.edu/cgi/viewcontent.cgi?article=1004&context=cee_coursenotes',
+    title: 'On Reynolds Number Physical Interpretation',
+    author: 'Václav Uruba',
+    year: '2018',
+    url: 'https://scispace.com/pdf/on-reynolds-number-physical-interpretation-3sgje7gdg5.pdf?utm_source=chatgpt.com',
   },
 ];
 
-const EQ_INTEGRAL = String.raw`\frac{d}{dt}\int_{V} \rho \, dV + \oint_{\partial V} \rho \, \mathbf{v} \cdot \mathbf{n} \, dS = 0`;
-const EQ_DIFF     = String.raw`\frac{\partial \rho}{\partial t} + \nabla \cdot (\rho \mathbf{v}) = 0`;
-const EQ_MATERIAL = String.raw`\frac{D\rho}{Dt} + \rho \, (\nabla \cdot \mathbf{v}) = 0`;
-const EQ_INCOMP   = String.raw`\nabla \cdot \mathbf{v} = 0`;
-const EQ_AvAv     = String.raw`A_{1} v_{1} = A_{2} v_{2}`;
-const EQ_RhoAv    = String.raw`\rho_{1} A_{1} v_{1} = \rho_{2} A_{2} v_{2}`;
+const EQ_RE = String.raw`Re = \frac{\rho \, v \, D}{\mu}`;
+const EQ_RE2 = String.raw`Re = \frac{v \, D}{\nu}`;
+const EQ_3 = String.raw`\rho \left( \frac{\partial \mathbf{v}}{\partial t} + \mathbf{v} \cdot \nabla \mathbf{v} \right) = -\nabla p + \mu \nabla^2 \mathbf{v} + \rho \mathbf{g}`;
+const EQ_4 = String.raw`\mathbf{v}^* = \frac{\mathbf{v}}{V_0}, \quad x^* = \frac{x}{L}, \quad t^* = \frac{t V_0}{L}, \quad p^* = \frac{p}{\rho V_0^2}`;
+const EQ_5 = String.raw`\frac{\partial \mathbf{v}^*}{\partial t^*} + \mathbf{v}^* \cdot \nabla^* \mathbf{v}^* = -\nabla^* p^* + \frac{1}{Re} \nabla^{*2} \mathbf{v}^*`;
+const EQ_6 = String.raw`Re = \frac{\rho V_0 L}{\mu}`;
+const EQ_7 = String.raw`D_h = \frac{4A}{P}`;
+const EQ_8 = String.raw`Re = \frac{\rho \, v \, D_h}{\mu}`;
 
 type EquationProps = { math: string; containerStyle: any; ready: boolean; textColor: string };
-
 
 type ReferenceItemProps = { 
   title: string; 
@@ -69,7 +52,7 @@ type ReferenceItemProps = {
   url: string; 
   textColor: string;
   subtitleColor: string;
-  cardGradient: string;   // <— nuevo
+  cardGradient: string;
   gradient: string;
   fontSizeFactor: number;
 };
@@ -103,7 +86,7 @@ const ReferenceItem = memo(({ title, author, year, url, textColor, subtitleColor
 });
 ReferenceItem.displayName = 'ReferenceItem';
 
-const ContinuidadTheory = () => {
+const ReynoldsTheory = () => {
   const navigation = useNavigation();
   const [equationsReady, setEquationsReady] = useState(false);
   const { currentTheme } = useTheme();
@@ -162,69 +145,96 @@ const ContinuidadTheory = () => {
       </View>
 
       <View style={styles.titlesContainer}>
-        <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>{t('theoryContinuity.subtitle')}</Text>
-        <Text style={[styles.title, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>{t('theoryContinuity.titles.mainTitle')}</Text>
+        <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>
+          {t('theoryReynolds.subtitle')}
+        </Text>
+        <Text style={[styles.title, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.mainTitle')}
+        </Text>
       </View>
 
       <View style={[styles.contentSection, { backgroundColor: themeColors.background }]}>
+        {/* Párrafo introductorio */}
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph1')}
+          {t('theoryReynolds.paragraphs.paragraph1')}
         </Text>
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph2')}
+          {t('theoryReynolds.paragraphs.paragraph2')}
         </Text>
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph3')}
+          {t('theoryReynolds.paragraphs.paragraph3')}
+        </Text>
+
+        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.title2')}
         </Text>
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph4')}
+          {t('theoryReynolds.paragraphs.paragraph4')}
         </Text>
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph5')}
+          {t('theoryReynolds.paragraphs.paragraph5')}
         </Text>
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph6')}
+          {t('theoryReynolds.paragraphs.paragraph6')}
         </Text>
-
-        <Text style={[styles.titleInsideText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>{t('theoryContinuity.titles.title1')}</Text>
+        
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph7')}
-        </Text>
-
-        <Text style={[styles.titleInsideText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>{t('theoryContinuity.titles.title2')}</Text>
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph8')}
+          {t('theoryReynolds.paragraphs.paragraph7')}
         </Text>
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph9')}
+          {t('theoryReynolds.paragraphs.paragraph8')}
+        </Text>
+
+        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.title3')}
         </Text>
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph10')}
+          {t('theoryReynolds.paragraphs.paragraph9')}
         </Text>
 
-        <Text style={[styles.titleInsideText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>{t('theoryContinuity.titles.title3')}</Text>
+        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.title4')}
+        </Text>
+
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph11')}
+          {t('theoryReynolds.paragraphs.paragraph10')}
         </Text>
 
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph12')}
+          {t('theoryReynolds.paragraphs.paragraph11')}
         </Text>
 
-        <Text style={[styles.titleInsideText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>{t('theoryContinuity.titles.title4')}</Text>
         <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryContinuity.paragraphs.paragraph13')}
+          {t('theoryReynolds.paragraphs.paragraph12')}
         </Text>
 
-        <Text style={[styles.titleReferencesText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>{t('theoryContinuity.titles.references')}</Text>
+        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.title5')}
+        </Text>
 
+        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+          {t('theoryReynolds.paragraphs.paragraph13')}
+        </Text>
+
+
+
+
+
+
+
+        {/* Título de Referencias */}
+        <Text style={[styles.titleReferencesText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
+          {t('theoryReynolds.titles.references')}
+        </Text>
+
+        {/* Lista de referencias */}
         {references.map((ref) => (
           <ReferenceItem
             key={ref.url}
@@ -246,7 +256,7 @@ const ContinuidadTheory = () => {
   );
 };
 
-export default memo(ContinuidadTheory);
+export default memo(ReynoldsTheory);
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -341,24 +351,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingHorizontal: '0%',
     marginTop: 20,
-  },
-  containerEquationShorter: {
-    backgroundColor: 'transparent',
-    paddingVertical: 30,
-    paddingHorizontal: '35%',
-    marginBottom: -20,
-  },
-  containerEquationShorterbutnotsoshorter: {
-    backgroundColor: 'transparent',
-    paddingVertical: 30,
-    paddingHorizontal: '25%',
-    marginBottom: -20,
-  },
-  containerEquationShorterbutnotsoshorter2: {
-    backgroundColor: 'transparent',
-    paddingVertical: 30,
-    paddingHorizontal: '30%',
-    marginBottom: -20,
   },
   spacer: {
     height: 100,

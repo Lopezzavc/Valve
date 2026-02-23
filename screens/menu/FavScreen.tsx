@@ -7,7 +7,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { FontSizeContext } from '../../contexts/FontSizeContext';
 import { getDBConnection } from '../../src/services/database';
 import { LanguageContext } from '../../contexts/LanguageContext';
-import MathView from 'react-native-math-view';
+// import MathView from 'react-native-math-view';
 import { calculatorsDef } from '../../src/data/calculators';
 
 type RootStackParamList = {
@@ -265,7 +265,7 @@ const FavScreen = () => {
                     ]}
                   >
                     <View style={cardData.containerStyle}>
-                      <MathView math={cardData.equation} style={{ color: themeColors.text }} />
+                      
                     </View>
                   </View>
                 )}

@@ -6,7 +6,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useTheme } from '../../contexts/ThemeContext';
-import MathView from 'react-native-math-view';
+// import MathView from 'react-native-math-view';
 import { LanguageContext } from '../../contexts/LanguageContext';
 import { FontSizeContext } from '../../contexts/FontSizeContext';
 import { useIsFocused } from '@react-navigation/native';
@@ -148,7 +148,7 @@ const CalcCard: React.FC<CalcCardProps> = ({ title, desc, math, route, navigatio
               {boxW > 0 && (
                 <View style={[stylesRef.helloPane, { left: -barToLeftDelta, width: contentW }]}>
                   <View style={stylesRef.containerEq}>
-                    <MathView math={math} style={{ color: themeColors.text }} />
+                    
                   </View>
                 </View>
               )}

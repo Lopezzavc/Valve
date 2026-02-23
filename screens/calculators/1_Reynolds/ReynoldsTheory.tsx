@@ -1,102 +1,10 @@
-import React, { memo, useCallback, useEffect, useMemo, useState, useContext } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Linking, InteractionManager } from 'react-native';
+import React, { memo, useCallback, useEffect, useState, useContext } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, InteractionManager } from 'react-native';
 import Icon2 from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
-import MathView from 'react-native-math-view';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
-
-const REFERENCES: Array<{ title: string; author: string; year: string; url: string }> = [
-  {
-    title: 'Osborne Reynolds: scientist, engineer and pioneer',
-    author: 'J. D. Jackson',
-    year: '1995',
-    url: 'https://doi.org/10.1098/rspa.1995.0117',
-  },
-  {
-    title: 'Note on the History of the Reynolds Number',
-    author: 'N. Rott',
-    year: '1990',
-    url: 'https://www.annualreviews.org/content/journals/10.1146/annurev.fl.22.010190.000245',
-  },
-  {
-    title: 'Non-dimensionalization of the Navier–Stokes Equation',
-    author: 'Penn State ME320',
-    year: 'ND',
-    url: 'https://www.me.psu.edu/cimbala/me320web_Fall_2012/pdf/Nondimensionalization_of_NS_equation.pdf?utm_source=chatgpt.com',
-  },
-  {
-    title: 'On Reynolds Number Physical Interpretation',
-    author: 'Václav Uruba',
-    year: '2018',
-    url: 'https://scispace.com/pdf/on-reynolds-number-physical-interpretation-3sgje7gdg5.pdf?utm_source=chatgpt.com',
-  },
-];
-
-const EQ_RE = String.raw`Re = \frac{\rho \, v \, D}{\mu}`;
-const EQ_RE2 = String.raw`Re = \frac{v \, D}{\nu}`;
-const EQ_3 = String.raw`\rho \left( \frac{\partial \mathbf{v}}{\partial t} + \mathbf{v} \cdot \nabla \mathbf{v} \right) = -\nabla p + \mu \nabla^2 \mathbf{v} + \rho \mathbf{g}`;
-const EQ_4 = String.raw`\mathbf{v}^* = \frac{\mathbf{v}}{V_0}, \quad x^* = \frac{x}{L}, \quad t^* = \frac{t V_0}{L}, \quad p^* = \frac{p}{\rho V_0^2}`;
-const EQ_5 = String.raw`\frac{\partial \mathbf{v}^*}{\partial t^*} + \mathbf{v}^* \cdot \nabla^* \mathbf{v}^* = -\nabla^* p^* + \frac{1}{Re} \nabla^{*2} \mathbf{v}^*`;
-const EQ_6 = String.raw`Re = \frac{\rho V_0 L}{\mu}`;
-const EQ_7 = String.raw`D_h = \frac{4A}{P}`;
-const EQ_8 = String.raw`Re = \frac{\rho \, v \, D_h}{\mu}`;
-
-type EquationProps = { math: string; containerStyle: any; ready: boolean; textColor: string };
-const Equation = memo(({ math, containerStyle, ready, textColor }: EquationProps) => {
-  return (
-    <View style={containerStyle}>
-      {ready ? (
-        <MathView math={math} style={{ color: textColor }} />
-      ) : (
-        <Text selectable={false} accessibilityElementsHidden>
-        </Text>
-      )}
-    </View>
-  );
-});
-
-type ReferenceItemProps = { 
-  title: string; 
-  author: string; 
-  year: string; 
-  url: string; 
-  textColor: string;
-  subtitleColor: string;
-  cardGradient: string;
-  gradient: string;
-  fontSizeFactor: number;
-};
-const ReferenceItem = memo(({ title, author, year, url, textColor, subtitleColor, cardGradient, gradient, fontSizeFactor }: ReferenceItemProps) => {
-  const onPress = useCallback(() => {
-    return Linking.openURL(url).catch(() => {
-    });
-  }, [url]);
-
-  return (
-    <Pressable onPress={onPress} accessibilityRole="link">
-      <View style={[styles.contentBox, { experimental_backgroundImage: gradient }]}>
-        <View style={[
-          styles.innerBox, 
-          { experimental_backgroundImage: cardGradient, backgroundColor: 'transparent' }
-        ]}>
-          <View style={styles.cardText}>
-            <View style={styles.titleContainerRef}>
-              <Text style={[styles.titleText, { color: textColor, fontSize: 16 * fontSizeFactor }]}>{title}</Text>
-            </View>
-            <Text style={[styles.subtitleText, { color: subtitleColor, fontSize: 14 * fontSizeFactor }]}>{author} ({year})</Text>
-          </View>
-
-          <View style={styles.iconContainer2} pointerEvents="none">
-            <Icon2 name="external-link" size={20} color={'black'} />
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-});
-ReferenceItem.displayName = 'ReferenceItem';
 
 const ReynoldsTheory = () => {
   const navigation = useNavigation();
@@ -141,8 +49,6 @@ const ReynoldsTheory = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const references = useMemo(() => REFERENCES, []);
-
   return (
     <ScrollView style={[styles.safeArea, { backgroundColor: themeColors.background }]} showsVerticalScrollIndicator={false}>
       <View style={styles.headerContainer}>
@@ -156,159 +62,8 @@ const ReynoldsTheory = () => {
         <View style={styles.rightIconsContainer} />
       </View>
 
-      <View style={styles.titlesContainer}>
-        <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>
-          {t('theoryReynolds.subtitle')}
-        </Text>
-        <Text style={[styles.title, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('theoryReynolds.titles.mainTitle')}
-        </Text>
-      </View>
-
-      <View style={[styles.contentSection, { backgroundColor: themeColors.background }]}>
-        {/* Párrafo introductorio */}
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph1')}
-        </Text>
-        <Equation 
-          math={EQ_RE} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph2')}
-        </Text>
-        <Equation 
-          math={EQ_RE2} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph3')}
-        </Text>
-
-        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
-          {t('theoryReynolds.titles.title2')}
-        </Text>
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph4')}
-        </Text>
-        <Equation 
-          math={EQ_3} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph5')}
-        </Text>
-        <Equation 
-          math={EQ_4} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph6')}
-        </Text>
-        <Equation 
-          math={EQ_5} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
-        
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph7')}
-        </Text>
-        <Equation 
-          math={EQ_6} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph8')}
-        </Text>
-
-        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
-          {t('theoryReynolds.titles.title3')}
-        </Text>
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph9')}
-        </Text>
-
-        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
-          {t('theoryReynolds.titles.title4')}
-        </Text>
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph10')}
-        </Text>
-        <Equation 
-          math={EQ_7} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph11')}
-        </Text>
-        <Equation 
-          math={EQ_8} 
-          containerStyle={styles.containerEquation} 
-          ready={equationsReady} 
-          textColor={themeColors.text}
-        />
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph12')}
-        </Text>
-
-        <Text style={[styles.titleInsideText, { color: themeColors.text, fontSize: 30 * fontSizeFactor }]}>
-          {t('theoryReynolds.titles.title5')}
-        </Text>
-
-        <Text style={[styles.paragraph, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-          {t('theoryReynolds.paragraphs.paragraph13')}
-        </Text>
-
-
-
-
-
-
-
-        {/* Título de Referencias */}
-        <Text style={[styles.titleReferencesText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('theoryReynolds.titles.references')}
-        </Text>
-
-        {/* Lista de referencias */}
-        {references.map((ref) => (
-          <ReferenceItem
-            key={ref.url}
-            title={ref.title}
-            author={ref.author}
-            year={ref.year}
-            url={ref.url}
-            textColor={themeColors.text}
-            subtitleColor={currentTheme === 'dark' ? 'rgb(170, 170, 170)' : 'rgb(170, 170, 170)'}
-            cardGradient={themeColors.cardGradient}
-            gradient={themeColors.gradient}
-            fontSizeFactor={fontSizeFactor}
-          />
-        ))}
+      <View style={styles.contentSection}>
+        {/* Aquí puedes agregar el nuevo contenido en el futuro */}
       </View>
 
       <View style={styles.spacer} />
@@ -363,106 +118,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  titlesContainer: {
-    backgroundColor: 'transparent',
-    marginVertical: 0,
-    paddingHorizontal: 20,
-    marginBottom: -10,
-    marginTop: 10,
-  },
-  subtitle: {
-    color: 'rgb(0, 0, 0)',
-    fontSize: 18,
-    fontFamily: 'SFUIDisplay-Bold',
-  },
-  title: {
-    color: 'rgb(0, 0, 0)',
-    fontSize: 30,
-    fontFamily: 'SFUIDisplay-Bold',
-    marginTop: -10,
-  },
-  titleInsideText: {
-    color: 'rgb(0, 0, 0)',
-    fontSize: 30,
-    fontFamily: 'SFUIDisplay-Bold',
-    marginTop: 10,
-    marginBottom: -10,
-  },
   contentSection: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-  },
-  paragraph: {
-    color: 'rgb(0, 0, 0)',
-    fontSize: 16,
-    fontFamily: 'SFUIDisplay-Regular',
-    marginTop: 20,
-    lineHeight: 24,
-  },
-  paragraphBold: {
-    color: 'rgb(0, 0, 0)',
-    fontSize: 16,
-    fontFamily: 'SFUIDisplay-Bold',
-    marginTop: 0,
-    lineHeight: 24,
-  },
-  containerEquation: {
     backgroundColor: 'transparent',
-    paddingHorizontal: '0%',
-    marginTop: 20,
+    paddingHorizontal: 20,
   },
   spacer: {
     height: 100,
-  },
-  titleReferencesText: {
-    color: 'rgb(0, 0, 0)',
-    fontSize: 30,
-    fontFamily: 'SFUIDisplay-Bold',
-    marginTop: 30,
-    marginBottom: 0,
-  },
-  contentBox: {
-    minHeight: 70,
-    width: '100%',
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
-    borderRadius: 25,
-    padding: 1,
-    marginTop: 10,
-  },
-  innerBox: {
-    flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  titleText: {
-    fontFamily: 'SFUIDisplay-Medium',
-    fontSize: 16,
-    color: 'black',
-  },
-  subtitleText: {
-    fontFamily: 'SFUIDisplay-Regular',
-    fontSize: 14,
-    color: 'rgb(170, 170, 170)',
-    marginTop: -5,
-  },
-  iconContainer2: {
-    right: 20,
-    position: 'absolute',
-    backgroundColor: 'rgb(194, 254, 12)',
-    padding: 3,
-  },
-  titleContainerRef: {
-    backgroundColor: 'transparent',
-    marginRight: 40,
-    marginTop: 0,
-  },
-  cardText: {
-    backgroundColor: 'transparent',
-    marginRight: 30,
   },
 });
