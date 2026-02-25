@@ -605,5 +605,56 @@
       "saved": "Cálculo guardado en historial",
       "saveError": "Error al guardar en historial"
     }
+  },
+  "reynoldsTheory": {
+    "titles": {
+      "references": "Referencias"
+    },
+    "subtitle": "Número de Reynolds",
+    "title": "¿Qué es?",
+    "selectTermPlaceholder": "Selecciona un término de la ecuación para ver su descripción.",
+    "expandedMode": "Modo expandido: {term} →",
+    "terms": {
+      "R": {
+        "title": "Número de Reynolds (R)",
+        "description": "El número de Reynolds (Re) es un parámetro adimensional fundamental en la mecánica de fluidos que permite predecir el régimen de flujo de un fluido, comparando la influencia relativa de las fuerzas inerciales frente a las fuerzas viscosas.\n\nSe define como la razón entre las fuerzas inerciales (asociadas al movimiento del fluido) y las fuerzas viscosas (asociadas a la resistencia interna del fluido). Matemáticamente, se expresa como Re = (ρ·V·D)/μ.\n\nUn valor bajo de Re indica que las fuerzas viscosas dominan, lo que produce un flujo laminar, caracterizado por capas de fluido que se desplazan ordenadamente sin mezclarse. Esto ocurre típicamente cuando Re < 2300.\n\nA medida que Re aumenta, las fuerzas inerciales se vuelven comparables a las viscosas, generando un régimen de transición donde el flujo puede volverse inestable. Este rango suele ubicarse entre 2300 y 4000.\n\nCuando Re es alto (Re > 4000), las fuerzas inerciales predominan y el flujo se vuelve turbulento, caracterizado por remolinos, fluctuaciones de velocidad y mezcla caótica del fluido. Este comportamiento es crucial en ingeniería, ya que afecta la pérdida de energía, el transporte de calor y masa, y el diseño de tuberías, bombas y sistemas hidráulicos.\n\nEl concepto fue introducido por George Stokes y popularizado por Osborne Reynolds en 1883, quien demostró experimentalmente la transición entre flujo laminar y turbulento."
+      },
+      "ρ": {
+        "title": "Densidad del fluido (ρ)",
+        "description": "La densidad es la masa por unidad de volumen del fluido y se expresa en kg/m³.\n\nEn el contexto del número de Reynolds, una mayor densidad incrementa las fuerzas inerciales del fluido, lo que tiende a aumentar el valor de Re y, por tanto, la probabilidad de que el flujo se vuelva turbulento.\n\nLa densidad depende de factores como la temperatura, la presión y la composición del fluido. Por ejemplo, en líquidos suele variar poco con la temperatura, mientras que en gases puede cambiar significativamente."
+      },
+      "V": {
+        "title": "Velocidad del fluido (V)",
+        "description": "La velocidad del fluido corresponde a la velocidad media con la que se desplaza a través de una tubería o conducto, expresada en m/s.\n\nEs uno de los factores más influyentes en el número de Reynolds, ya que Re es directamente proporcional a V. Un incremento en la velocidad aumenta las fuerzas inerciales, favoreciendo la transición hacia un flujo turbulento.\n\nEn aplicaciones reales, la velocidad puede variar según el perfil de flujo, la rugosidad de la tubería y las condiciones de entrada."
+      },
+      "D": {
+        "title": "Diámetro hidráulico (D)",
+        "description": "El diámetro hidráulico es una medida característica de la geometría del conducto por donde circula el fluido. En tuberías circulares coincide con el diámetro interno, pero en conductos no circulares se calcula como D = 4·Área/Perímetro mojado.\n\nUn mayor diámetro incrementa el número de Reynolds, ya que aumenta la escala característica del flujo y, por tanto, las fuerzas inerciales. Esto implica que conductos más grandes tienden a presentar flujo turbulento con mayor facilidad.\n\nEl diámetro hidráulico es especialmente importante en sistemas de ventilación, canales abiertos y geometrías complejas."
+      },
+      "μ": {
+        "title": "Viscosidad dinámica (μ)",
+        "description": "La viscosidad dinámica representa la resistencia interna del fluido a deformarse o fluir, y se expresa en Pa·s.\n\nEs un parámetro clave en el número de Reynolds, ya que aparece en el denominador de la ecuación. Un fluido más viscoso (mayor μ) presenta mayores fuerzas disipativas, lo que reduce Re y favorece el flujo laminar.\n\nLa viscosidad depende fuertemente de la temperatura: en líquidos disminuye al aumentar la temperatura, mientras que en gases suele aumentar. Esto implica que el régimen de flujo puede cambiar significativamente con variaciones térmicas."
+      },
+      "m": {
+        "title": "Masa (m)",
+        "description": "La masa es una medida de la cantidad de materia en un objeto o fluido. En el contexto de la densidad, la masa es la propiedad que, junto con el volumen, determina qué tan denso es un fluido. Se expresa comúnmente en kilogramos (kg)."
+      },
+      "v": {
+        "title": "Volumen (v)",
+        "description": "El volumen es la cantidad de espacio tridimensional que ocupa un fluido. En la ecuación de densidad, es el denominador que, junto con la masa, define qué tan concentrada está la materia. Se expresa comúnmente en metros cúbicos (m³)."
+      },
+      "τ": {
+        "title": "Esfuerzo Cortante (τ)",
+        "description": "El esfuerzo cortante (tau) es la fuerza por unidad de área requerida para mantener el movimiento del fluido. En la ley de viscosidad de Newton, es directamente proporcional al gradiente de velocidad (du/dy). Un fluido más viscoso requerirá un mayor esfuerzo cortante para deformarse a la misma tasa. Se expresa en pascales (Pa)."
+      },
+      "du": {
+        "title": "Diferencial de Velocidad (du)",
+        "description": "Representa un cambio infinitesimal en la velocidad del fluido. En el contexto del gradiente de velocidad (du/dy), 'du' es la pequeña diferencia de velocidad entre dos capas de fluido muy cercanas. Una mayor diferencia de velocidad para una misma distancia incrementa el gradiente y, por lo tanto, el esfuerzo cortante."
+      },
+      "dy": {
+        "title": "Diferencial de Distancia (dy)",
+        "description": "Representa un cambio infinitesimal en la distancia, medida perpendicularmente a la dirección del flujo. Es la separación entre dos capas de fluido adyacentes. En el gradiente de velocidad (du/dy), una distancia 'dy' más pequeña, para una misma diferencia de velocidad, resulta en un gradiente más pronunciado y un mayor esfuerzo cortante."
+      }
+    }
   }
 }

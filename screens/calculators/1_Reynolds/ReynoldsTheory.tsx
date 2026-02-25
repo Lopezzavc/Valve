@@ -1,84 +1,186 @@
-import React, { memo, useCallback, useContext, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import React, { memo, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Icon2 from 'react-native-vector-icons/Feather';
+import Icon3 from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
+import { KATEX_JS, KATEX_CSS } from '../../../src/katexBundle';
 
-// ─── Ecuación LaTeX ──────────────────────────────────────────────────────────
+// ─── Ecuación LaTeX principal ─────────────────────────────────────────────────
 const LATEX_EQUATION = "R = \\frac{\\rho V D}{\\mu}";
 
+// ─── ALTURA DEL WEBVIEW (modo compacto, una sola ecuación) ───────────────────
+// ↓ Ajusta este valor para cambiar la altura del WebView cuando solo hay una ecuación
+const WEBVIEW_SINGLE_HEIGHT = 100;
+
+// ─── SEPARACIÓN VERTICAL ENTRE ECUACIONES (solo en modo expandido) ────────────
+// ↓ Ajusta este valor para cambiar el espacio entre la ecuación principal y la secundaria.
+//   En modo compacto este gap no existe (es 0), por lo que no afecta el centrado.
+const EQUATION_GAP_PX = 0;
+
+// ─── Términos expandibles y sus ecuaciones secundarias ───────────────────────
+interface ExpandableConfig {
+  latex: string;
+  initialTerm: string;
+  validTerms: Set<string>;
+}
+const EXPANDABLE_TERMS: Record<string, ExpandableConfig> = {
+  'ρ': {
+    // 'v' minúscula = volumen, distinta de 'V' (velocidad) en la ecuación principal
+    latex: "\\rho = \\frac{m}{v}",
+    initialTerm: 'm',
+    validTerms: new Set(['ρ', 'm', 'v']),
+  },
+  'μ': {
+    // \\text{du} y \\text{dy} son ESENCIALES: hacen que KaTeX renderice "du" y "dy"
+    // cada uno como un único nodo mord-mtext, de modo que buildTokens los recoge
+    // como términos compuestos individuales ("du" y "dy") en lugar de letras sueltas.
+    latex: "\\tau = \\mu\\,\\frac{\\text{du}}{\\text{dy}}",
+    initialTerm: 'τ',
+    validTerms: new Set(['τ', 'μ', 'du', 'dy']),
+  },
+};
+
+// ─── Términos válidos de la ecuación principal ────────────────────────────────
+const VALID_TERMS_PRIMARY = new Set(['R', 'ρ', 'V', 'D', 'μ']);
+
+// Unión de todos los términos válidos (primaria + secundarias)
+const ALL_VALID_TERMS = new Set([
+  ...VALID_TERMS_PRIMARY,
+  ...Object.values(EXPANDABLE_TERMS).flatMap(cfg => [...cfg.validTerms]),
+]);
+
 // ─── HTML del WebView ────────────────────────────────────────────────────────
-const buildEquationHTML = (latex: string, isDark: boolean, initialTerm: string): string => `
+const buildEquationHTML = (
+  latex: string,
+  isDark: boolean,
+  initialTerm: string,
+): string => `
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+  crossorigin="anonymous">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  ${KATEX_CSS}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+  /*
+   * html y body ocupan el 100 % de la altura del WebView y centran su contenido
+   * tanto vertical como horizontalmente (una ecuación o dos).
+   */
   html, body {
     background: transparent;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100%;
-    height: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 18px 20px;
-    width: 100%;
   }
-  #equation {
-    font-size: 2em;
+
+  #equations-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0 20px;
+    /*
+     * gap empieza en 0: en modo compacto la ecuación queda perfectamente centrada
+     * sin espacio sobrante. Se activa a ${EQUATION_GAP_PX}px solo al expandir (ver JS).
+     */
+    gap: 0px;
+  }
+
+  .equation-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
     color: ${isDark ? 'rgb(235,235,235)' : 'rgb(0,0,0)'};
     white-space: nowrap;
+    transition: opacity 0.25s ease;
   }
-  .mjx-selected {
+
+  /* Segunda ecuación: oculta por defecto */
+  #eq2-row {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  #eq2-row.visible {
+    display: flex;
+    opacity: 1;
+  }
+
+  /* Dimming de la ecuación principal cuando se expande */
+  #eq1-row.dimmed {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .katex { color: inherit !important; }
+
+  .katex-selected {
     background: rgba(194, 254, 12, 1) !important;
     border-radius: 0px;
-    outline: 3px solid rgba(194, 254, 12, 1);
-    color: ${isDark ? 'rgb(0, 0, 0)' : 'inherit'} !important;
+    outline: 0px solid rgba(194, 254, 12, 1);
+    color: ${isDark ? 'rgb(0,0,0)' : 'inherit'} !important;
   }
-  mjx-mi, mjx-mo, mjx-mn, mjx-mtext {
-    cursor: pointer;
-  }
+
+  .mord { cursor: pointer; }
+  .mrel, .mbin, .mopen, .mclose, .mpunct { cursor: default; }
+
+  /* Evitar que el contenedor de fracción bloquee clics en sus hijos */
+  .mfrac { pointer-events: none; }
+  .mfrac .mord { pointer-events: auto; }
 </style>
-<script>
-  window.MathJax = {
-    tex: { inlineMath: [['$','$']] },
-    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] },
-    startup: {
-      ready() {
-        MathJax.startup.defaultReady();
-        MathJax.startup.promise.then(() => {
-          attachListeners();
-          // Seleccionar el término inicial después de que MathJax haya renderizado
-          setTimeout(() => {
-            selectInitialTerm(${JSON.stringify(initialTerm)});
-          }, 100);
-          reportHeight();
-        });
-      }
-    }
-  };
-</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<script>${KATEX_JS}</script>
+
 </head>
 <body>
-<div id="equation"></div>
+<div id="equations-wrapper">
+  <div id="eq1-row" class="equation-row"></div>
+  <div id="eq2-row" class="equation-row"></div>
+</div>
+
 <script>
-  document.getElementById('equation').innerHTML = '$' + ${JSON.stringify(latex)} + '$';
+  var SKIP_TEXT = new Set(['=', '+', '-', '±', '×', '÷', '/', '·', '*',
+    '<', '>', '≤', '≥', '≠', '≈', '∝', '∞',
+    '(', ')', '[', ']', '{', '}', ',', '.', ':', ';', '|']);
+  var SKIP_CLASSES = ['mrel', 'mbin', 'mopen', 'mclose', 'mpunct'];
 
-  var selected = null;
-  var tokens = [];
-  var currentIndex = -1;
+  var activeEq   = 1;
+  var tokens1    = [];
+  var tokens2    = [];
+  var selected   = null;
+  var currentIdx = -1;
 
+  function isOperator(span) {
+    var text = span.textContent.trim();
+    if (SKIP_TEXT.has(text)) return true;
+    for (var i = 0; i < SKIP_CLASSES.length; i++) {
+      if (span.classList.contains(SKIP_CLASSES[i])) return true;
+    }
+    return false;
+  }
+
+  function getTokenText(tok) { return tok.textContent.trim(); }
+  function activeTokens()    { return activeEq === 1 ? tokens1 : tokens2; }
+
+  // ── Comunicación con React Native ─────────────────────────────────────────
   function reportHeight() {
-    var h = document.documentElement.scrollHeight || document.body.scrollHeight;
+    var h = document.getElementById('equations-wrapper').scrollHeight;
     window.ReactNativeWebView && window.ReactNativeWebView.postMessage(
       JSON.stringify({ type: 'height', value: h })
     );
@@ -90,67 +192,217 @@ const buildEquationHTML = (latex: string, isDark: boolean, initialTerm: string):
     );
   }
 
+  // ── Selección ─────────────────────────────────────────────────────────────
   function selectToken(index) {
-    if (tokens.length === 0) return;
-    if (selected) selected.classList.remove('mjx-selected');
-    if (index < 0 || index >= tokens.length) {
-      selected = null;
-      currentIndex = -1;
-      notify('none');
-      return;
+    var toks = activeTokens();
+    if (toks.length === 0) return;
+    if (selected) selected.classList.remove('katex-selected');
+    if (index < 0 || index >= toks.length) {
+      selected = null; currentIdx = -1; notify('none'); return;
     }
-    currentIndex = index;
-    selected = tokens[currentIndex];
-    selected.classList.add('mjx-selected');
-    notify(selected.textContent.trim());
+    currentIdx = index;
+    selected = toks[currentIdx];
+    selected.classList.add('katex-selected');
+    notify(getTokenText(selected));
   }
 
-  // NUEVA FUNCIÓN: Seleccionar término por texto
-  function selectInitialTerm(termText) {
-    if (tokens.length === 0) return;
-    
-    // Buscar el índice del token que coincida con el texto buscado
-    const index = tokens.findIndex(tok => 
-      tok.textContent.trim() === termText
-    );
-    
-    if (index !== -1) {
-      selectToken(index);
-    } else {
-      // Si no encuentra el término exacto, seleccionar el primero
-      console.log('Término no encontrado, seleccionando el primero');
-      selectToken(0);
-    }
+  function selectByText(termText, toks) {
+    var idx = toks.findIndex(function(tok) {
+      return getTokenText(tok) === termText;
+    });
+    selectToken(idx !== -1 ? idx : 0);
   }
 
-  function attachListeners() {
-    var container = document.getElementById('equation');
-    tokens = Array.from(container.querySelectorAll('mjx-mi, mjx-mo, mjx-mn, mjx-mtext'));
-    tokens.forEach(function(tok, i) {
+  /*
+   * buildTokens: recoge los nodos .mord que contienen texto seleccionable.
+   *
+   * Clave para términos compuestos (du, dy):
+   *   \text{du} → KaTeX produce <span class="mord mtext">du</span>
+   *   Sus hijos son nodos mtext, NO mord. Por tanto !span.querySelector('.mord')
+   *   es true y el span pasa el filtro con textContent "du" completo.
+   *
+   *   Sin \text{}, KaTeX separa en <span class="mord">d</span><span class="mord">u</span>
+   *   dando tokens individuales 'd' y 'u' — comportamiento incorrecto.
+   */
+  function buildTokens(containerId) {
+    var container = document.getElementById(containerId);
+    var all = Array.from(container.querySelectorAll('.mord'));
+    return all.filter(function(span) {
+      var text = span.textContent.trim();
+      return text.length > 0 && !isOperator(span) && !span.querySelector('.mord');
+    });
+  }
+
+  function attachListeners(toks) {
+    toks.forEach(function(tok, i) {
       tok.addEventListener('click', function(e) {
         e.stopPropagation();
-        selectToken(currentIndex === i ? -1 : i);
+        var newIdx = (currentIdx === i) ? -1 : i;
+        selectToken(newIdx);
       });
     });
   }
 
+  // ── Inicializar ecuación principal ────────────────────────────────────────
+  (function initPrimary() {
+    katex.render(
+      ${JSON.stringify(latex)},
+      document.getElementById('eq1-row'),
+      { displayMode: true, throwOnError: false }
+    );
+    tokens1 = buildTokens('eq1-row');
+    attachListeners(tokens1);
+    selectByText(${JSON.stringify(initialTerm)}, tokens1);
+    // No reportamos altura en init: en modo compacto la controla WEBVIEW_SINGLE_HEIGHT en RN.
+  })();
+
+  // ── Navegación ─────────────────────────────────────────────────────────────
   window.goNext = function() {
-    if (tokens.length === 0) return;
-    var next = currentIndex < tokens.length - 1 ? currentIndex + 1 : 0;
-    selectToken(next);
+    var toks = activeTokens();
+    if (toks.length === 0) return;
+    selectToken(currentIdx < toks.length - 1 ? currentIdx + 1 : 0);
   };
-
   window.goPrev = function() {
-    if (tokens.length === 0) return;
-    var prev = currentIndex > 0 ? currentIndex - 1 : tokens.length - 1;
-    selectToken(prev);
+    var toks = activeTokens();
+    if (toks.length === 0) return;
+    selectToken(currentIdx > 0 ? currentIdx - 1 : toks.length - 1);
   };
 
-  window.addEventListener('resize', reportHeight);
+  // ── Expandir ──────────────────────────────────────────────────────────────
+  window.expandTo = function(secondLatex, secondInitialTerm) {
+    var eq2 = document.getElementById('eq2-row');
+    eq2.innerHTML = '';
+
+    katex.render(secondLatex, eq2, { displayMode: true, throwOnError: false });
+    tokens2 = buildTokens('eq2-row');
+    attachListeners(tokens2);
+
+    // Activar gap solo al expandir (0 en modo compacto)
+    document.getElementById('equations-wrapper').style.gap = '${EQUATION_GAP_PX}px';
+
+    document.getElementById('eq1-row').classList.add('dimmed');
+    eq2.classList.add('visible');
+
+    if (selected) selected.classList.remove('katex-selected');
+    selected = null;
+    currentIdx = -1;
+    activeEq = 2;
+
+    selectByText(secondInitialTerm, tokens2);
+
+    // Reportar altura real para que React Native agrande el WebView
+    setTimeout(reportHeight, 50);
+  };
+
+  // ── Comprimir ─────────────────────────────────────────────────────────────
+  window.collapseEquation = function(restoreTerm) {
+    var eq2 = document.getElementById('eq2-row');
+    eq2.classList.remove('visible');
+
+    document.getElementById('eq1-row').classList.remove('dimmed');
+
+    // Eliminar gap al volver al modo compacto
+    document.getElementById('equations-wrapper').style.gap = '0px';
+
+    if (selected) selected.classList.remove('katex-selected');
+    selected = null;
+    currentIdx = -1;
+    tokens2 = [];
+    activeEq = 1;
+
+    selectByText(restoreTerm || ${JSON.stringify(initialTerm)}, tokens1);
+
+    setTimeout(function() {
+      eq2.innerHTML = '';
+      // No reportamos altura: React Native reestablece a WEBVIEW_SINGLE_HEIGHT al comprimir.
+    }, 300);
+  };
+
+  // ── Actualizar segunda ecuación dinámicamente ─────────────────────────────
+  window.updateSecondaryEquation = function(secondLatex, secondInitialTerm) {
+    if (activeEq !== 2) return;
+    var eq2 = document.getElementById('eq2-row');
+    if (selected) selected.classList.remove('katex-selected');
+    selected = null; currentIdx = -1;
+    eq2.innerHTML = '';
+    katex.render(secondLatex, eq2, { displayMode: true, throwOnError: false });
+    tokens2 = buildTokens('eq2-row');
+    attachListeners(tokens2);
+    selectByText(secondInitialTerm, tokens2);
+    setTimeout(reportHeight, 50);
+  };
 </script>
 </body>
 </html>
 `;
+
+// ─── Referencias ─────────────────────────────────────────────────────────────
+const REFERENCES: Array<{ title: string; author: string; year: string; url: string }> = [
+  {
+    title: 'Osborne Reynolds: scientist, engineer and pioneer',
+    author: 'J. D. Jackson',
+    year: '1995',
+    url: 'https://doi.org/10.1098/rspa.1995.0117',
+  },
+  {
+    title: 'Note on the History of the Reynolds Number',
+    author: 'N. Rott',
+    year: '1990',
+    url: 'https://www.annualreviews.org/content/journals/10.1146/annurev.fl.22.010190.000245',
+  },
+  {
+    title: 'Non-dimensionalization of the Navier–Stokes Equation',
+    author: 'Penn State ME320',
+    year: 'ND',
+    url: 'https://www.me.psu.edu/cimbala/me320web_Fall_2012/pdf/Nondimensionalization_of_NS_equation.pdf?utm_source=chatgpt.com',
+  },
+  {
+    title: 'On Reynolds Number Physical Interpretation',
+    author: 'Václav Uruba',
+    year: '2018',
+    url: 'https://scispace.com/pdf/on-reynolds-number-physical-interpretation-3sgje7gdg5.pdf?utm_source=chatgpt.com',
+  },
+];
+
+type ReferenceItemProps = {
+  title: string;
+  author: string;
+  year: string;
+  url: string;
+  textColor: string;
+  subtitleColor: string;
+  cardGradient: string;
+  gradient: string;
+  fontSizeFactor: number;
+};
+
+const ReferenceItem = memo(({ title, author, year, url, textColor, subtitleColor, cardGradient, gradient, fontSizeFactor }: ReferenceItemProps) => {
+  const onPress = useCallback(() => {
+    return Linking.openURL(url).catch(() => {});
+  }, [url]);
+
+  return (
+    <Pressable onPress={onPress} accessibilityRole="link">
+      <View style={[styles.contentBox, { experimental_backgroundImage: gradient }]}>
+        <View style={[
+          styles.innerBox,
+          { experimental_backgroundImage: cardGradient, backgroundColor: 'transparent' }
+        ]}>
+          <View style={styles.cardText}>
+            <View style={styles.titleContainerRef}>
+              <Text style={[styles.titleText, { color: textColor, fontSize: 16 * fontSizeFactor }]}>{title}</Text>
+            </View>
+            <Text style={[styles.subtitleText, { color: subtitleColor, fontSize: 14 * fontSizeFactor }]}>{author} ({year})</Text>
+          </View>
+          <View style={styles.iconContainer2} pointerEvents="none">
+            <Icon2 name="external-link" size={20} color={'black'} />
+          </View>
+        </View>
+      </View>
+    </Pressable>
+  );
+});
+ReferenceItem.displayName = 'ReferenceItem';
 
 // ─── Componente ──────────────────────────────────────────────────────────────
 const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: string }) => {
@@ -160,22 +412,36 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
   const { fontSizeFactor } = useContext(FontSizeContext);
 
   const webViewRef = useRef<WebView>(null);
-  const [selectedTerm, setSelectedTerm] = useState<string>('none');
-  const [webViewHeight, setWebViewHeight] = useState<number>(100); // ALTURA DEL WEBVIEW
 
-  // CORRECCIÓN:
-  const [isWebViewReady, setIsWebViewReady] = useState(false); // ← AÑADIR ESTO ANTES
-  
+  // ── Estado de UI ──────────────────────────────────────────────────────────────
+  const [selectedTerm, setSelectedTerm]     = useState<string>('none');
+  // Altura inicial = WEBVIEW_SINGLE_HEIGHT. Para cambiarla en modo compacto,
+  // modifica la constante WEBVIEW_SINGLE_HEIGHT al principio del archivo.
+  const [webViewHeight, setWebViewHeight]   = useState<number>(WEBVIEW_SINGLE_HEIGHT);
+  const [isWebViewReady, setIsWebViewReady] = useState(false);
+
+  // ── Estado expandir/comprimir ─────────────────────────────────────────────────
+  const [isExpanded, setIsExpanded]         = useState(false);
+  // Ref sincronizada: permite que handleWebViewMessage (memoizado) lea el valor actualizado
+  const isExpandedRef                       = useRef(false);
+  const expandedFromTerm                    = useRef<string>('R');
+
+  const references = useMemo(() => REFERENCES, []);
+
+  // ── Callbacks del WebView ─────────────────────────────────────────────────────
   const handleWebViewLoad = useCallback(() => {
     setIsWebViewReady(true);
   }, []);
 
-  // Actualizar el handleWebViewMessage para incluir logs de depuración
   const handleWebViewMessage = useCallback((event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'height' && typeof data.value === 'number') {
-        setWebViewHeight(Math.max(data.value, 80));
+        // Solo aplicar altura dinámica cuando estamos expandidos.
+        // En modo compacto la altura permanece fija en WEBVIEW_SINGLE_HEIGHT.
+        if (isExpandedRef.current) {
+          setWebViewHeight(Math.max(data.value, WEBVIEW_SINGLE_HEIGHT));
+        }
       } else if (data.type === 'selected') {
         setSelectedTerm(data.value);
       }
@@ -195,7 +461,7 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
         icon: 'rgb(245,245,245)',
         gradient: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
         cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
-        selectedAccent: 'rgb(194, 254, 12)',
+        selectedAccent: 'rgb(255, 255, 255)',
       };
     }
     return {
@@ -207,13 +473,12 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
       icon: 'rgb(0, 0, 0)',
       gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
       cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
-      selectedAccent: 'rgb(80,160,0)',
+      selectedAccent: 'rgb(0, 0, 0)',
     };
   }, [isDark]);
 
-  const goBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  // ── Navegación ────────────────────────────────────────────────────────────────
+  const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleNext = useCallback(() => {
     webViewRef.current?.injectJavaScript('window.goNext(); true;');
@@ -222,6 +487,37 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
   const handlePrev = useCallback(() => {
     webViewRef.current?.injectJavaScript('window.goPrev(); true;');
   }, []);
+
+  // ── Expandir / Comprimir ──────────────────────────────────────────────────────
+  const handleExpand = useCallback(() => {
+    if (isExpandedRef.current) {
+      // — Comprimir —
+      const restore = expandedFromTerm.current;
+      webViewRef.current?.injectJavaScript(
+        `window.collapseEquation(${JSON.stringify(restore)}); true;`
+      );
+      isExpandedRef.current = false;
+      setIsExpanded(false);
+      // Restaurar altura fija al comprimir
+      setWebViewHeight(WEBVIEW_SINGLE_HEIGHT);
+    } else {
+      // — Expandir (solo si el término seleccionado es expandible) —
+      const config = EXPANDABLE_TERMS[selectedTerm];
+      if (!config) return;
+
+      expandedFromTerm.current = selectedTerm;
+      webViewRef.current?.injectJavaScript(
+        `window.expandTo(${JSON.stringify(config.latex)}, ${JSON.stringify(config.initialTerm)}); true;`
+      );
+      isExpandedRef.current = true;
+      setIsExpanded(true);
+    }
+  }, [selectedTerm]);
+
+  // ── Helpers de estado ─────────────────────────────────────────────────────────
+  const isValidTerm    = ALL_VALID_TERMS.has(selectedTerm);
+  const expandIconName = isExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical';
+  const canExpand      = isExpanded || Boolean(EXPANDABLE_TERMS[selectedTerm]);
 
   const equationHTML = React.useMemo(
     () => buildEquationHTML(LATEX_EQUATION, isDark, initialSelectedTerm),
@@ -264,79 +560,104 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
           ref={webViewRef}
           source={{ html: equationHTML }}
           style={[styles.webView, { height: webViewHeight }]}
-          scrollEnabled={true}
+          scrollEnabled={false}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
           onMessage={handleWebViewMessage}
-          onLoad={handleWebViewLoad}  // AÑADIR ESTA LÍNEA
+          onLoad={handleWebViewLoad}
           originWhitelist={['*']}
           javaScriptEnabled={true}
           domStorageEnabled={false}
-          cacheEnabled={false}
           overScrollMode="never"
           bounces={false}
+          mixedContentMode="always"
+          cacheEnabled={true}
+          cacheMode="LOAD_DEFAULT"
+          textInteractionEnabled={false}
         />
       </View>
 
-      {/* ── Flechas de navegación ── */}
+      {/* ── Controles de navegación + botón expandir ── */}
       <View style={styles.controlsRow}>
-        <Pressable
-          style={styles.simpleButtonContainer}
-          onPress={handlePrev}
-        >
+        {/* Botón anterior */}
+        <Pressable style={styles.simpleButtonContainer} onPress={handlePrev}>
           <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
-          <MaskedView
-            style={styles.maskedButton}
-            maskElement={<View style={styles.transparentButtonMask} />}
-          >
-            <View
-              style={[
-                styles.buttonGradient,
-                { experimental_backgroundImage: themeColors.gradient },
-              ]}
-            />
+          <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
+            <View style={[styles.buttonGradient, { experimental_backgroundImage: themeColors.gradient }]} />
           </MaskedView>
           <Icon2 name="chevron-left" size={22} color={themeColors.icon} style={styles.buttonIcon} />
         </Pressable>
 
-        <Pressable
-          style={styles.simpleButtonContainer}
-          onPress={handleNext}
-        >
+        {/* Botón siguiente */}
+        <Pressable style={styles.simpleButtonContainer} onPress={handleNext}>
           <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
-          <MaskedView
-            style={styles.maskedButton}
-            maskElement={<View style={styles.transparentButtonMask} />}
-          >
-            <View
-              style={[
-                styles.buttonGradient,
-                { experimental_backgroundImage: themeColors.gradient },
-              ]}
-            />
+          <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
+            <View style={[styles.buttonGradient, { experimental_backgroundImage: themeColors.gradient }]} />
           </MaskedView>
           <Icon2 name="chevron-right" size={22} color={themeColors.icon} style={styles.buttonIcon} />
         </Pressable>
-      </View>
 
-      {/* ── Término seleccionado ── */}
-      <View style={styles.selectedRow}>
-        <Text style={[styles.selectedLabel, { color: themeColors.text, fontSize: 14 * fontSizeFactor }]}>
-          {'Término seleccionado: '}
-        </Text>
-        <Text
-          style={[
-            styles.selectedValue,
-            {
-              color: selectedTerm !== 'none' ? themeColors.selectedAccent : themeColors.text,
-              fontSize: 14 * fontSizeFactor,
-            },
-          ]}
+        {/* Botón expandir/comprimir — mismo diseño que las flechas */}
+        <Pressable
+          style={[styles.simpleButtonContainer2, !canExpand && styles.buttonDisabled]}
+          onPress={handleExpand}
+          disabled={!canExpand}
         >
-          {selectedTerm}
-        </Text>
+          <View style={[styles.buttonBackground2, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
+          <MaskedView
+            style={styles.maskedButton2}
+            maskElement={<View style={[styles.transparentButtonMask2, isExpanded && styles.expandedButtonMask]} />}
+          >
+            <View style={[styles.buttonGradient2, { experimental_backgroundImage: themeColors.gradient }]} />
+          </MaskedView>
+          <Icon3
+            name={expandIconName}
+            size={20}
+            color={isExpanded ? themeColors.icon : themeColors.icon}
+            style={styles.buttonIcon}
+          />
+        </Pressable>
       </View>
 
+      {/* ── Info del término seleccionado ── */}
+      {selectedTerm !== 'none' && isValidTerm && (
+        <View style={[styles.termCard, { borderColor: themeColors.separator }]}>
+          <Text style={[styles.termTitle, { color: themeColors.selectedAccent, fontSize: 30 * fontSizeFactor }]}>
+            {t(`reynoldsTheory.terms.${selectedTerm}.title`)}
+          </Text>
+          <Text style={[styles.termDescription, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+            {t(`reynoldsTheory.terms.${selectedTerm}.description`)}
+          </Text>
+        </View>
+      )}
+      {selectedTerm === 'none' && (
+        <View style={[styles.termCard, { borderColor: themeColors.separator }]}>
+          <Text style={[styles.termPlaceholder, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+            {t('reynoldsTheory.selectTermPlaceholder')}
+          </Text>
+        </View>
+      )}
+
+      {/* Referencias */}
+      <View style={styles.refcont}>
+        <Text style={[styles.titleReferencesText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
+          {t('reynoldsTheory.titles.references')}
+        </Text>
+        {references.map((ref) => (
+          <ReferenceItem
+            key={ref.url}
+            title={ref.title}
+            author={ref.author}
+            year={ref.year}
+            url={ref.url}
+            textColor={themeColors.text}
+            subtitleColor={currentTheme === 'dark' ? 'rgb(170, 170, 170)' : 'rgb(170, 170, 170)'}
+            cardGradient={themeColors.cardGradient}
+            gradient={themeColors.gradient}
+            fontSizeFactor={fontSizeFactor}
+          />
+        ))}
+      </View>
       <View style={styles.spacer} />
     </ScrollView>
   );
@@ -393,7 +714,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     marginTop: 11,
     paddingHorizontal: 20,
-    marginBottom: 10,
+    marginBottom: 0,
   },
   subtitle: {
     color: 'rgb(0, 0, 0)',
@@ -408,19 +729,21 @@ const styles = StyleSheet.create({
   },
   equationContainer: {
     marginHorizontal: 20,
-    marginTop: 0,
+    marginVertical: 10,
     overflow: 'hidden',
+    borderWidth: 0,
   },
   webView: {
     width: '100%',
     backgroundColor: 'transparent',
   },
   controlsRow: {
+    paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 15,
-    marginTop: 5,
+    gap: 10,
+    marginTop: 0,
   },
   selectedRow: {
     flexDirection: 'row',
@@ -440,12 +763,37 @@ const styles = StyleSheet.create({
   spacer: {
     height: 100,
   },
-    simpleButtonContainer: {
+  termCard: {
+    backgroundColor: 'rgba(255, 159, 159, 0)',
+    marginHorizontal: 20,
+    marginTop: 20,
+    padding: 0,
+    gap: 5,
+  },
+  termTitle: {
+    fontFamily: 'SFUIDisplay-Bold',
+    fontSize: 30,
+  },
+  termDescription: {
+    fontFamily: 'SFUIDisplay-Regular',
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  termPlaceholder: {
+    fontFamily: 'SFUIDisplay-Regular',
+    fontSize: 16,
+    textAlign: 'center',
+    opacity: 0.5,
+  },
+  simpleButtonContainer: {
     width: 46,
     height: 46,
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.35,
   },
   buttonBackground: {
     width: 46,
@@ -462,6 +810,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 1)',
   },
+  expandedButtonMask: {
+    borderColor: 'rgb(194, 254, 12)',
+  },
   maskedButton: {
     width: 46,
     height: 46,
@@ -473,7 +824,117 @@ const styles = StyleSheet.create({
       'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     borderRadius: 25,
   },
+
+  simpleButtonContainer2: {
+    width: 69,
+    height: 46,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonDisabled2: {
+    opacity: 0.35,
+  },
+  buttonBackground2: {
+    width: 69,
+    height: 46,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    position: 'absolute',
+    borderRadius: 25,
+  },
+  transparentButtonMask2: {
+    width: 69,
+    height: 46,
+    backgroundColor: 'transparent',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 1)',
+  },
+  expandedButtonMask2: {
+    borderColor: 'rgb(194, 254, 12)',
+  },
+  maskedButton2: {
+    width: 69,
+    height: 46,
+  },
+  buttonGradient2: {
+    width: 69,
+    height: 46,
+    experimental_backgroundImage:
+      'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    borderRadius: 25,
+  },
+
   buttonIcon: {
     position: 'absolute',
+  },
+  expandedBadgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  expandedBadge: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  expandedBadgeText: {
+    fontFamily: 'SFUIDisplay-Regular',
+    fontSize: 12,
+    opacity: 0.8,
+  },
+  titleReferencesText: {
+    color: 'rgb(0, 0, 0)',
+    fontSize: 30,
+    fontFamily: 'SFUIDisplay-Bold',
+    marginTop: 30,
+    marginBottom: 0,
+  },
+  contentBox: {
+    minHeight: 70,
+    width: '100%',
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    borderRadius: 25,
+    padding: 1,
+    marginTop: 10,
+  },
+  innerBox: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  titleText: {
+    fontFamily: 'SFUIDisplay-Medium',
+    fontSize: 16,
+    color: 'black',
+  },
+  subtitleText: {
+    fontFamily: 'SFUIDisplay-Regular',
+    fontSize: 14,
+    color: 'rgb(170, 170, 170)',
+    marginTop: -5,
+  },
+  iconContainer2: {
+    right: 20,
+    position: 'absolute',
+    backgroundColor: 'rgb(194, 254, 12)',
+    padding: 3,
+  },
+  titleContainerRef: {
+    backgroundColor: 'transparent',
+    marginRight: 40,
+    marginTop: 0,
+  },
+  cardText: {
+    backgroundColor: 'transparent',
+    marginRight: 30,
+  },
+  refcont: {
+    paddingHorizontal: 20,
   },
 });

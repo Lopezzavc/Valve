@@ -43,10 +43,10 @@ class MainActivity : ReactActivity() {
   }
 
   private fun enableImmersive() {
-    // Oculta status + navigation bar de forma persistente
-    val controller = WindowInsetsControllerCompat(window, window.decorView)
-    controller.hide(WindowInsetsCompat.Type.navigationBars())
-    controller.systemBarsBehavior =
-      WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+      val controller = WindowInsetsControllerCompat(window, window.decorView)
+      // Cambia navigationBars() por systemBars() para ocultar ambas barras
+      controller.hide(WindowInsetsCompat.Type.systemBars())
+      controller.systemBarsBehavior =
+          WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
   }
 }
