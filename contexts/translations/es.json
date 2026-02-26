@@ -541,7 +541,8 @@
     }
   },
   "geometriaSeccionesCalc": {
-    "cardTitle1":"Calculadora Geométrica de Secciones",
+    "calculator": "Calculadora",
+    "cardTitle1":"Geometría de Secciones",
     "cardDesc1":"Calcula área, perímetro y radio hidráulico de diferentes tipos de secciones.",
     "title": "Geometría de Secciones",
     "y2": "Tirante (y₂)",
@@ -655,6 +656,175 @@
         "title": "Diferencial de Distancia (dy)",
         "description": "Representa un cambio infinitesimal en la distancia, medida perpendicularmente a la dirección del flujo. Es la separación entre dos capas de fluido adyacentes. En el gradiente de velocidad (du/dy), una distancia 'dy' más pequeña, para una misma diferencia de velocidad, resulta en un gradiente más pronunciado y un mayor esfuerzo cortante."
       }
+    }
+  },
+  "froudeTheory": {
+    "subtitle": "Número de Froude",
+    "title": "¿Qué es?",
+    "selectTermPlaceholder": "Toca un término para ver su descripción",
+    "titles": {
+      "references": "Referencias"
+    },
+    "terms": {
+      "Fr": {
+        "title": "Número de Froude (Fr)",
+        "description": "El Número de Froude es un parámetro adimensional de vital importancia en la mecánica de fluidos, nombrado en honor al ingeniero naval William Froude. Representa la proporción entre las fuerzas de inercia y las fuerzas de gravedad que actúan sobre un fluido.\n\nFísicamente, este número define el régimen de flujo en canales abiertos. Si Fr < 1, el flujo es 'subcrítico': las ondas superficiales viajan más rápido que la corriente, permitiendo que las perturbaciones se propaguen aguas arriba (flujo tranquilo). Si Fr > 1, el flujo es 'supercrítico': el fluido se mueve más rápido que sus propias ondas, impidiendo que la información del nivel del agua suba por la corriente (flujo rápido y torrencial). En Fr = 1, el flujo alcanza su estado crítico, donde la energía específica es mínima para un caudal dado."
+      },
+      "V": {
+        "title": "Velocidad Media (v)",
+        "description": "Representa la rapidez promedio con la que las partículas del fluido atraviesan una sección transversal específica (m/s). En el contexto del número de Froude, la velocidad es el motor de la inercia.\n\nUna velocidad elevada incrementa el numerador de la ecuación, indicando que la energía cinética del sistema domina sobre la energía potencial gravitatoria. En términos prácticos, es el factor que determina si un obstáculo en el canal generará una onda de choque (salto hidráulico) o simplemente una ondulación suave en la superficie."
+      },
+      "g": {
+        "title": "Aceleración de la Gravedad (g)",
+        "description": "Es la fuerza constante que atrae la masa del fluido hacia el centro de la Tierra (estándar de 9.81 m/s²). En hidráulica de canales, la gravedad es la 'fuerza restauradora' que intenta mantener la superficie del agua plana y estable.\n\nSu papel en el número de Froude es fundamental: actúa como el denominador que limita el movimiento. Sin la gravedad, no existirían las ondas superficiales ni la distinción entre regímenes de flujo, ya que es la responsable de generar la presión hidrostática que impulsa el movimiento en ausencia de bombeo externo."
+      },
+      "L": {
+        "title": "Longitud Característica (L)",
+        "description": "En canales abiertos, esta longitud suele representarse como la profundidad hidráulica (D = Área / Ancho superficial). Es la dimensión que escala el efecto de la gravedad en el sistema.\n\nLa relación entre la velocidad y la raíz cuadrada de esta longitud multiplicada por la gravedad ($V / \\sqrt{gL}$) define la celeridad de las ondas de gravedad de pequeña amplitud. Por lo tanto, L no es solo una medida geométrica, sino el factor que determina cuán 'profundo' o 'somero' se comporta un fluido frente a las fuerzas que intentan moverlo."
+      },
+      "F": {
+        "title": "Fuerza Gravitacional (F)",
+        "description": "Es la magnitud vectorial resultante de la interacción entre la masa del fluido y el campo gravitatorio terrestre. En el análisis de Froude, esta fuerza es la que genera el peso que estabiliza el flujo.\n\nSe calcula mediante la segunda ley de Newton ($F = m \\cdot g$). En el diseño de estructuras hidráulicas como vertederos o presas, entender esta fuerza es crucial, ya que el número de Froude ayuda a predecir si el peso del agua será suficiente para mantener el flujo adherido a la estructura o si la inercia provocará desprendimientos y turbulencias severas."
+      },
+      "m": {
+        "title": "Masa del Fluido (m)",
+        "description": "Es la medida cuantitativa de la inercia de una porción de fluido, es decir, su resistencia a cambiar su estado de movimiento. Se expresa en kilogramos (kg).\n\nAunque la masa se cancela en la derivación final del número de Froude (quedando solo la relación de velocidades y longitudes), conceptualmente sigue siendo el pilar de las fuerzas inerciales. Es la propiedad que permite al agua mantener su momento lineal y 'golpear' estructuras con fuerza cuando el número de Froude indica un régimen supercrítico."
+      }
+    }
+  },
+  "continuidadTheory": {
+    "subtitle": "Ecuación de Continuidad",
+    "title": "¿Qué es?",
+    "selectTermPlaceholder": "Toca un término de la ecuación para ver su descripción",
+    "titles": {
+      "references": "Referencias"
+    },
+    "terms": {
+      "A": {
+        "title": "Área transversal (A)",
+        "description": "Representa la superficie de la sección geométrica cortada perpendicularmente a la dirección del movimiento del fluido.\n\nEn el contexto de la mecánica de fluidos, el área actúa como el 'embudo' que restringe o permite el paso del flujo. Su importancia radica en la relación inversa que mantiene con la velocidad: bajo un caudal constante, una reducción en el área transversal obliga a las partículas del fluido a acelerarse para permitir que la misma masa de líquido atraviese la sección en el mismo intervalo de tiempo."
+      },
+      "V": {
+        "title": "Velocidad del fluido (V)",
+        "description": "Define la rapidez promedio con la que las partículas del fluido se desplazan a través de una sección determinada.\n\nNo se trata solo de una medida de rapidez, sino de un componente crítico de la energía cinética del sistema. Según el principio de continuidad para fluidos incompresibles, la velocidad es una variable dependiente de la geometría del conducto; por lo tanto, cualquier estrechamiento en la tubería se traduce inmediatamente en un incremento proporcional de la velocidad, asegurando que el balance de masa se mantenga inalterado."
+      },
+      "1": {
+        "title": "Sección 1 (entrada)",
+        "description": "Subíndice que identifica las condiciones del fluido en el punto de entrada o sección aguas arriba. Los valores A₁ y V₁ describen el estado inicial del flujo."
+      },
+      "2": {
+        "title": "Sección 2 (salida)",
+        "description": "Subíndice que identifica las condiciones del fluido en el punto de salida o sección aguas abajo. Los valores A₂ y V₂ describen el estado final del flujo."
+      },
+      "π": {
+        "title": "Pi (π)",
+        "description": "Es la constante fundamental que relaciona la longitud de la circunferencia con su diámetro.\n\nSu presencia en la ecuación de continuidad es indispensable cuando trabajamos con conductos cilíndricos o tuberías comerciales, ya que permite derivar el área de paso a partir de una sola medición lineal del diámetro. Es el factor que vincula la geometría euclidiana con el cálculo de capacidades de transporte en sistemas hidráulicos y neumáticos."
+      },
+      "D": {
+        "title": "Diámetro (D)",
+        "description": "Se refiere a la medida del ancho interno del conducto circular por el cual circula el fluido.\n\nEs el parámetro de diseño más influyente en la ingeniería de tuberías, ya que el área transversal es extremadamente sensible a sus variaciones (creciendo de forma cuadrática respecto al diámetro). Un pequeño cambio en el diámetro interno puede provocar variaciones drásticas en la velocidad del flujo y en la pérdida de energía por fricción debido a la alteración del régimen hidráulico."
+      },
+      "Q": {
+        "title": "Caudal volumétrico (Q)",
+        "description": "Representa la tasa de flujo o el volumen de fluido que atraviesa una sección específica por cada unidad de tiempo.\n\nEl caudal es la manifestación práctica de la ley de conservación de la masa. En condiciones ideales (flujo estacionario e incompresible), el valor del caudal permanece invariante a lo largo de todo el sistema. Esto significa que la cantidad de fluido que entra por un extremo es exactamente igual a la que sale por el otro, independientemente de los cambios de forma, tamaño o dirección que sufra la tubería en su recorrido."
+      },
+      "𝒱": {
+        "title": "Volumen (𝒱)",
+        "description": "Se define como la magnitud física que cuantifica el espacio tridimensional ocupado por una porción de fluido.\n\nEn el estudio del flujo, el volumen es la entidad que se 'desplaza'. Al analizar la continuidad, nos interesa el volumen de control que cruza una frontera imaginaria; es la acumulación de partículas de fluido que, al dividirse por el tiempo de tránsito, nos permite entender la capacidad de transporte de un sistema hidráulico y la eficiencia de su diseño."
+      },
+      "t": {
+        "title": "Tiempo (t)",
+        "description": "Es la dimensión temporal necesaria para medir la tasa de transferencia del fluido a través de una sección de control.\n\nEl tiempo actúa como el denominador de la eficiencia en la ecuación de continuidad. Sin este parámetro, el flujo sería una medida estática; gracias al tiempo, podemos transformar una cantidad fija de volumen en un concepto dinámico de flujo o corriente, permitiendo calcular cuánto tiempo tardaría, por ejemplo, en llenarse un depósito o en circular el fluido por un circuito cerrado."
+      }
+    }
+  },
+  "energiaBernoulliTheory": {
+    "subtitle": "Ecuación de Bernoulli",
+    "title": "¿Qué es?",
+    "selectTermPlaceholder": "Selecciona un término para ver su descripción",
+    "titles": {
+      "references": "Referencias"
+    },
+    "terms": {
+      "P": {
+        "title": "Presión (P)",
+        "description": "La presión estática representa la intensidad de la fuerza normal que el fluido ejerce sobre las paredes de la tubería o sobre cualquier superficie imaginaria dentro del flujo. En el contexto de la ecuación de Bernoulli, este término se interpreta como la 'energía de flujo' o el trabajo necesario para mover una masa de fluido contra la presión circundante sin cambiar su velocidad ni su altura.\n\nDesde una perspectiva molecular, es el resultado del bombardeo constante de las partículas del fluido contra los límites que lo contienen. A diferencia de la presión dinámica, la presión estática es la que mediríamos con un manómetro que se mueve junto con la corriente, capturando el estado energético interno del sistema en un punto específico.\n\nEn sistemas hidráulicos, una caída en la presión estática no siempre implica una pérdida de energía total; a menudo indica que el fluido se ha acelerado (efecto Venturi). Es fundamental distinguir entre la presión manométrica y la absoluta, aunque en la mayoría de los cálculos de ingeniería civil y mecánica se utiliza la presión relativa respecto a la atmósfera."
+      },
+      "γ": {
+        "title": "Peso específico (γ)",
+        "description": "El peso específico es una propiedad intensiva que define la relación entre el peso de una sustancia y el volumen que ocupa. Es un parámetro crítico en la hidrostática y la dinámica de fluidos porque permite convertir la presión (una fuerza sobre área) en una altura de columna de fluido equivalente, facilitando la suma de diferentes formas de energía en unidades de longitud.\n\nFísicamente, este valor depende tanto de la densidad de la sustancia como de la aceleración gravitacional local. Por ejemplo, el peso específico del agua disminuye levemente al aumentar la temperatura debido a la expansión térmica, lo que afecta la precisión de los cálculos en sistemas de transporte de agua caliente o vapor.\n\nEn la ecuación de Bernoulli, al dividir la presión por el peso específico (P/γ), obtenemos la 'carga de presión'. Este concepto es el pilar del diseño de redes de distribución, ya que permite a los ingenieros visualizar la presión disponible en términos de metros de columna de agua, simplificando el análisis de presiones en terrenos con topografías variables."
+      },
+      "V": {
+        "title": "Velocidad (V)",
+        "description": "La velocidad media representa el promedio de la rapidez con la que las partículas del fluido atraviesan una sección transversal determinada. En la ecuación de Bernoulli, la velocidad es el componente principal de la energía cinética del sistema, reflejando el movimiento macroscópico del fluido impulsado por gradientes de presión o gravedad.\n\nDebido a la viscosidad, la velocidad no es uniforme en toda la sección de una tubería; es nula en las paredes y máxima en el centro. Por ello, en ingeniería se utiliza una velocidad media corregida que asume un flujo unidimensional simplificado, lo cual es suficiente para la mayoría de las aplicaciones prácticas de transporte de fluidos.\n\nEl término de la 'carga de velocidad' muestra una relación cuadrática: si la velocidad se duplica, la energía cinética asociada se cuadruplica. Este principio es vital para entender por qué las altas velocidades en tuberías pequeñas provocan caídas de presión tan drásticas y riesgos de erosión o ruido excesivo en las instalaciones."
+      },
+      "g": {
+        "title": "Gravedad (g)",
+        "description": "La aceleración gravitacional es la constante física que vincula la masa del fluido con su peso. Su papel en la dinámica de fluidos es actuar como el factor de conversión universal que permite normalizar la energía cinética y potencial hacia unidades de carga hidráulica o 'cabezal'.\n\nAunque suele aproximarse como un valor constante de 9,81 m/s², pequeñas variaciones en la altitud o la latitud pueden influir en sistemas de extrema precisión. En el estudio de Bernoulli, la gravedad es la razón por la cual el fluido posee energía potencial simplemente por estar a una altura elevada respecto a un plano de referencia.\n\nSin la presencia de la gravedad, los conceptos de peso específico y cota altimétrica perderían su significado físico tradicional. En este modelo, la gravedad asegura que el intercambio entre energía cinética (velocidad) y energía potencial (altura) se mantenga equilibrado según las leyes de la termodinámica."
+      },
+      "z": {
+        "title": "Cota altimétrica (z)",
+        "description": "La cota altimétrica representa la posición vertical de una sección de fluido respecto a un nivel de referencia o 'datum' arbitrario. Este término cuantifica la energía potencial gravitacional por unidad de peso, que es la capacidad del fluido para realizar un trabajo debido únicamente a su elevación.\n\nEs un concepto puramente geométrico pero con implicaciones energéticas masivas. En el diseño de acueductos por gravedad, la diferencia de cotas entre el embalse y la ciudad es la fuente de energía primaria que permite el flujo sin necesidad de bombas mecánicas externas.\n\nAl analizar tuberías, la variación de la cota z permite identificar si el fluido está ganando o perdiendo energía potencial. Si una tubería asciende, la cota aumenta y, para mantener la conservación de la energía, la presión o la velocidad deben disminuir proporcionalmente, asumiendo que no hay aporte de energía externa."
+      },
+      "h_f": {
+        "title": "Pérdida de carga (hf)",
+        "description": "La pérdida de carga representa la energía mecánica que se transforma irreversiblemente en energía térmica (calor) debido a la fricción interna del fluido y el rozamiento con las paredes de la conducción. A diferencia de los términos de presión o velocidad, esta energía no se puede recuperar y se considera una 'salida' del sistema.\n\nEste fenómeno ocurre debido a la viscosidad del fluido. En regímenes laminares, las capas de fluido deslizan unas sobre otras generando calor por corte; en regímenes turbulentos, la formación de remolinos y el caos molecular aumentan drásticamente la disipación energética.\n\nEl cálculo preciso de la pérdida de carga es el mayor desafío en la hidráulica de tuberías. Ignorar este término llevaría a errores graves en la selección de bombas, ya que estas deben suministrar suficiente energía no solo para elevar el fluido, sino para vencer la resistencia invisible que ofrece el recorrido."
+      },
+      "f": {
+        "title": "Factor de fricción (f)",
+        "description": "El factor de fricción es un coeficiente adimensional que describe la resistencia al flujo dentro de una tubería. Su valor no es constante, sino que depende de la naturaleza del flujo (determinado por el número de Reynolds) y del estado de la superficie interna de la tubería, conocido como rugosidad relativa.\n\nEn flujos turbulentos, que son los más comunes en ingeniería, este factor captura cómo las irregularidades de la pared de la tubería perturban el movimiento del fluido. Una tubería de acero oxidado tendrá un factor de fricción mucho mayor que una de PVC liso, lo que se traduce en mayores costos de bombeo a largo plazo.\n\nPara obtener este valor se utilizan herramientas gráficas como el Diagrama de Moody o ecuaciones complejas que consideran que, a altas velocidades, la rugosidad de la tubería es el factor dominante, mientras que a bajas velocidades, la viscosidad del fluido toma el control del proceso de fricción."
+      },
+      "L": {
+        "title": "Longitud (L)",
+        "description": "La longitud es la distancia total recorrida por el fluido entre dos puntos de interés. En el análisis de pérdidas de energía, la longitud es directamente proporcional a la disipación de calor; cada metro adicional de tubería representa una superficie de contacto acumulada que se opone al movimiento.\n\nEn proyectos de gran escala, como oleoductos o redes de transporte de agua, la longitud es el factor que determina la necesidad de estaciones de rebombeo intermedias. A medida que el fluido avanza, su energía total decae linealmente debido a esta extensión física.\n\nEs importante considerar que, en el mundo real, la 'longitud equivalente' también puede incluir el efecto de accesorios como codos y válvulas, que aunque ocupan poco espacio físico, generan una resistencia al flujo comparable a varios metros de tubería recta."
+      },
+      "D": {
+        "title": "Diámetro (D)",
+        "description": "El diámetro interior de la conducción es quizás la variable de diseño más influyente en el comportamiento de un sistema hidráulico. Determina el área de la sección transversal disponible para el flujo y tiene un impacto inverso y desproporcionado sobre la pérdida de energía.\n\nSegún la física del flujo, la pérdida de energía es inversamente proporcional a la quinta potencia del diámetro en flujos con caudal constante. Esto significa que reducir el diámetro a la mitad puede aumentar las pérdidas por fricción hasta 32 veces, lo que subraya la importancia de elegir tamaños de tubería adecuados para la eficiencia energética.\n\nAdemás, el diámetro condiciona la velocidad del fluido: un diámetro pequeño obliga al fluido a acelerarse para mantener el mismo caudal, lo que aumenta tanto la energía cinética como la turbulencia y, por ende, el desgaste de los materiales del sistema."
+      },
+      "ρ": {
+        "title": "Densidad (ρ)",
+        "description": "La densidad es la medida de la cantidad de masa contenida en un volumen determinado de fluido. Es la propiedad fundamental que define la inercia del sistema: un fluido más denso requiere más fuerza para ser acelerado y posee más energía cinética a una misma velocidad.\n\nEn la ecuación de Bernoulli, la densidad actúa como el puente entre la masa y las fuerzas de presión. En fluidos incompresibles como el agua, se asume constante para simplificar los cálculos, pero en aplicaciones que involucran grandes cambios de temperatura o presión, su variación debe ser considerada para no invalidar los resultados.\n\nSu relación con la gravedad es lo que da origen al peso específico. Al entender la densidad, los ingenieros pueden predecir cómo se comportará el fluido ante cambios de elevación y cuánta carga estática ejercerá sobre las estructuras de contención o las paredes de las tuberías de alta presión."
+      }
+    }
+  },
+  "factorFriccionCalc": {
+    "title": "Factor de Fricción",
+    "calculator": "Calculadora",
+    "saveToHistory": "Guardar en historial",
+    "frictionFactor": "Factor de fricción (f)",
+    "equation": "Ecuación",
+    "roughnessSection": "Rugosidad relativa",
+    "moodyDiagramHint": "Abriendo diagrama de Moody…",
+    "mode": {
+      "numeric": "Numérico",
+      "graphic": "Gráfico"
+    },
+    "labels": {
+      "equation": "Ecuación",
+      "Re": "Número de Reynolds (Re)",
+      "epsilon": "Rugosidad absoluta (ε)",
+      "diameter": "Diámetro (D)",
+      "epsilonOverD": "Rugosidad relativa (ε/D)"
+    },
+    "equations": {
+      "colebrook-white": "Colebrook-White (Numérico iterativo)",
+      "haaland": "Haaland (Numérico cerrado)",
+      "swamee-jain": "Swamee-Jain (Numérico cerrado)",
+      "churchill": "Churchill (Numérico cerrado)",
+      "serghides": "Serghides (Numérico cerrado)",
+      "blasius": "Blasius (Numérico cerrado)",
+      "von-karman": "von Kármán (Numérico iterativo)"
+    },
+    "toasts": {
+      "copied": "Datos copiados al portapapeles",
+      "saved": "Cálculo guardado en el historial",
+      "saveError": "Error al guardar en el historial",
+      "nothingToSave": "No hay resultados para guardar",
+      "calculationError": "Error en el cálculo. Revisa los datos ingresados",
+      "validityWarning": "Advertencia de rango",
+      "swameeJainRange": "Swamee-Jain es válida para 10⁻⁶ ≤ ε/D ≤ 10⁻² y 5 000 ≤ Re ≤ 10⁸",
+      "blasiusRange": "Blasius es válida para tuberías lisas con 4 000 ≤ Re ≤ 10⁵"
     }
   }
 }

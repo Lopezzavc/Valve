@@ -3338,18 +3338,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative'
   },
-  caudalLabel: {
-    backgroundColor: 'rgba(142, 142, 142, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(104, 104, 104, 0.2)',
-    borderRadius: 14,
-    marginLeft: 11,
-    marginTop: 11,
-    height: 28,
-    minWidth: 90,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 12,
+  caudalLabel: { 
+    backgroundColor: 'rgba(142, 142, 142, 0.1)', 
+    borderWidth: 1, 
+    borderColor: 'rgba(104, 104, 104, 0.2)', 
+    borderRadius: 14, 
+    marginLeft: 11, 
+    marginTop: 11, 
+    height: 28, 
+    minWidth: 90, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    paddingHorizontal: 12 
   },
   flowLabel: {
     fontSize: 14,

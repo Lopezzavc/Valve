@@ -9,6 +9,28 @@ import deTranslations from './translations/de.json';
 import zhTranslations from './translations/zh.json';
 import jaTranslations from './translations/ja.json';
 
+declare const global: any;
+
+declare const module: {
+  hot?: {
+    accept(callback?: () => void): void;
+  };
+};
+
+if (__DEV__) {
+  if (!global.__translationSubscribers) {
+    global.__translationSubscribers = new Set<() => void>();
+  }
+}
+
+if (__DEV__ && module.hot) {
+  module.hot.accept(() => {
+    global.__translationSubscribers?.forEach((fn: () => void) => fn());
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const translationsMap: Record<string, any> = {
   'Español': esTranslations,
   'Inglés': enTranslations,
@@ -34,18 +56,35 @@ export const useLanguage = () => useContext(LanguageContext);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('Español');
-  const [translations, setTranslations] = useState(esTranslations);
+
+  // Contador que fuerza re-render cuando llega una actualización HMR
+  const [, setHmrTick] = useState(0);
+
+  useEffect(() => {
+    if (!__DEV__) return;
+
+    const notify = () => setHmrTick(n => n + 1);
+    global.__translationSubscribers.add(notify);
+
+    return () => {
+      global.__translationSubscribers.delete(notify);
+    };
+  }, []);
+
+  // Se deriva en cada render: cuando HMR re-evalúa el módulo, translationsMap
+  // ya tiene los valores nuevos del JSON, y setHmrTick dispara el re-render.
+  const translations = translationsMap[selectedLanguage] ?? esTranslations;
 
   const t = (key: string): string => {
     try {
       const keys = key.split('.');
       let value: any = translations;
-      
+
       for (const k of keys) {
         value = value[k];
         if (value === undefined) break;
       }
-      
+
       return value || key;
     } catch (error) {
       return key;
@@ -58,7 +97,6 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         const savedLanguage = await AsyncStorage.getItem('selectedLanguage');
         if (savedLanguage && translationsMap[savedLanguage]) {
           setSelectedLanguage(savedLanguage);
-          setTranslations(translationsMap[savedLanguage]);
         }
       } catch (error) {
         console.error('Error al cargar el idioma:', error);
@@ -70,7 +108,6 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const updateLanguage = async (language: string) => {
     if (translationsMap[language]) {
       setSelectedLanguage(language);
-      setTranslations(translationsMap[language]);
       try {
         await AsyncStorage.setItem('selectedLanguage', language);
       } catch (error) {

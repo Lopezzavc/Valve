@@ -18,7 +18,6 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'calc.cardTitle3',
     descKey: 'calc.cardDesc3',
-    math: 'Re = \\frac{\\rho v D}{\\mu}',
   },
   {
     desc: '',
@@ -27,7 +26,6 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'froude.title',
     descKey: 'froude.desc',
-    math: 'Fr = \\frac{V}{\\sqrt{gL}}',
   },
   {
     desc: '',
@@ -36,7 +34,6 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'calc.cardTitle1',
     descKey: 'calc.cardDesc1',
-    math: '\\frac{\\partial \\rho}{\\partial t} + \\nabla \\cdot (\\rho \\mathbf{v}) = 0',
   },
   {
     desc: '',
@@ -45,7 +42,6 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'EnergiaBernoulliCalc.cardTitle1',
     descKey: 'EnergiaBernoulliCalc.cardDesc1',
-    math: '\\frac{P_1}{\\gamma} + \\frac{V_1^2}{2g} + z_1 + h_b - h_t - h_L = \\frac{P_2}{\\gamma} + \\frac{V_2^2}{2g} + z_2',
   },
   {
     desc: '',
@@ -54,6 +50,44 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'geometriaSeccionesCalc.cardTitle1',
     descKey: 'geometriaSeccionesCalc.cardDesc1',
-    math: 'A = \\frac{\\pi D^2}{4} ; P = \\pi D ; R = \\frac{A}{P} = \\frac{D}{4} ; T = D ; D_h = \\frac{A}{T} = \\frac{\\pi D}{4} ; y = D',
+  },
+
+  // SEGUNDA SECCIÓN
+
+  {
+    desc: '',
+    id: 'factor-friccion',
+    route: 'FactorFriccionCalc',
+    icon: 'wind',
+    titleKey: 'factorFriccion.title',
+    descKey: 'factorFriccion.desc',
+    math: 'f = \\frac{64}{Re} ; \\frac{1}{\\sqrt{f}} = -2 \\log \\left( \\frac{\\varepsilon/D}{3.7} + \\frac{2.51}{Re \\sqrt{f}} \\right)',
+  },
+  {
+    desc: '',
+    id: 'perdidas-localizadas',
+    route: 'PerdidasLocalizadasCalc',
+    icon: 'wind',
+    titleKey: 'perdidasLocalizadas.title',
+    descKey: 'perdidasLocalizadas.desc',
+    math: 'h_L = K \\frac{V^2}{2g}',
+  },
+  {
+    desc: '',
+    id: 'tuberia-simple',
+    route: 'TuberiaSimpleCalc',
+    icon: 'wind',
+    titleKey: 'tuberiaSimple.title',
+    descKey: 'tuberiaSimple.desc',
+    math: 'h_f = f \\frac{L}{D} \\frac{V^2}{2g}',
+  },
+  {
+    desc: '',
+    id: 'hazen-williams',
+    route: 'HazenWilliamsCalc',
+    icon: 'wind',
+    titleKey: 'hazenWilliams.title',
+    descKey: 'hazenWilliams.desc',
+    math: 'h_f = 10.67 \\frac{L Q^{1.85}}{C^{1.85} D^{4.87}}',
   },
 ];

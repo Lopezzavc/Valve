@@ -877,9 +877,9 @@ const styles = StyleSheet.create({
     position: 'relative' 
   },
   caudalLabel: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+    backgroundColor: 'rgba(142, 142, 142, 0.1)', 
     borderWidth: 1, 
-    borderColor: 'rgba(255, 255, 255, 0.4)', 
+    borderColor: 'rgba(104, 104, 104, 0.2)', 
     borderRadius: 14, 
     marginLeft: 11, 
     marginTop: 11, 
@@ -887,7 +887,7 @@ const styles = StyleSheet.create({
     minWidth: 90, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    paddingHorizontal: 5 
+    paddingHorizontal: 12 
   },
   flowLabel: { 
     fontSize: 14, 

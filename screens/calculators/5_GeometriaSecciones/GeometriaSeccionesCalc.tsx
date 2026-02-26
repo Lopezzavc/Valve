@@ -1240,16 +1240,26 @@ const GeometriaSeccionesCalc: React.FC = () => {
   // Render de los campos de parámetros según la sección
   const renderParameterInputs = useCallback(() => {
     const params = getParameterFields();
-    return params.map(p => renderInput(
-      p.id,
-      p.label,
-      (state as any)[p.id] as string,
-      p.unit,
-      p.category,
-      (text) => setState(prev => ({ ...prev, [p.id]: text } as any)),
-      undefined, // no setManualEdit específico, se maneja en renderInput
-      undefined  // sin resultado precalculado para parámetros
-    ));
+    return params.map(p => {
+      // Agregar un React.Fragment o View con key
+      const inputElement = renderInput(
+        p.id,
+        p.label,
+        (state as any)[p.id] as string,
+        p.unit,
+        p.category,
+        (text) => setState(prev => ({ ...prev, [p.id]: text } as any)),
+        undefined,
+        undefined
+      );
+
+      // Envolver con key
+      return (
+        <View key={`param-${p.id}`} style={{ width: '100%' }}>
+          {inputElement}
+        </View>
+      );
+    });
   }, [getParameterFields, renderInput, state]);
 
   // Render de los campos de resultados
@@ -1257,8 +1267,7 @@ const GeometriaSeccionesCalc: React.FC = () => {
     const results = getResultFields();
     return results.map(r => {
       const editable = isResultEditable(r.id);
-
-      return renderInput(
+      const inputElement = renderInput(
         r.id,
         r.label,
         (state as any)[r.id] as string,
@@ -1278,6 +1287,12 @@ const GeometriaSeccionesCalc: React.FC = () => {
         (state.autoCalculatedField === r.id && !(state as any)[`isManualEdit${r.id.toUpperCase()}`]) 
           ? (state as any)[r.id] 
           : undefined
+      );
+      
+      return (
+        <View key={`result-${r.id}`} style={{ width: '100%' }}>
+          {inputElement}
+        </View>
       );
     });
   }, [getResultFields, renderInput, state, isResultEditable]);
@@ -1328,7 +1343,7 @@ const GeometriaSeccionesCalc: React.FC = () => {
             </View>
             <View style={styles.iconWrapper2}>
               <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.navigate('GeometriaSeccionesTheory')}>
-                <Icon name="book" size={20} color="rgb(255, 255, 255)" />
+                <Icon name="cloud-off" size={20} color="rgb(255, 255, 255)" />
               </Pressable>
             </View>
           </View>

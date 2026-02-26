@@ -11,8 +11,7 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { KATEX_JS, KATEX_CSS } from '../../../src/katexBundle';
 
 // ─── Ecuación LaTeX principal ─────────────────────────────────────────────────
-// Ecuación de Continuidad para flujo incompresible: A₁V₁ = A₂V₂
-const LATEX_EQUATION = "A_1 V_1 = A_2 V_2";
+const LATEX_EQUATION = "\\text{Fr} = \\frac{V}{\\sqrt{g \\, L}}";
 
 // ─── ALTURA DEL WEBVIEW (modo compacto, una sola ecuación) ───────────────────
 // ↓ Ajusta este valor para cambiar la altura del WebView cuando solo hay una ecuación
@@ -30,29 +29,18 @@ interface ExpandableConfig {
   validTerms: Set<string>;
 }
 const EXPANDABLE_TERMS: Record<string, ExpandableConfig> = {
-  // 'A' (con subíndice 1 o 2) → expandible como sección circular: A = π r²
-  // Usamos el término 'A' genérico para ambos subíndices
-  'A': {
-    // A = π r² o equivalentemente A = π D²/4
-    latex: "A = \\frac{\\pi D^2}{4}",
-    initialTerm: 'A',
-    validTerms: new Set(['A', 'π', 'D']),
-  },
-  // 'Q' (caudal volumétrico) → expandible como Q = 𝒱 / t
-  // \\mathcal{V} representa el volumen para no confundir con V (velocidad)
-  'Q': {
-    // \\text{du} y \\text{dy} son ESENCIALES en Reynolds; aquí usamos \\mathcal{V}
-    // para distinguir volumen de velocidad V.
-    latex: "Q = \\frac{\\mathcal{V}}{t}",
-    initialTerm: 'Q',
-    validTerms: new Set(['Q', '𝒱', 't']),
+  'g': {
+    // F = m·g → despejando g: g = F/m
+    // \\text{} no es necesario aquí; F, m y g son letras simples que KaTeX produce
+    // como nodos mord individuales, perfectamente seleccionables.
+    latex: "F = m \\cdot g",
+    initialTerm: 'F',
+    validTerms: new Set(['F', 'm', 'g']),
   },
 };
 
 // ─── Términos válidos de la ecuación principal ────────────────────────────────
-// La ecuación A₁V₁ = A₂V₂ produce los tokens: A₁ → "A" con subíndice "1",
-// pero KaTeX los renderiza como span individual. Incluimos todas las variantes posibles.
-const VALID_TERMS_PRIMARY = new Set(['A', 'V', '1', '2']);
+const VALID_TERMS_PRIMARY = new Set(['Fr', 'V', 'g', 'L']);
 
 // Unión de todos los términos válidos (primaria + secundarias)
 const ALL_VALID_TERMS = new Set([
@@ -223,11 +211,9 @@ const buildEquationHTML = (
    * buildTokens: recoge los nodos .mord que contienen texto seleccionable.
    *
    * Clave para términos compuestos:
-   *   \text{du} → KaTeX produce <span class="mord mtext">du</span>
+   *   \text{Fr} → KaTeX produce <span class="mord mtext">Fr</span>
    *   Sus hijos son nodos mtext, NO mord. Por tanto !span.querySelector('.mord')
-   *   es true y el span pasa el filtro con textContent "du" completo.
-   *
-   *   Sin \text{}, KaTeX separa en letras individuales — comportamiento incorrecto.
+   *   es true y el span pasa el filtro con textContent "Fr" completo.
    */
   function buildTokens(containerId) {
     var container = document.getElementById(containerId);
@@ -344,34 +330,28 @@ const buildEquationHTML = (
 // ─── Referencias ─────────────────────────────────────────────────────────────
 const REFERENCES: Array<{ title: string; author: string; year: string; url: string }> = [
   {
-    title: 'Fluid Mechanics (8th ed.) — Continuity Equation',
-    author: 'Frank M. White',
-    year: '2016',
-    url: 'https://www.mheducation.com/highered/product/fluid-mechanics-white/M9781259696534.html',
+    title: 'On the Physical Interpretation of the Froude Number',
+    author: 'H. E. Chanson',
+    year: '2004',
+    url: 'https://doi.org/10.1061/(ASCE)0733-9399(2004)130:5(617)',
   },
   {
-    title: 'Introduction to Fluid Mechanics — Conservation of Mass',
-    author: 'Robert W. Fox, Alan T. McDonald, John W. Mitchell',
-    year: '2020',
-    url: 'https://www.wiley.com/en-us/Introduction+to+Fluid+Mechanics%2C+10th+Edition-p-9781119607854',
+    title: 'Hydraulics of Open Channel Flow: An Introduction',
+    author: 'H. Chanson',
+    year: '2004',
+    url: 'https://www.sciencedirect.com/book/9780750659789/hydraulics-of-open-channel-flow',
   },
   {
-    title: 'Derivation and Physical Interpretation of the Continuity Equation',
-    author: 'MIT OpenCourseWare — 2.20 Marine Hydrodynamics',
-    year: '2005',
-    url: 'https://ocw.mit.edu/courses/2-20-marine-hydrodynamics-13-021-spring-2005/pages/readings/',
+    title: 'Dimensional Analysis and Similarity',
+    author: 'F. M. White',
+    year: '2011',
+    url: 'https://www.mheducation.com/highered/product/fluid-mechanics-white/M9780073398273.html',
   },
   {
-    title: 'Continuity Equation in Fluid Dynamics',
-    author: 'Khan Academy',
-    year: '2023',
-    url: 'https://www.khanacademy.org/science/physics/fluids/fluid-dynamics/a/what-is-the-continuity-equation',
-  },
-  {
-    title: 'Fundamentals of Fluid Mechanics — Chapter 4: Fluid Kinematics',
-    author: 'Bruce R. Munson, Alric P. Rothmayer, Theodore H. Okiishi',
-    year: '2013',
-    url: 'https://www.wiley.com/en-us/Fundamentals+of+Fluid+Mechanics%2C+7th+Edition-p-9781118116135',
+    title: 'William Froude and the Development of Model Testing',
+    author: 'E. V. Lewis',
+    year: '1989',
+    url: 'https://www.sname.org/publications/books/transactions',
   },
 ];
 
@@ -416,7 +396,7 @@ const ReferenceItem = memo(({ title, author, year, url, textColor, subtitleColor
 ReferenceItem.displayName = 'ReferenceItem';
 
 // ─── Componente ──────────────────────────────────────────────────────────────
-const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?: string }) => {
+const TheoryFroude = ({ initialSelectedTerm = 'Fr' }: { initialSelectedTerm?: string }) => {
   const navigation = useNavigation();
   const { currentTheme } = useTheme();
   const { t } = useContext(LanguageContext);
@@ -435,7 +415,7 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
   const [isExpanded, setIsExpanded]         = useState(false);
   // Ref sincronizada: permite que handleWebViewMessage (memoizado) lea el valor actualizado
   const isExpandedRef                       = useRef(false);
-  const expandedFromTerm                    = useRef<string>('A');
+  const expandedFromTerm                    = useRef<string>('Fr');
 
   const references = useMemo(() => REFERENCES, []);
 
@@ -558,10 +538,10 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
       {/* Títulos */}
       <View style={styles.titlesContainer}>
         <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>
-          {t('continuidadTheory.subtitle')}
+          {t('froudeTheory.subtitle')}
         </Text>
         <Text style={[styles.title, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('continuidadTheory.title')}
+          {t('froudeTheory.title')}
         </Text>
       </View>
 
@@ -634,17 +614,17 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
       {selectedTerm !== 'none' && isValidTerm && (
         <View style={[styles.termCard, { borderColor: themeColors.separator }]}>
           <Text style={[styles.termTitle, { color: themeColors.selectedAccent, fontSize: 30 * fontSizeFactor }]}>
-            {t(`continuidadTheory.terms.${selectedTerm}.title`)}
+            {t(`froudeTheory.terms.${selectedTerm}.title`)}
           </Text>
           <Text style={[styles.termDescription, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-            {t(`continuidadTheory.terms.${selectedTerm}.description`)}
+            {t(`froudeTheory.terms.${selectedTerm}.description`)}
           </Text>
         </View>
       )}
       {selectedTerm === 'none' && (
         <View style={[styles.termCard, { borderColor: themeColors.separator }]}>
           <Text style={[styles.termPlaceholder, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-            {t('continuidadTheory.selectTermPlaceholder')}
+            {t('froudeTheory.selectTermPlaceholder')}
           </Text>
         </View>
       )}
@@ -652,7 +632,7 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
       {/* Referencias */}
       <View style={styles.refcont}>
         <Text style={[styles.titleReferencesText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('continuidadTheory.titles.references')}
+          {t('froudeTheory.titles.references')}
         </Text>
         {references.map((ref) => (
           <ReferenceItem
@@ -674,7 +654,7 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
   );
 };
 
-export default memo(ContinuidadTheory);
+export default memo(TheoryFroude);
 
 const styles = StyleSheet.create({
   safeArea: {

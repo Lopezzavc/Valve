@@ -11,6 +11,7 @@ import { LanguageContext } from '../../contexts/LanguageContext';
 import { FontSizeContext } from '../../contexts/FontSizeContext';
 import { useIsFocused } from '@react-navigation/native';
 import { calculatorsDef } from '../../src/data/calculators';
+import { ScrollView } from 'react-native';
 
 type RootStackParamList = {
   InfoScreen: undefined;
@@ -345,152 +346,202 @@ const HomeScreen = () => {
     }
   }, [currentText, phase]);
 
-  const cards = useMemo(() =>
-    calculatorsDef.map(c => ({
-      key: c.id,
-      title: t(c.titleKey) ?? c.id,
-      desc: t(c.descKey) ?? '',
-      math: c.math ?? '',
-      route: c.route,
-    }))
+  // Calculadoras de la primera sección (Esencial - Mecánica de fluidos)
+  const essentialCards = useMemo(() =>
+    calculatorsDef
+      .filter(c => ['reynolds', 'froude', 'continuity', 'energybernoulli', 'GeometriaSecciones'].includes(c.id))
+      .map(c => ({
+        key: c.id,
+        title: t(c.titleKey) ?? c.id,
+        desc: t(c.descKey) ?? '',
+        math: c.math ?? '',
+        route: c.route,
+      }))
+  , [t]);
+
+  // Calculadoras de la nueva sección (Flujo en tubería y pérdidas)
+  const pipeFlowCards = useMemo(() =>
+    calculatorsDef
+      .filter(c => ['factor-friccion', 'perdidas-localizadas', 'tuberia-simple', 'hazen-williams'].includes(c.id))
+      .map(c => ({
+        key: c.id,
+        title: t(c.titleKey) ?? c.id,
+        desc: t(c.descKey) ?? '',
+        math: c.math ?? '',
+        route: c.route,
+      }))
   , [t]);
 
   return (
-    <View style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
-      <View style={styles.headerContainer}>
-        <View style={styles.valveTextPlaceholder}>
-          <View style={styles.logoAndTextContainer}>
-            <Image
-              source={
-                currentTheme === 'dark'
-                  ? require('../../assets/icon/iconwhite.webp')
-                  : require('../../assets/icon/iconblack.webp')
-              }
-              style={styles.headerIcon}
-              resizeMode="contain"
-            />
-            {currentText.length > 0 && (
-              <Text
-                style={[
-                  styles.valveText,
-                  { fontFamily: currentFont, color: themeColors.textStrong },
-                ]}
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[
+        styles.scrollContent, 
+        { backgroundColor: themeColors.background }
+      ]}
+    >
+        <View style={styles.headerContainer}>
+          <View style={styles.valveTextPlaceholder}>
+            <View style={styles.logoAndTextContainer}>
+              <Image
+                source={
+                  currentTheme === 'dark'
+                    ? require('../../assets/icon/iconwhite.webp')
+                    : require('../../assets/icon/iconblack.webp')
+                }
+                style={styles.headerIcon}
+                resizeMode="contain"
+              />
+              {currentText.length > 0 && (
+                <Text
+                  style={[
+                    styles.valveText,
+                    { fontFamily: currentFont, color: themeColors.textStrong },
+                  ]}
+                >
+                  {currentText}
+                </Text>
+              )}
+            </View>
+          </View>
+          <View style={styles.rightIconsContainer}>
+            <Pressable
+              style={styles.simpleButtonContainer}
+              onPress={() => navigation.navigate('SearchScreen')}
+            >
+              <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
+              <MaskedView
+                style={styles.maskedButton}
+                maskElement={<View style={styles.transparentButtonMask} />}
               >
-                {currentText}
-              </Text>
-            )}
+                <View
+                  style={[
+                    styles.buttonGradient,
+                    { experimental_backgroundImage: themeColors.gradient },
+                  ]}
+                />
+              </MaskedView>
+              <Icon name="search" size={22} color={themeColors.icon} style={styles.buttonIcon} />
+            </Pressable>
+
+            <Pressable
+              style={styles.simpleButtonContainer2}
+              onPress={() => navigation.navigate('InfoScreen')}
+            >
+              <View style={[styles.buttonBackground2, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
+              <MaskedView
+                style={styles.maskedButton2}
+                maskElement={<View style={styles.transparentButtonMask2} />}
+              >
+                <View
+                  style={[
+                    styles.buttonGradient2,
+                    { experimental_backgroundImage: themeColors.gradient },
+                  ]}
+                />
+              </MaskedView>
+              <Icon name="plus" size={22} color={themeColors.icon} style={styles.buttonIcon} />
+            </Pressable>
           </View>
         </View>
-        <View style={styles.rightIconsContainer}>
-          <Pressable
-            style={styles.simpleButtonContainer}
-            onPress={() => navigation.navigate('SearchScreen')}
-          >
-            <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
-            <MaskedView
-              style={styles.maskedButton}
-              maskElement={<View style={styles.transparentButtonMask} />}
-            >
-              <View
-                style={[
-                  styles.buttonGradient,
-                  { experimental_backgroundImage: themeColors.gradient },
-                ]}
-              />
-            </MaskedView>
-            <Icon name="search" size={22} color={themeColors.icon} style={styles.buttonIcon} />
-          </Pressable>
 
-          <Pressable
-            style={styles.simpleButtonContainer2}
-            onPress={() => navigation.navigate('InfoScreen')}
-          >
-            <View style={[styles.buttonBackground2, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
-            <MaskedView
-              style={styles.maskedButton2}
-              maskElement={<View style={styles.transparentButtonMask2} />}
+        {/* MARQUESINA */}
+        <View style={styles.marqueeWrapper}>
+          <View style={styles.clipView}>
+            <Animated.View
+              style={[
+                styles.marqueeTrack,
+                trackWidth !== undefined && { width: trackWidth },
+                isAnimating && { transform: [{ translateX: animValue }] },
+              ]}
             >
-              <View
-                style={[
-                  styles.buttonGradient2,
-                  { experimental_backgroundImage: themeColors.gradient },
-                ]}
-              />
-            </MaskedView>
-            <Icon name="plus" size={22} color={themeColors.icon} style={styles.buttonIcon} />
-          </Pressable>
+              {Array.from({ length: copiesCount }).map((_, i) => (
+                <Text
+                  key={i}
+                  style={styles.marqueeText}
+                  numberOfLines={1}
+                  onLayout={i === 0 ? handleFirstTextLayout : undefined}
+                >
+                  {MARQUEE_TEXT}
+                </Text>
+              ))}
+            </Animated.View>
+          </View>
         </View>
-      </View>
 
-      {/* MARQUESINA */}
-      <View style={styles.marqueeWrapper}>
-        <View style={styles.clipView}>
-          <Animated.View
+        <View style={styles.titlesContainerCalc}>
+          <Text
             style={[
-              styles.marqueeTrack,
-              trackWidth !== undefined && { width: trackWidth },
-              isAnimating && { transform: [{ translateX: animValue }] },
+              styles.subtitleCalc,
+              { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
             ]}
           >
-            {Array.from({ length: copiesCount }).map((_, i) => (
-              <Text
-                key={i}
-                style={styles.marqueeText}
-                numberOfLines={1}
-                onLayout={i === 0 ? handleFirstTextLayout : undefined}
-              >
-                {MARQUEE_TEXT}
-              </Text>
-            ))}
-          </Animated.View>
+            {t('home.calculatorsTitle')}
+          </Text>
+          <Text
+            style={[
+              styles.titleCalc,
+              { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor },
+            ]}
+          >
+            {t('home.pressureDuctsTitle')}
+          </Text>
         </View>
-      </View>
 
-      <View style={styles.titlesContainerCalc}>
-        <Text
-          style={[
-            styles.subtitleCalc,
-            { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
-          ]}
-        >
-          {t('home.calculatorsTitle')}
-        </Text>
-        <Text
-          style={[
-            styles.titleCalc,
-            { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor },
-          ]}
-        >
-          {t('home.pressureDuctsTitle')}
-        </Text>
-      </View>
+        <View style={styles.preCardSubtitleWrap}>
+          <Text
+            style={[
+              styles.preCardSubtitleBase,
+              { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
+            ]}
+          >
+            <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitleEssential')}</Text>
+            <Text> - </Text>
+            <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle1')}</Text>
+          </Text>
+        </View>
 
-      <View style={styles.preCardSubtitleWrap}>
-        <Text
-          style={[
-            styles.preCardSubtitleBase,
-            { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
-          ]}
-        >
-          <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitleEssential')}</Text>
-          <Text> - </Text>
-          <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle1')}</Text>
-        </Text>
-      </View>
+        {/* PRIMERA SECCIÓN: Calculadoras esenciales */}
+        {essentialCards.map(card => (
+          <CalcCard
+            key={card.key}
+            title={card.title}
+            desc={card.desc}
+            math={card.math}
+            route={card.route}
+            navigation={navigation}
+            themeColors={themeColors}
+            fontSizeFactor={fontSizeFactor}
+          />
+        ))}
 
-      {cards.map(card => (
-        <CalcCard
-          key={card.key}
-          title={card.title}
-          desc={card.desc}
-          math={card.math}
-          route={card.route}
-          navigation={navigation}
-          themeColors={themeColors}
-          fontSizeFactor={fontSizeFactor}
-        />
-      ))}
-    </View>
+        <View style={styles.preCardSubtitleWrap}>
+          <Text
+            style={[
+              styles.preCardSubtitleBase,
+              { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
+            ]}
+          >
+            <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitleEssential')}</Text>
+            <Text> - </Text>
+            <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle1')}</Text>
+          </Text>
+        </View>
+
+        {pipeFlowCards.map(card => (
+          <CalcCard
+            key={card.key}
+            title={card.title}
+            desc={card.desc}
+            math={card.math}
+            route={card.route}
+            navigation={navigation}
+            themeColors={themeColors}
+            fontSizeFactor={fontSizeFactor}
+          />
+        ))}
+        <View style={styles.bottomSpacing} />
+    </ScrollView>
   );
 };
 
@@ -623,7 +674,7 @@ const styles = StyleSheet.create({
   },
   titlesContainerCalc: {
     backgroundColor: 'transparent',
-    marginTop: 10, // NO SE SI DEJARLO EN 10 PERO SE PIERDE LA COHERENCIA CON EL RESTO DE PANTALLAS, O DEJARLO EN 0 PERO SE VE FEO
+    marginTop: 10,
     paddingHorizontal: 20,
   },
   subtitleCalc: {
@@ -682,6 +733,30 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     marginRight: 40,
     fontFamily: 'HomeVideo-BLG6G',
+  },
+  scrollContent: {
+    paddingBottom: 200,   
+    flexGrow: 1,
+  },
+  sectionContainer: {
+    marginTop: 30,
+    marginBottom: 10,
+    paddingHorizontal: 20,
+  },
+  sectionTitleContainer: {
+    marginBottom: 5,
+  },
+  sectionTitle: {
+    fontFamily: 'Alliance No.2 SemiBold',
+    fontSize: 22,
+    marginBottom: 2,
+  },
+  sectionSubtitle: {
+    fontFamily: 'SFUIDisplay-Regular',
+    fontSize: 14,
+  },
+  bottomSpacing: {
+    height: 40,
   },
 });
 

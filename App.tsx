@@ -54,6 +54,7 @@ import ReynoldsTheory from './screens/calculators/1_Reynolds/ReynoldsTheory';
 import FroudeCalc from './screens/calculators/2_Froude/FroudeCalc';
 import OptionsScreenFroude from './screens/calculators/2_Froude/OptionsScreenFroude';
 import HistoryScreenFroude from './screens/calculators/2_Froude/HistoryScreenFroude';
+import FroudeTheory from './screens/calculators/2_Froude/TheoryFroude';
 
 // 3_CONTINUIDAD
 import ContinuidadCalc from './screens/calculators/3_Continuidad/ContinuidadCalc';
@@ -65,11 +66,17 @@ import ContinuidadTheory from './screens/calculators/3_Continuidad/ContinuidadTh
 import EnergiaBernoulliCalc from './screens/calculators/4_EnergiaBernoulli/EnergiaBernoulliCalc';
 import OptionsScreenEnergiaBernoulli from './screens/calculators/4_EnergiaBernoulli/OptionsScreenEnergiaBernoulli';
 import HistoryScreenEnergiaBernoulli from './screens/calculators/4_EnergiaBernoulli/HistoryScreenEnergiaBernoulli';
+import EnergiaBernoulliTheory from './screens/calculators/4_EnergiaBernoulli/EnergiaBernoulliTheory'
 
 // 5_GEOMETRIA SECCIONES
 import GeometriaSeccionesCalc from './screens/calculators/5_GeometriaSecciones/GeometriaSeccionesCalc';
 import OptionsScreenGeometria from './screens/calculators/5_GeometriaSecciones/OptionsScreenGeometria';
 import HistoryScreenGeometriaSecciones from './screens/calculators/5_GeometriaSecciones/HistoryScreenGeometriaSecciones';
+
+// 6_FACTOR FRICCION
+import FactorFriccionCalc from './screens/calculators/6_FactorFriccion/FactorFriccionCalc';
+import OptionsScreenFactorFriccion from './screens/calculators/6_FactorFriccion/OptionsScreenFactorFriccion';
+import MoodyDiagramScreen from './screens/calculators/6_FactorFriccion/MoodyDiagramScreen';
 
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
@@ -123,6 +130,11 @@ export type RootStackParamList = {
   HistoryScreenGeometriaSecciones: undefined;
   testFunc: undefined;
   InitialScreenConfigScreen: undefined;
+  FroudeTheory: undefined;
+  EnergiaBernoulliTheory: undefined;
+  FactorFriccionCalc: undefined;
+  OptionsScreenFactorFriccion: undefined;
+  MoodyDiagramScreen: undefined;
 };
 
 export type RootTabParamList = {
@@ -522,6 +534,14 @@ const App = () => {
                         }}
                       />
                       <Stack.Screen
+                        name="FactorFriccionCalc"
+                        component={FactorFriccionCalc}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                        }}
+                      />
+                      <Stack.Screen
                         name="EnergiaBernoulliCalc"
                         component={EnergiaBernoulliCalc}
                         options={{
@@ -532,6 +552,14 @@ const App = () => {
                       <Stack.Screen
                         name="OptionsScreen"
                         component={OptionsScreen}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="OptionsScreenFactorFriccion"
+                        component={OptionsScreenFactorFriccion}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
@@ -580,6 +608,30 @@ const App = () => {
                       <Stack.Screen
                         name="ContinuidadTheory"
                         component={ContinuidadTheory}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="MoodyDiagramScreen"
+                        component={MoodyDiagramScreen}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="EnergiaBernoulliTheory"
+                        component={EnergiaBernoulliTheory}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="FroudeTheory"
+                        component={FroudeTheory}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,

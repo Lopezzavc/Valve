@@ -1515,7 +1515,7 @@ const styles = StyleSheet.create({
     minWidth: 90, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    paddingHorizontal: 12,
+    paddingHorizontal: 12 
   },
   flowLabel: { 
     fontSize: 14, 

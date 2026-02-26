@@ -10,18 +10,16 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { KATEX_JS, KATEX_CSS } from '../../../src/katexBundle';
 
-// ─── Ecuación LaTeX principal ─────────────────────────────────────────────────
-// Ecuación de Continuidad para flujo incompresible: A₁V₁ = A₂V₂
-const LATEX_EQUATION = "A_1 V_1 = A_2 V_2";
+// ─── Ecuación LaTeX principal (Bernoulli generalizada con pérdidas) ───────────
+const LATEX_EQUATION =
+  "\\frac{P_1}{\\gamma} + \\frac{V_1^2}{2g} + z_1 = \\frac{P_2}{\\gamma} + \\frac{V_2^2}{2g} + z_2 + h_f";
 
 // ─── ALTURA DEL WEBVIEW (modo compacto, una sola ecuación) ───────────────────
-// ↓ Ajusta este valor para cambiar la altura del WebView cuando solo hay una ecuación
-const WEBVIEW_SINGLE_HEIGHT = 100;
+// ↓ La ecuación de Bernoulli es más larga; se usa un valor mayor para evitar recortes
+const WEBVIEW_SINGLE_HEIGHT = 150;
 
 // ─── SEPARACIÓN VERTICAL ENTRE ECUACIONES (solo en modo expandido) ────────────
-// ↓ Ajusta este valor para cambiar el espacio entre la ecuación principal y la secundaria.
-//   En modo compacto este gap no existe (es 0), por lo que no afecta el centrado.
-const EQUATION_GAP_PX = 0;
+const EQUATION_GAP_PX = 5;
 
 // ─── Términos expandibles y sus ecuaciones secundarias ───────────────────────
 interface ExpandableConfig {
@@ -29,36 +27,51 @@ interface ExpandableConfig {
   initialTerm: string;
   validTerms: Set<string>;
 }
+
 const EXPANDABLE_TERMS: Record<string, ExpandableConfig> = {
-  // 'A' (con subíndice 1 o 2) → expandible como sección circular: A = π r²
-  // Usamos el término 'A' genérico para ambos subíndices
-  'A': {
-    // A = π r² o equivalentemente A = π D²/4
-    latex: "A = \\frac{\\pi D^2}{4}",
-    initialTerm: 'A',
-    validTerms: new Set(['A', 'π', 'D']),
+  'h_f': {
+    // Ecuación de Darcy-Weisbach para pérdidas por fricción
+    latex: "h_f = f \\frac{L}{D} \\frac{V^2}{2g}",
+    initialTerm: 'f',
+    validTerms: new Set(['h_f', 'f', 'L', 'D', 'V', 'g']),
   },
-  // 'Q' (caudal volumétrico) → expandible como Q = 𝒱 / t
-  // \\mathcal{V} representa el volumen para no confundir con V (velocidad)
-  'Q': {
-    // \\text{du} y \\text{dy} son ESENCIALES en Reynolds; aquí usamos \\mathcal{V}
-    // para distinguir volumen de velocidad V.
-    latex: "Q = \\frac{\\mathcal{V}}{t}",
-    initialTerm: 'Q',
-    validTerms: new Set(['Q', '𝒱', 't']),
+  'γ': {
+    // Relación entre peso específico, densidad y gravedad
+    latex: "\\gamma = \\rho g",
+    initialTerm: 'ρ',
+    validTerms: new Set(['γ', 'ρ', 'g']),
   },
 };
 
 // ─── Términos válidos de la ecuación principal ────────────────────────────────
-// La ecuación A₁V₁ = A₂V₂ produce los tokens: A₁ → "A" con subíndice "1",
-// pero KaTeX los renderiza como span individual. Incluimos todas las variantes posibles.
-const VALID_TERMS_PRIMARY = new Set(['A', 'V', '1', '2']);
+// Nota: KaTeX renderiza P_1, V_1, z_1, etc. como nodos compuestos.
+// Los términos con subíndice se identifican por su texto "P", "V", "z", "γ", "g", "h"
+// dentro del WebView; sin embargo, para la capa React Native usamos las etiquetas
+// legibles que el sistema de traducción reconocerá.
+const VALID_TERMS_PRIMARY = new Set(['P₁', 'P₂', 'γ', 'V₁', 'V₂', 'g', 'z₁', 'z₂', 'h_f']);
 
 // Unión de todos los términos válidos (primaria + secundarias)
 const ALL_VALID_TERMS = new Set([
   ...VALID_TERMS_PRIMARY,
   ...Object.values(EXPANDABLE_TERMS).flatMap(cfg => [...cfg.validTerms]),
 ]);
+
+// ─── Mapa de texto KaTeX → clave de término para React Native ────────────────
+// KaTeX descompone P_1 en spans separados. Usamos este mapa para normalizar
+// lo que llega desde el WebView a las claves que usa el sistema de traducción.
+const KATEX_TEXT_TO_TERM: Record<string, string> = {
+  'P': 'P₁',   // primera coincidencia será P₁; ver nota en handleWebViewMessage
+  'V': 'V₁',
+  'z': 'z₁',
+  'γ': 'γ',
+  'g': 'g',
+  'h': 'h_f',
+  'f': 'f',
+  'L': 'L',
+  'D': 'D',
+  'ρ': 'ρ',
+  'm': 'm',
+};
 
 // ─── HTML del WebView ────────────────────────────────────────────────────────
 const buildEquationHTML = (
@@ -79,10 +92,6 @@ const buildEquationHTML = (
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 
-  /*
-   * html y body ocupan el 100 % de la altura del WebView y centran su contenido
-   * tanto vertical como horizontalmente (una ecuación o dos).
-   */
   html, body {
     background: transparent;
     width: 100%;
@@ -99,11 +108,7 @@ const buildEquationHTML = (
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 0 20px;
-    /*
-     * gap empieza en 0: en modo compacto la ecuación queda perfectamente centrada
-     * sin espacio sobrante. Se activa a ${EQUATION_GAP_PX}px solo al expandir (ver JS).
-     */
+    padding: 0 12px;
     gap: 0px;
   }
 
@@ -111,13 +116,15 @@ const buildEquationHTML = (
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5em;
+    /* Tamaño ligeramente reducido para que la ecuación larga quepa */
+    font-size: 1.2em;
     color: ${isDark ? 'rgb(235,235,235)' : 'rgb(0,0,0)'};
     white-space: nowrap;
     transition: opacity 0.25s ease;
+    overflow-x: auto;
+    max-width: 100%;
   }
 
-  /* Segunda ecuación: oculta por defecto */
   #eq2-row {
     display: none;
     opacity: 0;
@@ -128,7 +135,6 @@ const buildEquationHTML = (
     opacity: 1;
   }
 
-  /* Dimming de la ecuación principal cuando se expande */
   #eq1-row.dimmed {
     opacity: 0.4;
     pointer-events: none;
@@ -146,7 +152,6 @@ const buildEquationHTML = (
   .mord { cursor: pointer; }
   .mrel, .mbin, .mopen, .mclose, .mpunct { cursor: default; }
 
-  /* Evitar que el contenedor de fracción bloquee clics en sus hijos */
   .mfrac { pointer-events: none; }
   .mfrac .mord { pointer-events: auto; }
 </style>
@@ -163,7 +168,9 @@ const buildEquationHTML = (
 <script>
   var SKIP_TEXT = new Set(['=', '+', '-', '±', '×', '÷', '/', '·', '*',
     '<', '>', '≤', '≥', '≠', '≈', '∝', '∞',
-    '(', ')', '[', ']', '{', '}', ',', '.', ':', ';', '|']);
+    '(', ')', '[', ']', '{', '}', ',', '.', ':', ';', '|',
+    '1', '2']);   // ← ignorar los dígitos de subíndice sueltos
+
   var SKIP_CLASSES = ['mrel', 'mbin', 'mopen', 'mclose', 'mpunct'];
 
   var activeEq   = 1;
@@ -222,12 +229,16 @@ const buildEquationHTML = (
   /*
    * buildTokens: recoge los nodos .mord que contienen texto seleccionable.
    *
-   * Clave para términos compuestos:
-   *   \text{du} → KaTeX produce <span class="mord mtext">du</span>
-   *   Sus hijos son nodos mtext, NO mord. Por tanto !span.querySelector('.mord')
-   *   es true y el span pasa el filtro con textContent "du" completo.
+   * Para la ecuación de Bernoulli con subíndices (P_1, V_1, z_1, etc.),
+   * KaTeX produce spans .mord anidados para el subíndice. Filtramos los
+   * nodos hoja (sin hijos .mord) y excluimos los dígitos de subíndice
+   * via SKIP_TEXT (ver arriba).
    *
-   *   Sin \text{}, KaTeX separa en letras individuales — comportamiento incorrecto.
+   * Para h_f: KaTeX renderiza 'h' y 'f' como .mord separados dentro de
+   * la clase .mord principal que contiene el subíndice '_f'. Capturamos
+   * el 'h' como representante de h_f en la ecuación principal.
+   *
+   * \text{} se usa en la ec. de Darcy si se requieren términos compuestos.
    */
   function buildTokens(containerId) {
     var container = document.getElementById(containerId);
@@ -258,7 +269,6 @@ const buildEquationHTML = (
     tokens1 = buildTokens('eq1-row');
     attachListeners(tokens1);
     selectByText(${JSON.stringify(initialTerm)}, tokens1);
-    // No reportamos altura en init: en modo compacto la controla WEBVIEW_SINGLE_HEIGHT en RN.
   })();
 
   // ── Navegación ─────────────────────────────────────────────────────────────
@@ -282,7 +292,6 @@ const buildEquationHTML = (
     tokens2 = buildTokens('eq2-row');
     attachListeners(tokens2);
 
-    // Activar gap solo al expandir (0 en modo compacto)
     document.getElementById('equations-wrapper').style.gap = '${EQUATION_GAP_PX}px';
 
     document.getElementById('eq1-row').classList.add('dimmed');
@@ -295,7 +304,6 @@ const buildEquationHTML = (
 
     selectByText(secondInitialTerm, tokens2);
 
-    // Reportar altura real para que React Native agrande el WebView
     setTimeout(reportHeight, 50);
   };
 
@@ -306,7 +314,6 @@ const buildEquationHTML = (
 
     document.getElementById('eq1-row').classList.remove('dimmed');
 
-    // Eliminar gap al volver al modo compacto
     document.getElementById('equations-wrapper').style.gap = '0px';
 
     if (selected) selected.classList.remove('katex-selected');
@@ -319,7 +326,6 @@ const buildEquationHTML = (
 
     setTimeout(function() {
       eq2.innerHTML = '';
-      // No reportamos altura: React Native reestablece a WEBVIEW_SINGLE_HEIGHT al comprimir.
     }, 300);
   };
 
@@ -344,34 +350,34 @@ const buildEquationHTML = (
 // ─── Referencias ─────────────────────────────────────────────────────────────
 const REFERENCES: Array<{ title: string; author: string; year: string; url: string }> = [
   {
-    title: 'Fluid Mechanics (8th ed.) — Continuity Equation',
+    title: 'Hydrodynamica',
+    author: 'Daniel Bernoulli',
+    year: '1738',
+    url: 'https://archive.org/details/bub_gb_c5QOAAAAQAAJ',
+  },
+  {
+    title: 'Fluid Mechanics (8th ed.) — Capítulo 5: Ecuación de Bernoulli',
     author: 'Frank M. White',
     year: '2016',
-    url: 'https://www.mheducation.com/highered/product/fluid-mechanics-white/M9781259696534.html',
+    url: 'https://www.mheducation.com/highered/product/fluid-mechanics-white/M9780073398273.html',
   },
   {
-    title: 'Introduction to Fluid Mechanics — Conservation of Mass',
-    author: 'Robert W. Fox, Alan T. McDonald, John W. Mitchell',
-    year: '2020',
-    url: 'https://www.wiley.com/en-us/Introduction+to+Fluid+Mechanics%2C+10th+Edition-p-9781119607854',
+    title: 'Friction factors for pipe flow',
+    author: 'Lewis F. Moody',
+    year: '1944',
+    url: 'https://doi.org/10.1115/1.4018140',
   },
   {
-    title: 'Derivation and Physical Interpretation of the Continuity Equation',
-    author: 'MIT OpenCourseWare — 2.20 Marine Hydrodynamics',
-    year: '2005',
-    url: 'https://ocw.mit.edu/courses/2-20-marine-hydrodynamics-13-021-spring-2005/pages/readings/',
+    title: 'Explicit equations for pipe-flow problems (Swamee-Jain)',
+    author: 'P. K. Swamee & A. K. Jain',
+    year: '1976',
+    url: 'https://doi.org/10.1061/JYCEAJ.0004517',
   },
   {
-    title: 'Continuity Equation in Fluid Dynamics',
-    author: 'Khan Academy',
-    year: '2023',
-    url: 'https://www.khanacademy.org/science/physics/fluids/fluid-dynamics/a/what-is-the-continuity-equation',
-  },
-  {
-    title: 'Fundamentals of Fluid Mechanics — Chapter 4: Fluid Kinematics',
-    author: 'Bruce R. Munson, Alric P. Rothmayer, Theodore H. Okiishi',
-    year: '2013',
-    url: 'https://www.wiley.com/en-us/Fundamentals+of+Fluid+Mechanics%2C+7th+Edition-p-9781118116135',
+    title: 'Engineering Fluid Mechanics — Darcy-Weisbach equation',
+    author: 'Clayton T. Crowe et al.',
+    year: '2009',
+    url: 'https://www.wiley.com/en-us/Engineering+Fluid+Mechanics%2C+10th+Edition-p-9781118164297',
   },
 ];
 
@@ -415,8 +421,30 @@ const ReferenceItem = memo(({ title, author, year, url, textColor, subtitleColor
 });
 ReferenceItem.displayName = 'ReferenceItem';
 
-// ─── Componente ──────────────────────────────────────────────────────────────
-const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?: string }) => {
+// ─── Mapa de texto KaTeX → clave de término usada en traducción ──────────────
+// KaTeX produce nodos .mord con texto plano como 'P', 'V', 'h', etc.
+// Este mapa convierte esos textos en las claves reconocidas por el sistema de i18n.
+// Para términos con subíndices duplicados (P₁/P₂, V₁/V₂, z₁/z₂) el primer
+// aparecimiento corresponde a la versión "1" y el segundo a "2". Dado que
+// el WebView solo envía el texto base ('P', 'V', 'z'), se usa una clave genérica
+// para el título/descripción (e.g. 'P' → 'energiaBernoulliTheory.terms.P.title').
+const WEBVIEW_TO_I18N_KEY: Record<string, string> = {
+  'P': 'P',
+  'V': 'V',
+  'z': 'z',
+  'γ': 'γ',
+  'g': 'g',
+  'h': 'h_f',
+  'f': 'f',
+  'L': 'L',
+  'D': 'D',
+  'ρ': 'ρ',
+  'm': 'm',
+  'τ': 'τ',
+};
+
+// ─── Componente principal ─────────────────────────────────────────────────────
+const EnergiaBernoulliTheory = ({ initialSelectedTerm = 'h' }: { initialSelectedTerm?: string }) => {
   const navigation = useNavigation();
   const { currentTheme } = useTheme();
   const { t } = useContext(LanguageContext);
@@ -424,22 +452,19 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
 
   const webViewRef = useRef<WebView>(null);
 
-  // ── Estado de UI ──────────────────────────────────────────────────────────────
+  // ── Estado de UI ─────────────────────────────────────────────────────────────
   const [selectedTerm, setSelectedTerm]     = useState<string>('none');
-  // Altura inicial = WEBVIEW_SINGLE_HEIGHT. Para cambiarla en modo compacto,
-  // modifica la constante WEBVIEW_SINGLE_HEIGHT al principio del archivo.
   const [webViewHeight, setWebViewHeight]   = useState<number>(WEBVIEW_SINGLE_HEIGHT);
   const [isWebViewReady, setIsWebViewReady] = useState(false);
 
-  // ── Estado expandir/comprimir ─────────────────────────────────────────────────
+  // ── Estado expandir/comprimir ────────────────────────────────────────────────
   const [isExpanded, setIsExpanded]         = useState(false);
-  // Ref sincronizada: permite que handleWebViewMessage (memoizado) lea el valor actualizado
   const isExpandedRef                       = useRef(false);
-  const expandedFromTerm                    = useRef<string>('A');
+  const expandedFromTerm                    = useRef<string>('h');
 
   const references = useMemo(() => REFERENCES, []);
 
-  // ── Callbacks del WebView ─────────────────────────────────────────────────────
+  // ── Callbacks del WebView ────────────────────────────────────────────────────
   const handleWebViewLoad = useCallback(() => {
     setIsWebViewReady(true);
   }, []);
@@ -448,13 +473,15 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'height' && typeof data.value === 'number') {
-        // Solo aplicar altura dinámica cuando estamos expandidos.
-        // En modo compacto la altura permanece fija en WEBVIEW_SINGLE_HEIGHT.
         if (isExpandedRef.current) {
           setWebViewHeight(Math.max(data.value, WEBVIEW_SINGLE_HEIGHT));
         }
       } else if (data.type === 'selected') {
-        setSelectedTerm(data.value);
+        // El WebView envía el texto plano del nodo KaTeX (e.g. 'P', 'h', 'γ').
+        // Lo convertimos a la clave i18n correspondiente antes de guardarlo en estado.
+        const raw = data.value as string;
+        const mapped = WEBVIEW_TO_I18N_KEY[raw] ?? raw;
+        setSelectedTerm(mapped);
       }
     } catch (_) {}
   }, []);
@@ -488,7 +515,7 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
     };
   }, [isDark]);
 
-  // ── Navegación ────────────────────────────────────────────────────────────────
+  // ── Navegación ───────────────────────────────────────────────────────────────
   const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleNext = useCallback(() => {
@@ -499,7 +526,7 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
     webViewRef.current?.injectJavaScript('window.goPrev(); true;');
   }, []);
 
-  // ── Expandir / Comprimir ──────────────────────────────────────────────────────
+  // ── Expandir / Comprimir ─────────────────────────────────────────────────────
   const handleExpand = useCallback(() => {
     if (isExpandedRef.current) {
       // — Comprimir —
@@ -509,10 +536,10 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
       );
       isExpandedRef.current = false;
       setIsExpanded(false);
-      // Restaurar altura fija al comprimir
       setWebViewHeight(WEBVIEW_SINGLE_HEIGHT);
     } else {
       // — Expandir (solo si el término seleccionado es expandible) —
+      // selectedTerm está en clave i18n (e.g. 'h_f', 'γ'); EXPANDABLE_TERMS usa esas mismas claves.
       const config = EXPANDABLE_TERMS[selectedTerm];
       if (!config) return;
 
@@ -525,10 +552,10 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
     }
   }, [selectedTerm]);
 
-  // ── Helpers de estado ─────────────────────────────────────────────────────────
-  const isValidTerm    = ALL_VALID_TERMS.has(selectedTerm);
-  const expandIconName = isExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical';
-  const canExpand      = isExpanded || Boolean(EXPANDABLE_TERMS[selectedTerm]);
+  // ── Helpers de estado ────────────────────────────────────────────────────────
+  // Para 'canExpand' también verificamos las claves directas del WebView que se mapean a expandibles.
+  // 'h' → 'h_f', 'γ' → 'γ'
+  const canExpand = isExpanded || Boolean(EXPANDABLE_TERMS[selectedTerm]);
 
   const equationHTML = React.useMemo(
     () => buildEquationHTML(LATEX_EQUATION, isDark, initialSelectedTerm),
@@ -558,10 +585,10 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
       {/* Títulos */}
       <View style={styles.titlesContainer}>
         <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>
-          {t('continuidadTheory.subtitle')}
+          {t('energiaBernoulliTheory.subtitle')}
         </Text>
         <Text style={[styles.title, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('continuidadTheory.title')}
+          {t('energiaBernoulliTheory.title')}
         </Text>
       </View>
 
@@ -608,7 +635,7 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
           <Icon2 name="chevron-right" size={22} color={themeColors.icon} style={styles.buttonIcon} />
         </Pressable>
 
-        {/* Botón expandir/comprimir — mismo diseño que las flechas */}
+        {/* Botón expandir/comprimir */}
         <Pressable
           style={[styles.simpleButtonContainer2, !canExpand && styles.buttonDisabled]}
           onPress={handleExpand}
@@ -622,29 +649,29 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
             <View style={[styles.buttonGradient2, { experimental_backgroundImage: themeColors.gradient }]} />
           </MaskedView>
           <Icon3
-            name={expandIconName}
+            name={isExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'}
             size={20}
-            color={isExpanded ? themeColors.icon : themeColors.icon}
+            color={themeColors.icon}
             style={styles.buttonIcon}
           />
         </Pressable>
       </View>
 
       {/* ── Info del término seleccionado ── */}
-      {selectedTerm !== 'none' && isValidTerm && (
+      {selectedTerm !== 'none' && (
         <View style={[styles.termCard, { borderColor: themeColors.separator }]}>
           <Text style={[styles.termTitle, { color: themeColors.selectedAccent, fontSize: 30 * fontSizeFactor }]}>
-            {t(`continuidadTheory.terms.${selectedTerm}.title`)}
+            {t(`energiaBernoulliTheory.terms.${selectedTerm}.title`)}
           </Text>
           <Text style={[styles.termDescription, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-            {t(`continuidadTheory.terms.${selectedTerm}.description`)}
+            {t(`energiaBernoulliTheory.terms.${selectedTerm}.description`)}
           </Text>
         </View>
       )}
       {selectedTerm === 'none' && (
         <View style={[styles.termCard, { borderColor: themeColors.separator }]}>
           <Text style={[styles.termPlaceholder, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-            {t('continuidadTheory.selectTermPlaceholder')}
+            {t('energiaBernoulliTheory.selectTermPlaceholder')}
           </Text>
         </View>
       )}
@@ -652,7 +679,7 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
       {/* Referencias */}
       <View style={styles.refcont}>
         <Text style={[styles.titleReferencesText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('continuidadTheory.titles.references')}
+          {t('energiaBernoulliTheory.titles.references')}
         </Text>
         {references.map((ref) => (
           <ReferenceItem
@@ -674,8 +701,9 @@ const ContinuidadTheory = ({ initialSelectedTerm = 'A' }: { initialSelectedTerm?
   );
 };
 
-export default memo(ContinuidadTheory);
+export default memo(EnergiaBernoulliTheory);
 
+// ─── Estilos ─────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -835,7 +863,6 @@ const styles = StyleSheet.create({
       'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     borderRadius: 25,
   },
-
   simpleButtonContainer2: {
     width: 69,
     height: 46,
@@ -875,7 +902,6 @@ const styles = StyleSheet.create({
       'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     borderRadius: 25,
   },
-
   buttonIcon: {
     position: 'absolute',
   },
