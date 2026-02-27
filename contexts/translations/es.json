@@ -372,7 +372,8 @@
   },
   "mainMenu": {
     "subtitleEssential": "Essential",
-    "subtitle1": "Mecánica de fluidos"
+    "subtitle1": "Mecánica de fluidos",
+    "subtitle2": "Flujo en tubería (lisa/rugosa) y pérdidas"
   },
   "theoryReynolds": {
     "subtitle": "¿Qué es?",
@@ -826,5 +827,26 @@
       "swameeJainRange": "Swamee-Jain es válida para 10⁻⁶ ≤ ε/D ≤ 10⁻² y 5 000 ≤ Re ≤ 10⁸",
       "blasiusRange": "Blasius es válida para tuberías lisas con 4 000 ≤ Re ≤ 10⁵"
     }
+  },
+  "moodyDiagramScreen": {
+    "subtitle": "Método gráfico",
+    "title": "Diagrama de Moody",
+    "xAxisLabel": "Número de Reynolds (Re)",
+    "yAxisLabel": "Factor de fricción (f)",
+    "transitionLabel": "Trans.",
+    "selectedLegend": "seleccionado",
+    "roughnessSliderLabel": "Rugosidad relativa  ε/D",
+    "reynoldsSliderLabel": "Número de Reynolds  Re",
+    "laminarBadge": "Laminar  ·  f = 64/Re",
+    "turbulentBadge": "Turbulento  ·  Colebrook-White",
+    "transitionBadge": "Transición  ·  Región incierta",
+    "frictionFactorLabel": "Factor de fricción",
+    "frictionFactorSubLabel": "f  (Darcy-Weisbach)",
+    "variablesTitle": "Control interactivo de variables",
+    "ffactorresult": "Factor de fricción (f)"
+  },
+  "factorFriccion": {
+    "title": "Factor de fricción",
+    "desc": "Calcula el factor de fricción con ecuaciones de Colebrook, Haaland y un diagrama de Moody interactivo."
   }
 }

@@ -522,9 +522,9 @@ const HomeScreen = () => {
               { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
             ]}
           >
-            <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitleEssential')}</Text>
-            <Text> - </Text>
-            <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle1')}</Text>
+            <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}></Text>
+            <Text></Text>
+            <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle2')}</Text>
           </Text>
         </View>
 
