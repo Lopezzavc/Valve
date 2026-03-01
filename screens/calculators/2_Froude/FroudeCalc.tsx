@@ -1,6 +1,6 @@
 import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, Animated, Dimensions } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
@@ -15,7 +15,8 @@ import { createFavoritesTable, isFavorite, addFavorite, removeFavorite } from '.
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
-import { KeyboardAwareScrollView, KeyboardToolbar } from 'react-native-keyboard-controller';
+import { useKeyboard } from '../../../contexts/KeyboardContext';
+import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 
 type RootStackParamList = {
   OptionsScreenFroude: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
@@ -140,7 +141,16 @@ const FroudeCalc: React.FC = () => {
   const { formatNumber } = useContext(PrecisionDecimalContext);
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
-  const [inputSectionPadding, setInputSectionPadding] = useState(100);
+
+  // ── Custom keyboard ──────────────────────────────────────────────────────────
+  const { activeInputId, setActiveInputId } = useKeyboard();
+
+  // Ref con el estado actual para evitar closures obsoletas en los handlers del teclado
+  const stateRef = useRef<CalculatorState>(initialState());
+
+  // Ref que mapea cada fieldId al handler completo de cambio de valor
+  const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const { currentTheme } = useTheme();
   const { t, selectedLanguage } = useContext(LanguageContext);
@@ -171,6 +181,45 @@ const FroudeCalc: React.FC = () => {
   }, [currentTheme]);
 
   const [state, setState] = useState<CalculatorState>(initialState);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const inputRefs = useRef<Record<string, View | null>>({});
+  const activeInputIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeInputIdRef.current = activeInputId;
+  }, [activeInputId]);
+
+  useEffect(() => {
+    if (!activeInputId) return;
+    const viewRef = inputRefs.current[activeInputId];
+    if (!viewRef || !scrollViewRef.current) return;
+
+    setTimeout(() => {
+      viewRef.measureLayout(
+        scrollViewRef.current as any,
+        (_x, y, _w, height) => {
+          const KEYBOARD_HEIGHT = 280;
+          const SCREEN_HEIGHT = Dimensions.get('window').height;
+          const targetScrollY = y - (SCREEN_HEIGHT - KEYBOARD_HEIGHT - height - 30);
+          scrollViewRef.current?.scrollTo({ y: Math.max(0, targetScrollY), animated: true });
+        },
+        () => {}
+      );
+    }, 150);
+  }, [activeInputId]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setActiveInputId(null);
+      };
+    }, [])
+  );
 
   const regimeKey = React.useMemo(() => {
     const Fr = state.resultFroude;
@@ -451,6 +500,71 @@ const FroudeCalc: React.FC = () => {
     navigation.navigate('OptionsScreenFroude', { category, onSelectOption, selectedOption });
   }, [navigation]);
 
+  // ── Handlers del teclado custom ──────────────────────────────────────────────
+  const getActiveValue = useCallback((): string => {
+    const id = activeInputIdRef.current;
+    if (!id) return '';
+    const s = stateRef.current;
+    // Mapa de fieldId a propiedad del estado
+    const map: Record<string, string> = {
+      area: s.area,
+      width: s.width,
+      hydraulicDepth: s.hydraulicDepth,
+      velocity: s.velocity,
+      gravity: s.gravity,
+    };
+    return map[id] ?? '';
+  }, []);
+
+  const handleKeyboardKey = useCallback((key: string) => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler(getActiveValue() + key);
+  }, []);
+
+  const handleKeyboardDelete = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler(getActiveValue().slice(0, -1));
+  }, []);
+
+  const handleKeyboardClear = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler('');
+  }, []);
+
+  const handleKeyboardMultiply10 = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    const val = getActiveValue();
+    if (val === '' || val === '.') return;
+    handler((parseFloat(val) * 10).toString());
+  }, []);
+
+  const handleKeyboardDivide10 = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    const val = getActiveValue();
+    if (val === '' || val === '.') return;
+    handler((parseFloat(val) / 10).toString());
+  }, []);
+
+  const handleKeyboardSubmit = useCallback(() => {
+    setActiveInputId(null);
+  }, [setActiveInputId]);
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const renderInput = useCallback((
     labelKey: string,
     value: string,
@@ -480,9 +594,27 @@ const FroudeCalc: React.FC = () => {
       velocity: 'velocity',
       gravity: 'acceleration',
     };
+
+    // Registrar el handler completo del campo en el ref para que el teclado lo use
+    if (fieldId) {
+      inputHandlersRef.current[fieldId] = (text: string) => {
+        onChange(text);
+        setState((prev) => ({
+          ...prev,
+          invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
+          autoCalculatedField: prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
+          ...(fieldId === 'area' ? { resultArea: '' } : {}),
+          ...(fieldId === 'width' ? { resultWidth: '' } : {}),
+          ...(fieldId === 'hydraulicDepth' ? { resultHydraulicDepth: '' } : {}),
+        }));
+      };
+    }
   
     return (
-      <View style={styles.inputWrapper}>
+      <View
+        ref={(r) => { if (fieldId) inputRefs.current[fieldId] = r; }}
+        style={styles.inputWrapper}
+      >
         <View style={styles.labelRow}>
           <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
             {shownLabel}
@@ -508,25 +640,24 @@ const FroudeCalc: React.FC = () => {
         <View style={styles.redContainer}>
           <View style={[styles.Container, { experimental_backgroundImage: themeColors.gradient }]}>
             <View style={[styles.innerWhiteContainer, { backgroundColor: inputContainerBg }]}>
+              {/*
+                Presionar el área activa el teclado custom.
+                El TextInput es no-editable para bloquear el teclado nativo;
+                pointerEvents="none" evita que capture el toque (lo captura el Pressable).
+              */}
+              <Pressable
+                onPress={() => {
+                  if (isFieldLocked || !fieldId) return;
+                  setActiveInputId(fieldId);
+                }}
+                style={StyleSheet.absoluteFill}
+              />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                keyboardType="numeric"
                 value={resultValue && resultValue !== '' ? resultValue : value}
-                onChangeText={(text) => {
-                  onChange(text);
-                  if (fieldId) {
-                    setState((prev) => ({
-                      ...prev,
-                      invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
-                      autoCalculatedField: prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
-                      ...(fieldId === 'area' ? { resultArea: '' } : {}),
-                      ...(fieldId === 'width' ? { resultWidth: '' } : {}),
-                      ...(fieldId === 'hydraulicDepth' ? { resultHydraulicDepth: '' } : {}),
-                    }));
-                  }
-                }}
-                editable={!isFieldLocked}
-                selectTextOnFocus={!isFieldLocked}
+                editable={false}
+                showSoftInputOnFocus={false}
+                pointerEvents="none"
                 placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
               />
             </View>
@@ -579,16 +710,20 @@ const FroudeCalc: React.FC = () => {
         </View>
       </View>
     );
-  }, [state, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor, t]);
+  }, [state, convertValue, navigateToOptions, updateLockedGeometryField, themeColors, currentTheme, fontSizeFactor, t, setActiveInputId]);
+
+  const isKeyboardOpen = !!activeInputId;
 
   return (
     <View 
       style={styles.safeArea}
     >
-      <KeyboardAwareScrollView
-        bottomOffset={50}
+      <ScrollView
+        ref={scrollViewRef}
         style={styles.mainContainer}
         contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        contentInset={{ bottom: isKeyboardOpen ? 280 : 0 }}
       >
         {/* Header */}
         <View style={styles.headerContainer}>
@@ -703,7 +838,10 @@ const FroudeCalc: React.FC = () => {
         <View
           style={[
             styles.inputsSection,
-            { backgroundColor: themeColors.card }
+            { 
+              backgroundColor: themeColors.card,
+              paddingBottom: isKeyboardOpen ? 330 : 70,
+            }
           ]}
         >
           <View style={styles.inputsContainer}>
@@ -755,7 +893,22 @@ const FroudeCalc: React.FC = () => {
             )}
           </View>
         </View>
-      </KeyboardAwareScrollView>
+      </ScrollView>
+
+      {/* ── Teclado custom ── renderizado fuera del ScrollView para quedar siempre visible en el fondo */}
+      {isKeyboardOpen && (
+        <View style={styles.customKeyboardWrapper}>
+          <CustomKeyboardPanel
+            onKeyPress={handleKeyboardKey}
+            onDelete={handleKeyboardDelete}
+            onSubmit={handleKeyboardSubmit}
+            onMultiplyBy10={handleKeyboardMultiply10}
+            onDivideBy10={handleKeyboardDivide10}
+            onClear={handleKeyboardClear}
+          />
+        </View>
+      )}
+
       <Toast config={toastConfig} position="bottom" />
     </View>
   );
@@ -942,7 +1095,6 @@ const styles = StyleSheet.create({
     paddingTop: 20, 
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25, 
-    paddingBottom: 70,
   },
   inputsContainer: { 
     backgroundColor: 'transparent' 
@@ -1036,6 +1188,14 @@ const styles = StyleSheet.create({
     height: 40, 
     borderRadius: 30, 
     padding: 1 
+  },
+  // ── Teclado custom ──────────────────────────────────────────────────────────
+  customKeyboardWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#f5f5f5',
   },
 });
 

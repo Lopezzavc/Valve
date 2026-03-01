@@ -14,6 +14,7 @@ import { DecimalSeparatorProvider } from './contexts/DecimalSeparatorContext';
 import { PrecisionDecimalProvider } from './contexts/PrecisionDecimalContext';
 import { useTheme } from './contexts/ThemeContext';
 import { InitialScreenContext } from './contexts/InitialScreenContext';
+import { KeyboardProvider } from './contexts/KeyboardContext';
 
 import SplashScreen from './screens/welcome/SplashScreen';
 import WelcomeScreen from './screens/welcome/WelcomeScreen';
@@ -78,13 +79,20 @@ import FactorFriccionCalc from './screens/calculators/6_FactorFriccion/FactorFri
 import OptionsScreenFactorFriccion from './screens/calculators/6_FactorFriccion/OptionsScreenFactorFriccion';
 import MoodyDiagramScreen from './screens/calculators/6_FactorFriccion/MoodyDiagramScreen';
 
+// 7_PERDIDAS LOCALIZADAS
+import PerdidasLocalizadasCalc from './screens/calculators/7_PerdidasLocalizadas/PerdidasLocalizadasCalc';
+import OptionsScreenPerdidasLocalizadas from './screens/calculators/7_PerdidasLocalizadas/OptionsScreenPerdidasLocalizadas';
+
+// 8_CASO 1 DISEÑO
+import DiseñoCalc from './screens/calculators/8_Diseño/DiseñoCalc';
+
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
 import HistoryScreenColebrook from './screens/calculators/Ffactor/HistoryScreenColebrook';
 
 import testFunc from './screens/debug/testfunc';
 
-import { KeyboardProvider, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { InitialScreenProvider } from './contexts/InitialScreenContext';
 
 enableScreens(true);
@@ -135,6 +143,9 @@ export type RootStackParamList = {
   FactorFriccionCalc: undefined;
   OptionsScreenFactorFriccion: undefined;
   MoodyDiagramScreen: undefined;
+  PerdidasLocalizadasCalc: undefined;
+  OptionsScreenPerdidasLocalizadas: undefined;
+  DiseñoCalc: undefined;
 };
 
 export type RootTabParamList = {
@@ -394,11 +405,7 @@ const App = () => {
                         component={ThemeInitialConfig}
                         options={{
                           headerShown: false,
-                          cardStyleInterpolator: forFade,
-                          transitionSpec: {
-                            open: { animation: 'timing', config: { duration: 500 } },
-                            close: { animation: 'timing', config: { duration: 250 } },
-                          },
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                           gestureEnabled: false,
                         }}
                       />
@@ -407,11 +414,7 @@ const App = () => {
                         component={SeparatorInitialConfig}
                         options={{
                           headerShown: false,
-                          cardStyleInterpolator: forFade,
-                          transitionSpec: {
-                            open: { animation: 'timing', config: { duration: 500 } },
-                            close: { animation: 'timing', config: { duration: 250 } },
-                          },
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                           gestureEnabled: false,
                         }}
                       />
@@ -420,11 +423,7 @@ const App = () => {
                         component={PrecisionInitialConfig}
                         options={{
                           headerShown: false,
-                          cardStyleInterpolator: forFade,
-                          transitionSpec: {
-                            open: { animation: 'timing', config: { duration: 500 } },
-                            close: { animation: 'timing', config: { duration: 250 } },
-                          },
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                           gestureEnabled: false,
                         }}
                       />
@@ -526,6 +525,22 @@ const App = () => {
                         }}
                       />
                       <Stack.Screen
+                        name="DiseñoCalc"
+                        component={DiseñoCalc}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="PerdidasLocalizadasCalc"
+                        component={PerdidasLocalizadasCalc}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                        }}
+                      />
+                      <Stack.Screen
                         name="GeometriaSeccionesCalc"
                         component={GeometriaSeccionesCalc}
                         options={{
@@ -552,6 +567,14 @@ const App = () => {
                       <Stack.Screen
                         name="OptionsScreen"
                         component={OptionsScreen}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="OptionsScreenPerdidasLocalizadas"
+                        component={OptionsScreenPerdidasLocalizadas}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,

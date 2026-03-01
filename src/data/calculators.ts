@@ -75,7 +75,7 @@ export const calculatorsDef: CalcDef[] = [
   {
     desc: '',
     id: 'tuberia-simple',
-    route: 'TuberiaSimpleCalc',
+    route: 'DiseñoCalc',
     icon: 'wind',
     titleKey: 'tuberiaSimple.title',
     descKey: 'tuberiaSimple.desc',

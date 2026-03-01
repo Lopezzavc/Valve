@@ -8,8 +8,10 @@ import {
   Animated,
   Clipboard,
   LayoutChangeEvent,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
 import IconCheck from 'react-native-vector-icons/Octicons';
@@ -23,7 +25,8 @@ import { getDBConnection, createTable, saveCalculation, createFavoritesTable, is
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useKeyboard } from '../../../contexts/KeyboardContext';
+import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 
@@ -477,6 +480,16 @@ const EnergiaBernoulliCalc: React.FC = () => {
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
 
+  // ── Custom keyboard ──────────────────────────────────────────────────────────
+  const { activeInputId, setActiveInputId } = useKeyboard();
+
+  // Ref con el estado actual para evitar closures obsoletas en los handlers del teclado
+  const stateRef = useRef<CalculatorState>(initialState());
+
+  // Ref que mapea cada fieldId al handler completo de cambio de valor
+  const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const { currentTheme } = useTheme();
   const { t, selectedLanguage } = useContext(LanguageContext);
 
@@ -509,6 +522,45 @@ const EnergiaBernoulliCalc: React.FC = () => {
   }, [currentTheme]);
 
   const [state, setState] = useState<CalculatorState>(initialState);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setActiveInputId(null);
+      };
+    }, [])
+  );
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const inputRefs = useRef<Record<string, View | null>>({});
+  const activeInputIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeInputIdRef.current = activeInputId;
+  }, [activeInputId]);
+
+  useEffect(() => {
+    if (!activeInputId) return;
+    const viewRef = inputRefs.current[activeInputId];
+    if (!viewRef || !scrollViewRef.current) return;
+
+    setTimeout(() => {
+      viewRef.measureLayout(
+        scrollViewRef.current as any,
+        (_x, y, _w, height) => {
+          const KEYBOARD_HEIGHT = 280;
+          const SCREEN_HEIGHT = Dimensions.get('window').height;
+          const targetScrollY = y - (SCREEN_HEIGHT - KEYBOARD_HEIGHT - height - 30);
+          scrollViewRef.current?.scrollTo({ y: Math.max(0, targetScrollY), animated: true });
+        },
+        () => {}
+      );
+    }, 150);
+  }, [activeInputId]);
 
   // Valores de animación para el selector de modo principal
   const animatedValue = useRef(new Animated.Value(0)).current;
@@ -2178,6 +2230,91 @@ const EnergiaBernoulliCalc: React.FC = () => {
     navigation.navigate('OptionsScreenEnergiaBernoulli', { category, onSelectOption, selectedOption });
   }, [navigation]);
 
+  // ── Handlers del teclado custom ──────────────────────────────────────────────
+  const getActiveValue = useCallback((): string => {
+    const id = activeInputIdRef.current;
+    if (!id) return '';
+    const s = stateRef.current;
+    // Mapa de fieldId a propiedad del estado
+    const map: Record<string, string> = {
+      P1: s.P1,
+      P2: s.P2,
+      z1: s.z1,
+      z2: s.z2,
+      V1: s.V1,
+      V2: s.V2,
+      D1: s.D1,
+      D2: s.D2,
+      rho: s.rho,
+      gamma: s.gamma,
+      g: s.g,
+      hb: s.hb,
+      ht: s.ht,
+      hL: s.hL,
+      L: s.L,
+      f: s.f,
+      K: s.K,
+      Ps: s.Ps,
+      Vs: s.Vs,
+      Patm: s.Patm,
+      z0: s.z0,
+      zs: s.zs,
+      hfs: s.hfs,
+      temperatura: s.temperatura,
+      Pv: s.Pv,
+    };
+    return map[id] ?? '';
+  }, []);
+
+  const handleKeyboardKey = useCallback((key: string) => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler(getActiveValue() + key);
+  }, []);
+
+  const handleKeyboardDelete = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler(getActiveValue().slice(0, -1));
+  }, []);
+
+  const handleKeyboardClear = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler('');
+  }, []);
+
+  const handleKeyboardMultiply10 = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    const val = getActiveValue();
+    if (val === '' || val === '.') return;
+    handler((parseFloat(val) * 10).toString());
+  }, []);
+
+  const handleKeyboardDivide10 = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    const val = getActiveValue();
+    if (val === '' || val === '.') return;
+    handler((parseFloat(val) / 10).toString());
+  }, []);
+
+  const handleKeyboardSubmit = useCallback(() => {
+    setActiveInputId(null);
+  }, [setActiveInputId]);
+  // ─────────────────────────────────────────────────────────────────────────────
+
   // Renderiza un campo de entrada completo con etiqueta, indicador de estado y botón de unidades
   const renderInput = useCallback((
     label: string,
@@ -2224,41 +2361,63 @@ const EnergiaBernoulliCalc: React.FC = () => {
     // Limita la cantidad de decimales visibles a 5 sin romper el separador decimal del usuario
     const formatDisplayValue = (val: string): string => {
       if (!val || val === '') return val;
-
+        
       const lastChar = val.charAt(val.length - 1);
       if (lastChar === '.' || lastChar === ',') {
         return val;
       }
-
+    
       if (val.includes('.') && val.split('.')[1] === '') {
         return val;
       }
       if (val.includes(',') && val.split(',')[1] === '') {
         return val;
       }
-
+    
       const normalizedVal = val.replace(',', '.');
-      const num = parseFloat(normalizedVal);
-
-      if (isNaN(num)) return val;
-
-      const formatted = num.toFixed(8).replace(/\.?0+$/, '');
-      return selectedDecimalSeparator === 'Coma' ? formatted.replace('.', ',') : formatted;
-    };
-
-    // Al escribir se actualiza el valor y se borra el error de validación del campo
-    const handleTextChange = (text: string) => {
-      onChange(text);
-      setManualEdit(true);
-      if (fieldId) {
-        setState((prev) => ({
-          ...prev,
-          invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
-          autoCalculatedField: prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
-          unknownVariable: prev.unknownVariable?.name === fieldId ? null : prev.unknownVariable,
-        }));
+      
+      // Verificar si el usuario escribió específicamente "0.0"
+      if (normalizedVal === '0.0') {
+        return selectedDecimalSeparator === 'Coma' ? '0,0' : '0.0';
       }
+    
+      const num = parseFloat(normalizedVal);
+      if (isNaN(num)) return val;
+    
+      // Detectar cuántos decimales escribió el usuario
+      const decimalPart = normalizedVal.includes('.') ? normalizedVal.split('.')[1] : '';
+      const userDecimalCount = decimalPart.length;
+      
+      // Si el usuario no escribió decimales, formatear como entero
+      if (userDecimalCount === 0) {
+        return selectedDecimalSeparator === 'Coma' 
+          ? num.toString().replace('.', ',') 
+          : num.toString();
+      }
+      
+      // Si el usuario escribió decimales, mantener exactamente esa cantidad
+      const formatted = num.toFixed(userDecimalCount);
+      return selectedDecimalSeparator === 'Coma' 
+        ? formatted.replace('.', ',') 
+        : formatted;
     };
+
+    // Registrar el handler completo del campo en el ref para que el teclado lo use
+    if (fieldId) {
+      inputHandlersRef.current[fieldId] = (text: string) => {
+        onChange(text);
+        setManualEdit(true);
+        setState((prev) => {
+          const next: Partial<CalculatorState> = {};
+          if (fieldId) {
+            next.invalidFields = prev.invalidFields.filter((f) => f !== fieldId);
+            next.autoCalculatedField =
+              prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField;
+          }
+          return { ...prev, ...next };
+        });
+      };
+    }
 
     const rawDisplayValue = resultValue && resultValue !== '' ? resultValue : value;
     const displayValue = formatDisplayValue(rawDisplayValue);
@@ -2275,7 +2434,10 @@ const EnergiaBernoulliCalc: React.FC = () => {
     const dotColor = getDotColor(hasUserValue, isInvalid, isAutoCalculated);
 
     return (
-      <View style={styles.inputWrapper}>
+      <View
+        ref={(r) => { if (fieldId) inputRefs.current[fieldId] = r; }}
+        style={styles.inputWrapper}
+      >
         <View style={styles.labelRow}>
           <Text
             style={[
@@ -2295,21 +2457,19 @@ const EnergiaBernoulliCalc: React.FC = () => {
             ]}
           >
             <View style={[styles.innerWhiteContainer, { backgroundColor: inputContainerBg }]}>
+              <Pressable
+                onPress={() => {
+                  if (isFieldLocked || !fieldId) return;
+                  setActiveInputId(fieldId);
+                }}
+                style={StyleSheet.absoluteFill}
+              />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                keyboardType="numeric"
                 value={displayValue}
-                onChangeText={handleTextChange}
-                onBlur={() => {
-                  if (value && value !== '') {
-                    const formatted = formatDisplayValue(value);
-                    if (formatted !== value) {
-                      onChange(formatted);
-                    }
-                  }
-                }}
-                editable={!isFieldLocked}
-                selectTextOnFocus={!isFieldLocked}
+                editable={false}
+                showSoftInputOnFocus={false}
+                pointerEvents="none"
                 placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
               />
             </View>
@@ -2398,7 +2558,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         </View>
       </View>
     );
-  }, [state, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor, selectedDecimalSeparator]);
+  }, [state, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor, selectedDecimalSeparator, setActiveInputId]);
 
   // Mide el ancho y posición de cada botón del selector de tipo de pérdida para la animación
   const onLayoutDirect = useCallback((e: LayoutChangeEvent) => {
@@ -2580,34 +2740,19 @@ const EnergiaBernoulliCalc: React.FC = () => {
             ]}
           >
             <View style={[styles.innerWhiteContainer, { backgroundColor: state.lockedField === 'alpha1' ? themeColors.blockInput : themeColors.card }]}>
+              <Pressable
+                onPress={() => {
+                  if (state.lockedField === 'alpha1') return;
+                  setActiveInputId('alpha1');
+                }}
+                style={StyleSheet.absoluteFill}
+              />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                keyboardType="numeric"
                 value={state.alpha1}
-                onChangeText={(text) => {
-                  setState((prev) => ({
-                    ...prev,
-                    alpha1: text,
-                    isManualEditAlpha1: true,
-                    invalidFields: prev.invalidFields.filter((f) => f !== 'alpha1'),
-                    autoCalculatedField: prev.autoCalculatedField === 'alpha1' ? null : prev.autoCalculatedField,
-                  }));
-                }}
-                onBlur={() => {
-                  if (state.alpha1 && state.alpha1 !== '') {
-                    const normalized = state.alpha1.replace(',', '.');
-                    const num = parseFloat(normalized);
-                    if (!isNaN(num)) {
-                      const formatted = num.toFixed(8).replace(/\.?0+$/, '');
-                      const finalValue = selectedDecimalSeparator === 'Coma' ? formatted.replace('.', ',') : formatted;
-                      if (finalValue !== state.alpha1) {
-                        setState(prev => ({ ...prev, alpha1: finalValue }));
-                      }
-                    }
-                  }
-                }}
-                editable={state.lockedField !== 'alpha1'}
-                selectTextOnFocus={state.lockedField !== 'alpha1'}
+                editable={false}
+                showSoftInputOnFocus={false}
+                pointerEvents="none"
                 placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
               />
             </View>
@@ -2640,34 +2785,19 @@ const EnergiaBernoulliCalc: React.FC = () => {
             ]}
           >
             <View style={[styles.innerWhiteContainer, { backgroundColor: state.lockedField === 'alpha2' ? themeColors.blockInput : themeColors.card }]}>
+              <Pressable
+                onPress={() => {
+                  if (state.lockedField === 'alpha2') return;
+                  setActiveInputId('alpha2');
+                }}
+                style={StyleSheet.absoluteFill}
+              />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                keyboardType="numeric"
                 value={state.autoCalculatedField === 'alpha2' && !state.isManualEditAlpha2 ? state.resultAlpha2 || state.alpha2 : state.alpha2}
-                onChangeText={(text) => {
-                  setState((prev) => ({
-                    ...prev,
-                    alpha2: text,
-                    isManualEditAlpha2: true,
-                    invalidFields: prev.invalidFields.filter((f) => f !== 'alpha2'),
-                    autoCalculatedField: prev.autoCalculatedField === 'alpha2' ? null : prev.autoCalculatedField,
-                  }));
-                }}
-                onBlur={() => {
-                  if (state.alpha2 && state.alpha2 !== '') {
-                    const normalized = state.alpha2.replace(',', '.');
-                    const num = parseFloat(normalized);
-                    if (!isNaN(num)) {
-                      const formatted = num.toFixed(8).replace(/\.?0+$/, '');
-                      const finalValue = selectedDecimalSeparator === 'Coma' ? formatted.replace('.', ',') : formatted;
-                      if (finalValue !== state.alpha2) {
-                        setState(prev => ({ ...prev, alpha2: finalValue }));
-                      }
-                    }
-                  }
-                }}
-                editable={state.lockedField !== 'alpha2'}
-                selectTextOnFocus={state.lockedField !== 'alpha2'}
+                editable={false}
+                showSoftInputOnFocus={false}
+                pointerEvents="none"
                 placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
               />
             </View>
@@ -2675,7 +2805,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         </View>
       </View>
     </>
-  ), [renderInput, state.P1, state.P2, state.z1, state.z2, state.V1, state.V2, state.gamma, state.g, state.alpha1, state.alpha2, state.isManualEditP1, state.isManualEditP2, state.isManualEditz1, state.isManualEditz2, state.isManualEditV1, state.isManualEditV2, state.resultP1, state.resultP2, state.resultZ1, state.resultZ2, themeColors, t, fontSizeFactor, currentTheme]);
+  ), [renderInput, state.P1, state.P2, state.z1, state.z2, state.V1, state.V2, state.gamma, state.g, state.alpha1, state.alpha2, state.isManualEditP1, state.isManualEditP2, state.isManualEditz1, state.isManualEditz2, state.isManualEditV1, state.isManualEditV2, state.resultP1, state.resultP2, state.resultZ1, state.resultZ2, themeColors, t, fontSizeFactor, currentTheme, setActiveInputId]);
 
   // Muestra los campos del modo con pérdidas, extendiendo el modo ideal con bomba, turbina y pérdidas
   const renderLossesInputs = useCallback(() => (
@@ -2760,25 +2890,25 @@ const EnergiaBernoulliCalc: React.FC = () => {
                 )
               }]} />
             </View>
-            <TextInput
-              style={[styles.simpleInput, {
-                color: themeColors.text,
-                fontSize: 16 * fontSizeFactor,
-                backgroundColor: state.lockedField === 'f' ? themeColors.blockInput : themeColors.card
-              }]}
-              keyboardType="numeric"
-              value={state.f}
-              onChangeText={(text) => setState((prev) => ({
-                ...prev,
-                f: text,
-                isManualEditF: true,
-                invalidFields: prev.invalidFields.filter((f) => f !== 'f'),
-                autoCalculatedField: prev.autoCalculatedField === 'f' ? null : prev.autoCalculatedField,
-              }))}
-              editable={state.lockedField !== 'f'}
-              selectTextOnFocus={state.lockedField !== 'f'}
-              placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
-            />
+            <Pressable
+              onPress={() => {
+                if (state.lockedField === 'f') return;
+                setActiveInputId('f');
+              }}
+            >
+              <TextInput
+                style={[styles.simpleInput, {
+                  color: themeColors.text,
+                  fontSize: 16 * fontSizeFactor,
+                  backgroundColor: state.lockedField === 'f' ? themeColors.blockInput : themeColors.card
+                }]}
+                value={state.f}
+                editable={false}
+                showSoftInputOnFocus={false}
+                pointerEvents="none"
+                placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
+              />
+            </Pressable>
           </View>
           <View style={styles.inputWrapper}>
             <View style={styles.labelRow}>
@@ -2793,30 +2923,30 @@ const EnergiaBernoulliCalc: React.FC = () => {
                 )
               }]} />
             </View>
-            <TextInput
-              style={[styles.simpleInput, {
-                color: themeColors.text,
-                fontSize: 16 * fontSizeFactor,
-                backgroundColor: state.lockedField === 'K' ? themeColors.blockInput : themeColors.card
-              }]}
-              keyboardType="numeric"
-              value={state.K}
-              onChangeText={(text) => setState((prev) => ({
-                ...prev,
-                K: text,
-                isManualEditK: true,
-                invalidFields: prev.invalidFields.filter((f) => f !== 'K'),
-                autoCalculatedField: prev.autoCalculatedField === 'K' ? null : prev.autoCalculatedField,
-              }))}
-              editable={state.lockedField !== 'K'}
-              selectTextOnFocus={state.lockedField !== 'K'}
-              placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
-            />
+            <Pressable
+              onPress={() => {
+                if (state.lockedField === 'K') return;
+                setActiveInputId('K');
+              }}
+            >
+              <TextInput
+                style={[styles.simpleInput, {
+                  color: themeColors.text,
+                  fontSize: 16 * fontSizeFactor,
+                  backgroundColor: state.lockedField === 'K' ? themeColors.blockInput : themeColors.card
+                }]}
+                value={state.K}
+                editable={false}
+                showSoftInputOnFocus={false}
+                pointerEvents="none"
+                placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
+              />
+            </Pressable>
           </View>
         </>
       )}
     </>
-  ), [renderIdealInputs, renderInput, renderLossTypeSelector, state.includeBomba, state.includeTurbina, state.hb, state.ht, state.hL, state.L, state.D1, state.f, state.K, state.isManualEditHb, state.isManualEditHt, state.isManualEditHL, state.lossInputType, themeColors, t, fontSizeFactor, currentTheme]);
+  ), [renderIdealInputs, renderInput, renderLossTypeSelector, state.includeBomba, state.includeTurbina, state.hb, state.ht, state.hL, state.L, state.D1, state.f, state.K, state.isManualEditHb, state.isManualEditHt, state.isManualEditHL, state.lossInputType, themeColors, t, fontSizeFactor, currentTheme, setActiveInputId]);
 
   // Muestra los campos de entrada específicos del análisis de cavitación según el tipo de sistema
   const renderCavitationInputs = useCallback(() => (
@@ -3020,12 +3150,16 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state.mode, state.unknownVariable, state.resultNPSHa, state.resultTotalEnergy, formatResult]);
 
+  const isKeyboardOpen = !!activeInputId;
+
   return (
     <View style={styles.safeArea}>
-      <KeyboardAwareScrollView
-        bottomOffset={50}
+      <ScrollView
+        ref={scrollViewRef}
         style={styles.mainContainer}
         contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        contentInset={{ bottom: isKeyboardOpen ? 280 : 0 }}
       >
         {/* Cabecera con botón de retroceso, favorito y acceso a la teoría */}
         <View style={styles.headerContainer}>
@@ -3143,6 +3277,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
             styles.inputsSection,
             {
               backgroundColor: themeColors.card,
+              paddingBottom: isKeyboardOpen ? 330 : 70,
             }
           ]}
         >
@@ -3210,7 +3345,22 @@ const EnergiaBernoulliCalc: React.FC = () => {
             {state.mode === 'cavitation' && renderCavitationInputs()}
           </View>
         </View>
-      </KeyboardAwareScrollView>
+      </ScrollView>
+
+      {/* ── Teclado custom ── renderizado fuera del ScrollView para quedar siempre visible en el fondo */}
+      {isKeyboardOpen && (
+        <View style={styles.customKeyboardWrapper}>
+          <CustomKeyboardPanel
+            onKeyPress={handleKeyboardKey}
+            onDelete={handleKeyboardDelete}
+            onSubmit={handleKeyboardSubmit}
+            onMultiplyBy10={handleKeyboardMultiply10}
+            onDivideBy10={handleKeyboardDivide10}
+            onClear={handleKeyboardClear}
+          />
+        </View>
+      )}
+
       <Toast config={toastConfig} position="bottom" />
     </View>
   );
@@ -3404,7 +3554,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    paddingBottom: 70,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -3628,6 +3777,14 @@ const styles = StyleSheet.create({
   checkboxRow: {
     marginTop: 0,
     backgroundColor: 'transparent',
+  },
+  // ── Teclado custom ──────────────────────────────────────────────────────────
+  customKeyboardWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#f5f5f5',
   },
 });
 

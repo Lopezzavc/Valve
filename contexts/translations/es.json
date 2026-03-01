@@ -128,7 +128,9 @@
     "titles": {
       "length": "Longitud",
       "area": "Área",
-      "pressure": "Presión"
+      "pressure": "Presión",
+      "velocity": "Velocidad",
+      "acceleration": "Aceleración"
     },
     "subtitles": {
       "selection": "Selección",
@@ -848,5 +850,201 @@
   "factorFriccion": {
     "title": "Factor de fricción",
     "desc": "Calcula el factor de fricción con ecuaciones de Colebrook, Haaland y un diagrama de Moody interactivo."
+  },
+  "perdidasLocalizadasCalc": {
+    "title": "Pérdidas Localizadas",
+    "calculator": "Calculadora",
+    "modec": "Modo",
+
+    "mode": {
+      "normal": "Normal",
+      "equivalent": "L. Equivalente",
+      "advanced": "Avanzado"
+    },
+
+    "globalParams": "Parámetros Globales",
+    "accessories": "Accesorios",
+    "accessoryTitle": "Accesorio",
+    "addAccessory": "Agregar accesorio",
+    "tableTitle": "Tabla de resultados",
+    "totalLoss": "hL total (m)",
+
+    "fittingType": "Tipo de accesorio",
+    "selectFitting": "Seleccionar accesorio...",
+
+    "labels": {
+      "K": "Coeficiente de pérdida (K)",
+      "V": "Velocidad (V)",
+      "g": "Gravedad (g)",
+      "D": "Diámetro (D)",
+      "f": "Factor de fricción (f)"
+    },
+
+    "table": {
+      "name": "Accesorio",
+      "total": "Total",
+      "totalLeq": "Longitud equivalente total"
+    },
+
+    "toasts": {
+      "copied": "Copiado al portapapeles",
+      "saved": "Guardado en historial",
+      "saveError": "Error al guardar",
+      "nothingToSave": "Realiza un cálculo primero"
+    }
+  },
+  "perdidasLocalizadasFittings": {
+    "screenTitle": "Accesorios",
+    "groups": {
+      "valves": "Válvulas",
+      "elbows": "Codos y Curvas",
+      "tees": "Tes",
+      "entriesExits": "Entradas y Salidas",
+      "contractions": "Contracciones",
+      "expansions": "Expansiones",
+      "meters": "Medidores",
+      "otherFittings": "Otros"
+    },
+    "items": {
+      "gateValveFullyOpen": "Compuerta (totalmente abierta)",
+      "gateValveThreeQuarterOpen": "Compuerta (¾ abierta)",
+      "gateValveHalfOpen": "Compuerta (½ abierta)",
+      "gateValveQuarterOpen": "Compuerta (¼ abierta)",
+      "gateValveFullyOpenScrewed": "Compuerta (totalmente abierta, roscada)",
+      "gateValveFullyOpenFlanged": "Compuerta (totalmente abierta, bridada)",
+      "globeValvePlugDiskFullyOpen": "Globo (disco, totalmente abierta)",
+      "globeValvePlugDiskThreeQuarterOpen": "Globo (disco, ¾ abierta)",
+      "globeValvePlugDiskHalfOpen": "Globo (disco, ½ abierta)",
+      "globeValvePlugDiskQuarterOpen": "Globo (disco, ¼ abierta)",
+      "angleValveFullyOpen": "Ángulo (totalmente abierta)",
+      "ballValveFullyOpen": "Bola (totalmente abierta)",
+      "ballValveClosed5deg": "Bola (cerrada 5°)",
+      "ballValveClosed10deg": "Bola (cerrada 10°)",
+      "ballValveClosed20deg": "Bola (cerrada 20°)",
+      "ballValveClosed40deg": "Bola (cerrada 40°)",
+      "ballValveClosed60deg": "Bola (cerrada 60°)",
+      "butterflyValveFullyOpen": "Mariposa (totalmente abierta)",
+      "butterflyValveClosed5deg": "Mariposa (cerrada 5°)",
+      "butterflyValveClosed10deg": "Mariposa (cerrada 10°)",
+      "butterflyValveClosed20deg": "Mariposa (cerrada 20°)",
+      "butterflyValveClosed40deg": "Mariposa (cerrada 40°)",
+      "butterflyValveClosed60deg": "Mariposa (cerrada 60°)",
+      "diaphragmValveFullyOpen": "Diafragma (totalmente abierta)",
+      "diaphragmValveThreeQuarterOpen": "Diafragma (¾ abierta)",
+      "diaphragmValveHalfOpen": "Diafragma (½ abierta)",
+      "diaphragmValveQuarterOpen": "Diafragma (¼ abierta)",
+      "swingCheckValveForwardFlow": "Retención oscilante (flujo directo)",
+      "liftCheckValve": "Retención de elevación",
+      "waterMeterValve": "Medidor de agua",
+      
+      "elbow90StandardThreaded": "90° estándar (roscado)",
+      "elbow90StandardFlanged": "90° estándar (bridado)",
+      "elbow90LongRadiusThreaded": "90° radio largo (roscado)",
+      "elbow90LongRadiusFlanged": "90° radio largo (bridado)",
+      "elbow90SmoothBendR1": "90° curvatura suave (r/D=1)",
+      "elbow90SmoothBendR2": "90° curvatura suave (r/D=2)",
+      "elbow90SmoothBendR4": "90° curvatura suave (r/D=4)",
+      "elbow90Mitered90deg": "90° inglete (θ=90°)",
+      "elbow90Mitered60deg": "90° inglete (θ=60°)",
+      "elbow90Mitered45deg": "90° inglete (θ=45°)",
+      "elbow90Mitered30deg": "90° inglete (θ=30°)",
+      "elbow90Mitered15deg": "90° inglete (θ=15°)",
+      "elbow45StandardThreaded": "45° estándar (roscado)",
+      "elbow45StandardFlanged": "45° estándar (bridado)",
+      "elbow45Smooth": "45° curvatura suave",
+      "returnBend180Threaded": "Retorno 180° (roscado)",
+      "returnBend180Flanged": "Retorno 180° (bridado)",
+      "ubend180": "U 180°",
+      
+      "teeFlangedDividingLineFlow": "Flujo en línea (bridada)",
+      "teeThreadedDividingLineFlow": "Flujo en línea (roscada)",
+      "teeFlangedDividingBranchFlow": "Flujo en ramal (bridada)",
+      "teeThreadedDividingBranchFlow": "Flujo en ramal (roscada)",
+      "teeStraightWay": "Paso recto",
+      "teeBranch": "Ramal",
+      "teeCounterCurrent": "Contracorriente",
+      "teeLineFlow": "Flujo en línea",
+      "teeBranchFlow": "Flujo en ramal",
+      "crossLineFlow": "Cruz - flujo en línea",
+      "crossBranchFlow": "Cruz - flujo en ramal",
+      "wye45LineFlow": "Y 45° - flujo en línea",
+      "wye45BranchFlow": "Y 45° - flujo en ramal",
+      
+      "entranceSharpEdged": "Borde afilado",
+      "entranceProjecting": "Saliente",
+      "entranceRounded": "Redondeada",
+      "entranceBellmouth": "Abocinada",
+      "exitDischargeToTank": "Descarga a tanque",
+      "exitRoundedAgainstBaffle": "Bordes redondeados contra deflector",
+      
+      "suddenContractionD2D1_080": "Súbita (D₂/D₁=0.80)",
+      "suddenContractionD2D1_050": "Súbita (D₂/D₁=0.50)",
+      "suddenContractionD2D1_020": "Súbita (D₂/D₁=0.20)",
+      "conicalContractionD2D1_080": "Cónica (D₂/D₁=0.80)",
+      "conicalContractionD2D1_050": "Cónica (D₂/D₁=0.50)",
+      "conicalContractionD2D1_020": "Cónica (D₂/D₁=0.20)",
+      "suddenContractionGeneral": "Súbita (entrada afilada)",
+      
+      "suddenExpansionD2D1_080": "Súbita (D₂/D₁=0.80)",
+      "suddenExpansionD2D1_050": "Súbita (D₂/D₁=0.50)",
+      "suddenExpansionD2D1_020": "Súbita (D₂/D₁=0.20)",
+      "conicalExpansionD2D1_080": "Cónica (D₂/D₁=0.80)",
+      "conicalExpansionD2D1_050": "Cónica (D₂/D₁=0.50)",
+      "conicalExpansionD2D1_020": "Cónica (D₂/D₁=0.20)",
+      
+      "waterMeter": "Agua",
+      "orificeMeterSharpEdged": "Orificio (borde afilado)",
+      "venturiMeter": "Venturi",
+      
+      "couplingUnionThreaded": "Acoplamiento/Unión (roscado)",
+      "reducerEnlargerSudden": "Reductor/Ampliador súbito",
+      "radiator": "Radiador",
+      "boiler": "Caldera",
+      "abruptVelocityChange": "Cambio abrupto de velocidad",
+      "crossover": "Cruce",
+      "screenPerforatedPlateRounded": "Rejilla/Placa perforada",
+      "ybranchSymmetrical": "Y simétrica"
+    }
+  },
+  "perdidasLocalizadas": {
+    "title": "Pérdidas Localizadas",
+    "desc": "Calcular pérdidas localizadas en sistemas hidráulicos mediante coeficientes y parámetros de flujo."
+  },
+  "diseñoCalc": {
+    "title": "Diseño de Tuberías",
+    "calculator": "Calculadora",
+    "paramsSection": "Parámetros de diseño",
+    "energySection": "Condiciones de energía",
+    "resultLabel": "Q (m³/s)",
+    "labels": {
+      "L": "Longitud L",
+      "D": "Diámetro D",
+      "ks": "Rugosidad ks",
+      "nu": "Viscosidad cinemática ν",
+      "Km": "Pérdidas menores Km",
+      "z1": "z1 (aguas arriba)",
+      "z2": "z2 (aguas abajo)",
+      "g": "g (gravedad)"
+    },
+    "table": {
+      "title": "Tabla de iteraciones",
+      "header": {
+        "iter": "Iter",
+        "lambda": "λ",
+        "hf": "hf [m]",
+        "v": "V [m/s]",
+        "q": "Q [m³/s]",
+        "re": "Re [-]",
+        "regimen": "Régimen"
+      }
+    },
+    "toasts": {
+      "missingFields": "Faltan campos obligatorios",
+      "calcError": "Error en el cálculo",
+      "copied": "Copiado al portapapeles",
+      "nothingToSave": "Nada para guardar",
+      "saved": "Guardado en historial",
+      "saveError": "Error al guardar"
+    }
   }
 }

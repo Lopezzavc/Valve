@@ -8,11 +8,12 @@ import {
   Animated,
   Clipboard,
   LayoutChangeEvent,
+  Dimensions,
+  ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
-import IconCheck from 'react-native-vector-icons/Octicons';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -23,7 +24,8 @@ import { getDBConnection, createTable, saveCalculation, createFavoritesTable, is
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useKeyboard } from '../../../contexts/KeyboardContext';
+import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 
 // ============================================================================
 // Módulo geométrico integrado (anteriormente geometricSections.ts)
@@ -429,6 +431,16 @@ const GeometriaSeccionesCalc: React.FC = () => {
   const { currentTheme } = useTheme();
   const { t } = useContext(LanguageContext);
 
+  // ── Custom keyboard ──────────────────────────────────────────────────────────
+  const { activeInputId, setActiveInputId } = useKeyboard();
+
+  // Ref con el estado actual para evitar closures obsoletas en los handlers del teclado
+  const stateRef = useRef<CalculatorState>(initialState());
+
+  // Ref que mapea cada fieldId al handler completo de cambio de valor
+  const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const themeColors = React.useMemo(() => {
     if (currentTheme === 'dark') {
       return {
@@ -458,14 +470,54 @@ const GeometriaSeccionesCalc: React.FC = () => {
 
   const [state, setState] = useState<CalculatorState>(initialState);
 
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
   // Animaciones
   const animatedValue = useRef(new Animated.Value(0)).current;
   const animatedScale = useRef(new Animated.Value(1)).current;
   const heartScale = useRef(new Animated.Value(1)).current;
 
+  // Scroll view ref y input refs
+  const scrollViewRef = useRef<ScrollView>(null);
+  const inputRefs = useRef<Record<string, View | null>>({});
+  const activeInputIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeInputIdRef.current = activeInputId;
+  }, [activeInputId]);
+
+  useEffect(() => {
+    if (!activeInputId) return;
+    const viewRef = inputRefs.current[activeInputId];
+    if (!viewRef || !scrollViewRef.current) return;
+
+    setTimeout(() => {
+      viewRef.measureLayout(
+        scrollViewRef.current as any,
+        (_x, y, _w, height) => {
+          const KEYBOARD_HEIGHT = 280;
+          const SCREEN_HEIGHT = Dimensions.get('window').height;
+          const targetScrollY = y - (SCREEN_HEIGHT - KEYBOARD_HEIGHT - height - 30);
+          scrollViewRef.current?.scrollTo({ y: Math.max(0, targetScrollY), animated: true });
+        },
+        () => {}
+      );
+    }, 150);
+  }, [activeInputId]);
+
   // DB y favoritos
   const dbRef = useRef<any>(null);
   const [isFav, setIsFav] = useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setActiveInputId(null);
+      };
+    }, [])
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -982,19 +1034,46 @@ const GeometriaSeccionesCalc: React.FC = () => {
     }));
   }, [state, getParameterFields, getResultFields, getValuesInSI, computeAllResults, solveForUnknown, formatResult]);
 
-  const formatVisualDecimal = useCallback((value: string): string => {
-    if (!value || value === '') return '';
-    
-    // Reemplazar coma por punto para procesar
-    const normalizedValue = value.replace(',', '.');
-    const num = parseFloat(normalizedValue);
-    
-    if (isNaN(num)) return value;
-    
-    // Formatear a máximo 8 decimales, eliminando ceros innecesarios
-    const formatted = num.toFixed(8).replace(/\.?0+$/, '');
-    
-    // Ajustar el separador decimal según configuración
+  const formatDisplayValue = useCallback((val: string): string => {
+    if (!val || val === '') return val;
+
+    // Si el último carácter es un punto o coma, mantenerlo como está
+    const lastChar = val.charAt(val.length - 1);
+    if (lastChar === '.' || lastChar === ',') {
+      return val;
+    }
+
+    // Si el valor termina con punto decimal (ej: "0."), mantenerlo
+    if (val.includes('.') && val.split('.')[1] === '') {
+      return val;
+    }
+    if (val.includes(',') && val.split(',')[1] === '') {
+      return val;
+    }
+
+    const normalizedVal = val.replace(',', '.');
+
+    // Verificar si el usuario escribió específicamente "0.0"
+    if (normalizedVal === '0.0') {
+      return selectedDecimalSeparator === 'Coma' ? '0,0' : '0.0';
+    }
+
+    const num = parseFloat(normalizedVal);
+    if (isNaN(num)) return val;
+
+    // Detectar cuántos decimales escribió el usuario
+    const decimalPart = normalizedVal.includes('.') ? normalizedVal.split('.')[1] : '';
+    const userDecimalCount = decimalPart.length;
+
+    // Si el usuario no escribió decimales, formatear como entero
+    if (userDecimalCount === 0) {
+      return selectedDecimalSeparator === 'Coma' 
+        ? num.toString().replace('.', ',') 
+        : num.toString();
+    }
+
+    // Si el usuario escribió decimales, mantener exactamente esa cantidad
+    const formatted = num.toFixed(userDecimalCount);
     return selectedDecimalSeparator === 'Coma' 
       ? formatted.replace('.', ',') 
       : formatted;
@@ -1099,6 +1178,76 @@ const GeometriaSeccionesCalc: React.FC = () => {
     navigation.navigate('OptionsScreenGeometria', { category, onSelectOption, selectedOption });
   }, [navigation]);
 
+  // ── Handlers del teclado custom ──────────────────────────────────────────────
+  const getActiveValue = useCallback((): string => {
+    const id = activeInputIdRef.current;
+    if (!id) return '';
+    const s = stateRef.current;
+    // Mapa de fieldId a propiedad del estado
+    const map: Record<string, string> = {
+      diametro: s.diametro,
+      tirante: s.tirante,
+      base: s.base,
+      talud: s.talud,
+      K: s.K,
+      A: s.A,
+      P: s.P,
+      R: s.R,
+      T: s.T,
+      Dh: s.Dh,
+    };
+    return map[id] ?? '';
+  }, []);
+
+  const handleKeyboardKey = useCallback((key: string) => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler(getActiveValue() + key);
+  }, []);
+
+  const handleKeyboardDelete = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler(getActiveValue().slice(0, -1));
+  }, []);
+
+  const handleKeyboardClear = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler('');
+  }, []);
+
+  const handleKeyboardMultiply10 = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    const val = getActiveValue();
+    if (val === '' || val === '.') return;
+    handler((parseFloat(val) * 10).toString());
+  }, []);
+
+  const handleKeyboardDivide10 = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    const val = getActiveValue();
+    if (val === '' || val === '.') return;
+    handler((parseFloat(val) / 10).toString());
+  }, []);
+
+  const handleKeyboardSubmit = useCallback(() => {
+    setActiveInputId(null);
+  }, [setActiveInputId]);
+  // ─────────────────────────────────────────────────────────────────────────────
+
   // Render de un campo de entrada (similar a EnergiaBernoulliCalc)
   const renderInput = useCallback((
     id: string,
@@ -1144,18 +1293,27 @@ const GeometriaSeccionesCalc: React.FC = () => {
       setState(prev => ({
         ...prev,
         invalidFields: prev.invalidFields.filter(f => f !== id),
-        // AÑADIR: Limpiar autoCalculatedField si el usuario edita ese campo
         autoCalculatedField: prev.autoCalculatedField === id ? null : prev.autoCalculatedField,
         unknownVariable: prev.unknownVariable?.name === id ? null : prev.unknownVariable,
       }));
     };
 
+    // Registrar el handler completo del campo en el ref para que el teclado lo use
+    if (id) {
+      inputHandlersRef.current[id] = (text: string) => {
+        handleTextChange(text);
+      };
+    }
+
     // Para visualización, aplicar formato de 8 decimales máximo
     const rawValue = resultValue && resultValue !== '' ? resultValue : value;
-    const displayValue = formatVisualDecimal(rawValue);
+    const displayValue = formatDisplayValue(rawValue);
 
     return (
-      <View style={styles.inputWrapper}>
+      <View
+        ref={(r) => { if (id) inputRefs.current[id] = r; }}
+        style={styles.inputWrapper}
+      >
         <View style={styles.labelRow}>
           <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>{label}</Text>
           <View style={[styles.valueDot, { backgroundColor: dotColor }]} />
@@ -1163,13 +1321,19 @@ const GeometriaSeccionesCalc: React.FC = () => {
         <View style={styles.redContainer}>
           <View style={[styles.Container, { experimental_backgroundImage: themeColors.gradient }]}>
             <View style={[styles.innerWhiteContainer, { backgroundColor: inputContainerBg }]}>
+              <Pressable
+                onPress={() => {
+                  if (isFieldLocked || !id) return;
+                  setActiveInputId(id);
+                }}
+                style={StyleSheet.absoluteFill}
+              />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                keyboardType="numeric"
                 value={displayValue}
-                onChangeText={handleTextChange}
-                editable={!isFieldLocked}
-                selectTextOnFocus={!isFieldLocked}
+                editable={false}
+                showSoftInputOnFocus={false}
+                pointerEvents="none"
                 placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
               />
             </View>
@@ -1205,7 +1369,7 @@ const GeometriaSeccionesCalc: React.FC = () => {
         </View>
       </View>
     );
-  }, [state, themeColors, currentTheme, fontSizeFactor, convertValue, navigateToOptions]);
+  }, [state, themeColors, currentTheme, fontSizeFactor, convertValue, navigateToOptions, formatDisplayValue, setActiveInputId]);
 
   // Render del selector de tipo de sección (usando el estilo de picker de ContinuidadCalc)
   const renderSectionTypePicker = useCallback(() => (
@@ -1220,7 +1384,6 @@ const GeometriaSeccionesCalc: React.FC = () => {
             setState(prev => ({ 
               ...prev, 
               sectionType: option as SectionType,
-              // AÑADIR: Resetear autoCalculatedField al cambiar de sección
               autoCalculatedField: null,
               unknownVariable: null 
             }));
@@ -1315,17 +1478,25 @@ const GeometriaSeccionesCalc: React.FC = () => {
       rawValue = formatResult(state.resultPrincipal) || '0';
     }
 
-    return formatVisualDecimal(rawValue);
-  }, [state.unknownVariable, state.resultPrincipal, formatResult, formatVisualDecimal]);
+    return formatDisplayValue(rawValue);
+  }, [state.unknownVariable, state.resultPrincipal, formatResult, formatDisplayValue]);
 
   const shouldShowPlaceholderLabel = useCallback(() => {
     if (state.unknownVariable) return false;
     return state.resultPrincipal === 0;
   }, [state.unknownVariable, state.resultPrincipal]);
 
+  const isKeyboardOpen = !!activeInputId;
+
   return (
     <View style={styles.safeArea}>
-      <KeyboardAwareScrollView bottomOffset={50} style={styles.mainContainer} contentContainerStyle={{ flexGrow: 1 }}>
+      <Animated.ScrollView
+        ref={scrollViewRef}
+        style={styles.mainContainer}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        contentInset={{ bottom: isKeyboardOpen ? 280 : 0 }}
+      >
         {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.iconWrapper}>
@@ -1406,7 +1577,15 @@ const GeometriaSeccionesCalc: React.FC = () => {
         </View>
 
         {/* Sección de inputs */}
-        <View style={[styles.inputsSection, { backgroundColor: themeColors.card }]}>
+        <View
+          style={[
+            styles.inputsSection,
+            { 
+              backgroundColor: themeColors.card,
+              paddingBottom: isKeyboardOpen ? 330 : 70,
+            }
+          ]}
+        >
 
           {/* Selector de tipo de sección (picker) */}
           {renderSectionTypePicker()}
@@ -1427,7 +1606,22 @@ const GeometriaSeccionesCalc: React.FC = () => {
           </Text>
           {renderResultInputs()}
         </View>
-      </KeyboardAwareScrollView>
+      </Animated.ScrollView>
+
+      {/* ── Teclado custom ── renderizado fuera del ScrollView para quedar siempre visible en el fondo */}
+      {isKeyboardOpen && (
+        <View style={styles.customKeyboardWrapper}>
+          <CustomKeyboardPanel
+            onKeyPress={handleKeyboardKey}
+            onDelete={handleKeyboardDelete}
+            onSubmit={handleKeyboardSubmit}
+            onMultiplyBy10={handleKeyboardMultiply10}
+            onDivideBy10={handleKeyboardDivide10}
+            onClear={handleKeyboardClear}
+          />
+        </View>
+      )}
+
       <Toast config={toastConfig} position="bottom" />
     </View>
   );
@@ -1621,8 +1815,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, 
     paddingTop: 20, 
     borderTopLeftRadius: 25, 
-    borderTopRightRadius: 25, 
-    paddingBottom: 70 
+    borderTopRightRadius: 25,
   },
   buttonContainer: { 
     flexDirection: 'row', 
@@ -1788,6 +1981,14 @@ const styles = StyleSheet.create({
   },
   checkboxLabel: { 
     fontFamily: 'SFUIDisplay-Medium' 
+  },
+  // ── Teclado custom ──────────────────────────────────────────────────────────
+  customKeyboardWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#f5f5f5',
   },
 });
 

@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { StyleSheet, View, Text, Pressable, Animated } from 'react-native';
+import FastImage from '@d11/react-native-fast-image';
 import Icon from 'react-native-vector-icons/Feather';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import { ThemeContext } from '../../../contexts/ThemeContext';
@@ -35,6 +36,7 @@ const THEME_COLORS = {
     sliderTrack: 'rgb(228,228,228)',
     resultsPhoto: 'rgba(196, 224, 225, 1)',
     cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
+    overlay: 'transparent', // Overlay transparente en modo claro
   },
   dark: {
     background: 'rgb(12,12,12)',
@@ -52,6 +54,7 @@ const THEME_COLORS = {
     sliderTrack: 'rgba(255,255,255,0.12)',
     resultsPhoto: 'rgba(118, 136, 136, 1)',
     cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
+    overlay: 'rgba(0, 0, 0, 0.5)', // Overlay negro semitransparente en modo oscuro
   }
 } as const;
 
@@ -257,6 +260,7 @@ const PrecisionInitialConfig = () => {
   const animatedInnerInputsColor = themeNow.innerInputs;
   const animatedInnerInputsChildrenColor = themeNow.innerInputsChildren;
   const animatedResultsPhotoColor = themeNow.resultsPhoto;
+  const animatedOverlayColor = themeNow.overlay;
 
   useEffect(() => {
     const initialAnimatingItems: Record<string, { text: string; phase: number; font: string; size: number }> = {};
@@ -417,8 +421,8 @@ const PrecisionInitialConfig = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const delay = 1000;
-    const fadeInDuration = 500;
+    const delay = 0;
+    const fadeInDuration = 150;
     const timer = setTimeout(() => {
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -442,18 +446,30 @@ const PrecisionInitialConfig = () => {
             <View style={styles.bg}>
               <View style={styles.results}>
                 <View style={styles.resultsMain}>
-                  <Animated.View style={[styles.resultsPhoto, { backgroundColor: animatedResultsPhotoColor }]}>
-                    <Text
-                      style={{
+                  <FastImage
+                    style={styles.resultsPhoto}
+                    source={require('../../../assets/CardsCalcs/card2F1_init.webp')}
+                    resizeMode={FastImage.resizeMode.cover}
+                  />
+                  {/* Overlay que se activa en modo oscuro */}
+                  <Animated.View 
+                    style={[
+                      styles.overlay, 
+                      { backgroundColor: animatedOverlayColor }
+                    ]} 
+                  />
+                  <Text
+                    style={[
+                      styles.sampleNumberText,
+                      {
                         fontFamily: 'SFUIDisplay-Bold',
                         fontSize: 30 * fontSizeFactor,
-                        textAlign: 'center',
                         color: animatedTextColor,
-                      }}
-                    >
-                      {sampleNumber}
-                    </Text>
-                  </Animated.View>
+                      }
+                    ]}
+                  >
+                    {sampleNumber}
+                  </Text>
                 </View>
               </View>
               <View style={styles.circularButtons}>
@@ -646,7 +662,7 @@ const styles = StyleSheet.create({
     lineHeight: 25,
   },
   lovelaceText: {
-    fontFamily: 'Alliance No.2 Regular',
+    fontFamily: 'BerlingLTStd-Roman',
   },
   optionsContainer: {
     borderRadius: 24,
@@ -739,15 +755,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(60, 60, 60, 1)',
     height: 115,
     borderRadius: 25,
+    overflow: 'hidden',
+    position: 'relative', // Necesario para posicionar el overlay y el texto
   },
   resultsPhoto: {
     flex: 1,
     marginTop: 25,
     borderRadius: 25,
-    justifyContent: 'flex-end',
-    alignItems: 'flex-start',
-    paddingLeft: 15,
-    paddingBottom: 5,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 25,
+    marginTop: 25, // Mantener consistencia con la imagen
+  },
+  sampleNumberText: {
+    position: 'absolute',
+    bottom: 5,
+    left: 15,
   },
   circularButtons: {
     backgroundColor: 'transparent',

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, Animated, Dimensions, LayoutChangeEvent } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
@@ -15,7 +15,12 @@ import { createFavoritesTable, isFavorite, addFavorite, removeFavorite } from '.
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
-import { KeyboardAwareScrollView, KeyboardToolbar } from 'react-native-keyboard-controller';
+import { useKeyboard } from '../../../contexts/KeyboardContext';
+import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+
+import Decimal from 'decimal.js';
+
+Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 
 type RootStackParamList = {
   OptionsScreenReynolds: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
@@ -177,10 +182,17 @@ const ReynoldsCalc: React.FC = () => {
   const { formatNumber } = useContext(PrecisionDecimalContext);
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
-  const [inputSectionPadding, setInputSectionPadding] = useState(100);
 
   const { currentTheme } = useTheme();
   const { t, selectedLanguage } = useContext(LanguageContext);
+
+  // ── Custom keyboard ──────────────────────────────────────────────────────────
+  const { activeInputId, setActiveInputId } = useKeyboard();
+
+  const stateRef = useRef<CalculatorState>(initialState());
+
+  const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const themeColors = React.useMemo(() => {
     if (currentTheme === 'dark') {
@@ -208,6 +220,45 @@ const ReynoldsCalc: React.FC = () => {
   }, [currentTheme]);
 
   const [state, setState] = useState<CalculatorState>(initialState);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setActiveInputId(null);
+      };
+    }, [])
+  );
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const inputRefs = useRef<Record<string, View | null>>({});
+  const activeInputIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeInputIdRef.current = activeInputId;
+  }, [activeInputId]);
+
+  useEffect(() => {
+    if (!activeInputId) return;
+    const viewRef = inputRefs.current[activeInputId];
+    if (!viewRef || !scrollViewRef.current) return;
+
+    setTimeout(() => {
+      viewRef.measureLayout(
+        scrollViewRef.current as any,
+        (_x, y, _w, height) => {
+          const KEYBOARD_HEIGHT = 280;
+          const SCREEN_HEIGHT = Dimensions.get('window').height;
+          const targetScrollY = y - (SCREEN_HEIGHT - KEYBOARD_HEIGHT - height - 30);
+          scrollViewRef.current?.scrollTo({ y: Math.max(0, targetScrollY), animated: true });
+        },
+        () => {}
+      );
+    }, 150);
+  }, [activeInputId]);
 
   const heartScale = useRef(new Animated.Value(1)).current;
 
@@ -523,8 +574,72 @@ const ReynoldsCalc: React.FC = () => {
     }));
   }, [state.densityUnit, state.dynamicViscosityUnit]);
 
+  // ── Handlers del teclado custom ──────────────────────────────────────────────
+  const getActiveValue = useCallback((): string => {
+    const id = activeInputIdRef.current;
+    if (!id) return '';
+    const s = stateRef.current;
+    const map: Record<string, string> = {
+      velocity: s.velocity,
+      dimension: s.dimension,
+      density: s.density,
+      dynamicViscosity: s.dynamicViscosity,
+      kinematicViscosity: s.kinematicViscosity,
+    };
+    return map[id] ?? '';
+  }, []);
+
+  const handleKeyboardKey = useCallback((key: string) => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler(getActiveValue() + key);
+  }, []);
+
+  const handleKeyboardDelete = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler(getActiveValue().slice(0, -1));
+  }, []);
+
+  const handleKeyboardClear = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    handler('');
+  }, []);
+
+  const handleKeyboardMultiply10 = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    const val = getActiveValue();
+    if (val === '' || val === '.') return;
+    handler((parseFloat(val) * 10).toString());
+  }, []);
+
+  const handleKeyboardDivide10 = useCallback(() => {
+    const id = activeInputIdRef.current;
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
+    const val = getActiveValue();
+    if (val === '' || val === '.') return;
+    handler((parseFloat(val) / 10).toString());
+  }, []);
+
+  const handleKeyboardSubmit = useCallback(() => {
+    setActiveInputId(null);
+  }, [setActiveInputId]);
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const renderInput = useCallback((
-    labelKey: string,                     // << clave i18n, p.ej. 'reynoldsCalc.labels.velocity'
+    labelKey: string,
     value: string,
     onChange: (text: string) => void,
     fieldId?: 'velocity' | 'dimension' | 'density' | 'dynamicViscosity' | 'kinematicViscosity',
@@ -532,7 +647,6 @@ const ReynoldsCalc: React.FC = () => {
     displayLabel?: string,
     isLocked?: boolean
   ) => {
-    // Mapeo de unidades por fieldId (ya no por texto mostrado)
     const unitByField: { [K in NonNullable<typeof fieldId>]: string } = {
       velocity: state.velocityUnit,
       dimension: state.dimensionUnit,
@@ -546,7 +660,6 @@ const ReynoldsCalc: React.FC = () => {
     const isFieldLocked = isLocked || (fieldId && state.lockedFluidField === fieldId);
     const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
   
-    // Mapeo categoría para OptionsScreen (sin strings hardcodeadas)
     const categoryByField: Record<NonNullable<typeof fieldId>, 'velocity' | 'length' | 'density' | 'dynamicViscosity' | 'kinematicViscosity'> = {
       velocity: 'velocity',
       dimension: 'length',
@@ -554,9 +667,26 @@ const ReynoldsCalc: React.FC = () => {
       dynamicViscosity: 'dynamicViscosity',
       kinematicViscosity: 'kinematicViscosity',
     };
+
+    if (fieldId) {
+      inputHandlersRef.current[fieldId] = (text: string) => {
+        onChange(text);
+        setState((prev) => ({
+          ...prev,
+          invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
+          autoCalculatedField: prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
+          ...(fieldId === 'density' ? { resultDensity: '' } : {}),
+          ...(fieldId === 'dynamicViscosity' ? { resultDynamicViscosity: '' } : {}),
+          ...(fieldId === 'kinematicViscosity' ? { resultKinematicViscosity: '' } : {}),
+        }));
+      };
+    }
   
     return (
-      <View style={styles.inputWrapper}>
+      <View
+        ref={(r) => { if (fieldId) inputRefs.current[fieldId] = r; }}
+        style={styles.inputWrapper}
+      >
         <View style={styles.labelRow}>
           <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
             {shownLabel}
@@ -582,25 +712,19 @@ const ReynoldsCalc: React.FC = () => {
         <View style={styles.redContainer}>
           <View style={[styles.Container, { experimental_backgroundImage: themeColors.gradient }]}>
             <View style={[styles.innerWhiteContainer, { backgroundColor: inputContainerBg }]}>
+              <Pressable
+                onPress={() => {
+                  if (isFieldLocked || !fieldId) return;
+                  setActiveInputId(fieldId);
+                }}
+                style={StyleSheet.absoluteFill}
+              />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                keyboardType="numeric"
                 value={resultValue && resultValue !== '' ? resultValue : value}
-                onChangeText={(text) => {
-                  onChange(text);
-                  if (fieldId) {
-                    setState((prev) => ({
-                      ...prev,
-                      invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
-                      autoCalculatedField: prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
-                      ...(fieldId === 'density' ? { resultDensity: '' } : {}),
-                      ...(fieldId === 'dynamicViscosity' ? { resultDynamicViscosity: '' } : {}),
-                      ...(fieldId === 'kinematicViscosity' ? { resultKinematicViscosity: '' } : {}),
-                    }));
-                  }
-                }}
-                editable={!isFieldLocked}
-                selectTextOnFocus={!isFieldLocked}
+                editable={false}
+                showSoftInputOnFocus={false}
+                pointerEvents="none"
                 placeholderTextColor={currentTheme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'}
               />
             </View>
@@ -653,16 +777,18 @@ const ReynoldsCalc: React.FC = () => {
         </View>
       </View>
     );
-  }, [state, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor, t]);
+  }, [state, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor, t, setActiveInputId]);
+
+  const isKeyboardOpen = !!activeInputId;
 
   return (
-    <View 
-      style={styles.safeArea}
-    >
-      <KeyboardAwareScrollView
-        bottomOffset={50}
+    <View style={styles.safeArea}>
+      <ScrollView
+        ref={scrollViewRef}
         style={styles.mainContainer}
         contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        contentInset={{ bottom: isKeyboardOpen ? 280 : 0 }}
       >
         {/* Header */}
         <View style={styles.headerContainer}>
@@ -711,7 +837,6 @@ const ReynoldsCalc: React.FC = () => {
                     source={backgroundImage}
                     style={StyleSheet.absoluteFillObject}
                   />
-                  {/* superposición para modo oscuro */}
                   {currentTheme === 'dark' && (
                     <View
                       pointerEvents="none"
@@ -771,7 +896,10 @@ const ReynoldsCalc: React.FC = () => {
         <View
           style={[
             styles.inputsSection,
-            { backgroundColor: themeColors.card }
+            { 
+              backgroundColor: themeColors.card,
+              paddingBottom: isKeyboardOpen ? 330 : 70,
+            }
           ]}
         >
           <View style={styles.inputsContainer}>
@@ -846,7 +974,22 @@ const ReynoldsCalc: React.FC = () => {
             )}
           </View>
         </View>
-      </KeyboardAwareScrollView>
+      </ScrollView>
+
+      {/* ── Teclado custom ── */}
+      {isKeyboardOpen && (
+        <View style={styles.customKeyboardWrapper}>
+          <CustomKeyboardPanel
+            onKeyPress={handleKeyboardKey}
+            onDelete={handleKeyboardDelete}
+            onSubmit={handleKeyboardSubmit}
+            onMultiplyBy10={handleKeyboardMultiply10}
+            onDivideBy10={handleKeyboardDivide10}
+            onClear={handleKeyboardClear}
+          />
+        </View>
+      )}
+
       <Toast config={toastConfig} position="bottom" />
     </View>
   );
@@ -855,7 +998,7 @@ const ReynoldsCalc: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: { 
     flex: 1, 
-    backgroundColor: 'rgba(255, 255, 255, 1)' 
+    backgroundColor: 'rgba(0, 0, 0, 1)' 
   },
   labelRow: {
     flexDirection: 'row',
@@ -1046,7 +1189,6 @@ const styles = StyleSheet.create({
     paddingTop: 20, 
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25, 
-    paddingBottom: 70,
   },
   inputsContainer: { 
     backgroundColor: 'transparent' 
@@ -1140,6 +1282,14 @@ const styles = StyleSheet.create({
     height: 40, 
     borderRadius: 30, 
     padding: 1 
+  },
+  // ── Teclado custom ──
+  customKeyboardWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#f5f5f5',
   },
 });
 
