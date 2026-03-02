@@ -209,7 +209,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
       gradient:
         'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
       cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
-      cardGradient2: 'linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(250, 250, 250, 1))',
+      cardGradient2: 'linear-gradient(to bottom, rgb(255, 255, 255) 80%, rgba(250, 250, 250, 1))',
       blockInput: 'rgba(240, 240, 240, 1)',
       tableHeader: 'rgb(245,245,245)',
       tableBorder: 'rgb(220,220,220)',

@@ -1253,7 +1253,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* L — Pipe length */}
           {renderInputWithUnit(
             'L',
-            t('diseñoCalc2.labels.L') || 'Longitud L',
+            `${t('diseñoCalc2.labels.L') || 'Longitud'} L`,  // ← AGREGAR " L" al final
             state.L,
             state.LUnit,
             'length',
@@ -1267,7 +1267,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* Ks — Absolute roughness */}
           {renderInputWithUnit(
             'Ks',
-            t('diseñoCalc2.labels.Ks') || 'Rugosidad absoluta Ks',
+            `${t('diseñoCalc2.labels.Ks') || 'Rugosidad absoluta'} Ks`,  // ← AGREGAR " Ks" al final
             state.Ks,
             state.KsUnit,
             'length',
@@ -1281,7 +1281,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* Qd — Design flow rate */}
           {renderInputWithUnit(
             'Qd',
-            t('diseñoCalc2.labels.Qd') || 'Caudal de diseño Qd',
+            `${t('diseñoCalc2.labels.Qd') || 'Caudal de diseño'} Qd`,  // ← AGREGAR " Qd" al final
             state.Qd,
             state.QdUnit,
             'flow',
@@ -1295,7 +1295,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* mu — Kinematic viscosity */}
           {renderInputWithUnit(
             'mu',
-            t('diseñoCalc2.labels.mu') || 'Viscosidad cinemática μ',
+            `${t('diseñoCalc2.labels.mu') || 'Viscosidad cinemática'} μ`,  // ← AGREGAR " μ" al final (nota: es mu griega)
             state.mu,
             state.muUnit,
             'viscosity',
@@ -1315,7 +1315,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* H — Total available head */}
           {renderInputWithUnit(
             'H',
-            t('diseñoCalc2.labels.H') || 'Carga disponible H',
+            `${t('diseñoCalc2.labels.H') || 'Carga disponible'} H`,  // ← AGREGAR " H" al final
             state.H,
             state.HUnit,
             'length',
@@ -1325,19 +1325,19 @@ const DiseñoCalc2: React.FC = () => {
               setState(prev => ({ ...prev, H: converted, HUnit: newUnit }));
             }
           )}
-
-          {/* Km — Minor loss coefficient (dimensionless) */}
+          
+          {/* Km — Minor loss coefficient */}
           {renderSimpleInput(
             'Km',
-            t('diseñoCalc2.labels.Km') || 'Pérdidas menores Km',
+            `${t('diseñoCalc2.labels.Km') || 'Pérdidas menores'} Km`,  // ← AGREGAR " Km" al final
             state.Km,
             (text) => setState(prev => ({ ...prev, Km: text }))
           )}
-
+          
           {/* g — Gravity */}
           {renderInputWithUnit(
             'g',
-            t('diseñoCalc2.labels.g') || 'g (gravedad)',
+            `${t('diseñoCalc2.labels.g') || 'g (gravedad)'} g`,  // ← AGREGAR " g" al final
             state.g,
             state.gUnit,
             'acceleration',

@@ -126,13 +126,15 @@
   },
   "optionsScreen": {
     "titles": {
+      "flow": "Caudal",
       "length": "Longitud",
       "area": "Área",
       "pressure": "Presión",
       "velocity": "Velocidad",
       "acceleration": "Gravedad",
       "viscosity": "Viscosidad cinemática",
-      "gravity": "Gravedad"
+      "gravity": "Gravedad",
+      "specificWeight": "Peso específico"
     },
     "subtitles": {
       "selection": "Selección",
@@ -377,7 +379,8 @@
   "mainMenu": {
     "subtitleEssential": "Essential",
     "subtitle1": "Mecánica de fluidos",
-    "subtitle2": "Flujo en tubería (lisa/rugosa) y pérdidas"
+    "subtitle2": "Flujo en tubería (lisa/rugosa) y pérdidas",
+    "subtitle3": "Bombas y estaciones de bombeo"
   },
   "theoryReynolds": {
     "subtitle": "¿Qué es?",
@@ -794,6 +797,7 @@
     }
   },
   "factorFriccionCalc": {
+    "infoText": "El cálculo del factor de fricción se realiza mediante métodos iterativos (hasta 200 iteraciones) para ecuaciones como Colebrook-White, con tolerancia de 1e-20. Para ecuaciones explícitas el cálculo es directo. Puede tomar algunos segundos en converger dependiendo de la ecuación seleccionada.",
     "title": "FACTOR DE FRICCIÓN",
     "calculator": "Calculadora",
     "saveToHistory": "Guardar en historial",
@@ -807,10 +811,10 @@
     },
     "labels": {
       "equation": "Ecuación",
-      "Re": "Número de Reynolds (Re)",
-      "epsilon": "Rugosidad absoluta (ε)",
-      "diameter": "Diámetro (D)",
-      "epsilonOverD": "Rugosidad relativa (ε/D)"
+      "Re": "Número de Reynolds Re",
+      "epsilon": "Rugosidad absoluta ε",
+      "diameter": "Diámetro D",
+      "epsilonOverD": "Rugosidad relativa ε/D"
     },
     "equations": {
       "colebrook-white": "Colebrook-White (Numérico iterativo)",
@@ -875,11 +879,11 @@
     "selectFitting": "Seleccionar accesorio...",
 
     "labels": {
-      "K": "Coeficiente de pérdida (K)",
-      "V": "Velocidad (V)",
-      "g": "Gravedad (g)",
-      "D": "Diámetro (D)",
-      "f": "Factor de fricción (f)"
+      "K": "Coeficiente de pérdida K",
+      "V": "Velocidad V",
+      "g": "Gravedad g",
+      "D": "Diámetro D",
+      "f": "Factor de fricción f"
     },
 
     "table": {
@@ -1107,5 +1111,78 @@
     },
 
     "infoText": "Tenga en cuenta que este proceso iterativo puede tomar algunos segundos, ya que evalúa múltiples diámetros comerciales hasta alcanzar la convergencia. Estos criterios de tolerancia están definidos en el código como (tolerancia de carga = 1e-5, tolerancia de velocidad = 1e-3)"
+  },
+
+  "potenciaCalcHm": {
+    "title": "Potencia de bomba",
+    "desc": "Calcular carga total y potencia de bombeo considerando fricción, pérdidas menores y diferencias de presión."
+  },
+
+  "potenciaCalc": {
+  "calculator": "Calculadora",
+  "title": "POTENCIA DE BOMBA",
+  "saveToHistory": "Guardar en historial",
+  "resultLabel": "P",
+  "includePresiones": "Incluir presiones en los puntos",
+  "infoText": "Completa todos los parámetros y pulsa Calcular para obtener los resultados. El factor de fricción se resuelve mediante el método de Newton-Raphson aplicado a la ecuación implícita de Colebrook-White, con una tolerancia de convergencia de 1e-20, por lo que tenga en cuenta que puede tardar en converger.",
+  "resultsTitle": "RESULTADOS",
+
+  "sections": {
+    "pipe": "PARÁMETROS DE TUBERÍA",
+    "fluid": "FLUIDO Y SISTEMA",
+    "heights": "ALTURAS",
+    "pressures": "PRESIONES"
+  },
+
+  "labels": {
+    "D": "Diámetro interno D",
+    "Q": "Caudal volumétrico Q",
+    "ks": "Rugosidad equivalente ks",
+    "nu": "Viscosidad cinemática ν",
+    "L": "Longitud total del sistema L",
+    "km": "Coeficiente de pérdida menor km",
+    "gamma": "Peso específico del fluido γ",
+    "eta": "Eficiencia de la bomba η (0 – 1)",
+    "z1": "Altura lámina de agua inferior z₁",
+    "z2": "Altura lámina de agua superior z₂",
+    "p1": "Presión en el punto inferior p₁",
+    "p2": "Presión en el punto superior p₂"
+  },
+
+  "table": {
+    "parameter": "Parámetro",
+    "value": "Valor"
+  },
+
+  "results": {
+    "A": "Área transversal A",
+    "V": "Velocidad media V",
+    "Re": "Número de Reynolds Re",
+    "regimen": "Régimen de flujo",
+    "f": "Factor de fricción f",
+    "hf": "Pérdida mayor (Darcy) hf",
+    "hm": "Pérdida menor hm",
+    "deltaZ": "Diferencia de alturas ΔZ",
+    "deltaPGamma": "ΔP/γ = (p₂ − p₁) / γ",
+    "Ht": "Carga total Ht",
+    "Ph": "Potencia hidráulica Ph",
+    "P": "Potencia de bomba P"
+  },
+
+  "regimen": {
+    "laminar": "LAMINAR",
+    "transicion": "TRANSICIÓN",
+    "turbulento": "TURBULENTO"
+  },
+
+  "toasts": {
+    "missingFields": "Completa todos los campos requeridos.",
+    "invalidValues": "Verifica que los valores sean físicamente válidos.",
+    "copied": "Resultados copiados al portapapeles.",
+    "nothingToCopy": "No hay resultados para copiar.",
+    "saved": "Cálculo guardado en el historial.",
+    "nothingToSave": "No hay resultados para guardar.",
+    "saveError": "Error al guardar. Intenta de nuevo."
   }
+}
 }

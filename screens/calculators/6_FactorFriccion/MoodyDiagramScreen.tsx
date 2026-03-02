@@ -1,16 +1,3 @@
-/**
- * MoodyDiagramScreen.tsx
- *
- * Interactive Moody Diagram screen for friction factor visualization.
- *
- * Required libraries (install if not already present):
- *   npm install react-native-svg
- *   npx pod-install          (iOS linking)
- *
- * Already used in this project (no extra install needed):
- *   @miblanchard/react-native-slider
- */
-
 import React, {
   memo,
   useCallback,
@@ -44,10 +31,15 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 
+import FastImage from '@d11/react-native-fast-image';
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const thumbLight = require('../../../assets/LiquidGlassSimulation/thumbSliderWhite.png');
 const thumbDark  = require('../../../assets/LiquidGlassSimulation/thumbSliderBlack.png');
+
+const logoLight = require('../../../assets/icon/iconblack.webp');
+const logoDark = require('../../../assets/icon/iconwhite.webp');
 
 /** ε/D values for the fixed background curves */
 const FIXED_ED_VALUES = [0, 0.00001, 0.0001, 0.001, 0.01, 0.05] as const;
@@ -1220,6 +1212,14 @@ const MoodyDiagramScreen = () => {
           </View>
         </View>
       </View>
+
+      <View style={styles.logoContainer}>
+        <FastImage
+          source={isDark ? logoDark : logoLight}
+          style={styles.logoImage}
+          resizeMode={FastImage.resizeMode.contain}
+        />
+      </View>
     </ScrollView>
   );
 };
@@ -1414,6 +1414,7 @@ const styles = StyleSheet.create({
   resultMain: {
     paddingHorizontal: 20,
     marginTop: 5,
+    marginBottom: 20,
   },
   resultContainerOuter: {
     borderRadius: 25,
@@ -1508,5 +1509,19 @@ const styles = StyleSheet.create({
     color: 'rgb(0, 0, 0)',
     marginTop: 10,
     marginBottom: 3,
+  },
+  logoContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    width: 40,
+    height: 40,
+    opacity: 1,
+    zIndex: 10,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
   },
 });

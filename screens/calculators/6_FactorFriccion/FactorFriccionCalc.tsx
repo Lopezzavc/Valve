@@ -35,6 +35,9 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 
+const logoLight = require('../../../assets/icon/iconblack.webp');
+const logoDark = require('../../../assets/icon/iconwhite.webp');
+
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 
 // ---------------------------------------------------------------------------
@@ -449,21 +452,28 @@ const FactorFriccionCalc: React.FC = () => {
   const formatDisplayValue = useCallback(
     (val: string): string => {
       if (!val || val === '') return val;
+      
       const lastChar = val.charAt(val.length - 1);
       // Preserve if the user just typed the decimal separator (e.g. "3.")
       if (lastChar === '.' || lastChar === ',') return val;
-      // Preserve if the decimal part is empty (redundant safety check)
+      
+      // Preserve if the decimal part is empty
       if (val.includes('.') && val.split('.')[1] === '') return val;
       if (val.includes(',') && val.split(',')[1] === '') return val;
-      // Preserve if the decimal part consists entirely of zeros,
-      // which means the user is still typing (e.g. "0.0", "0.00", "1.000").
-      // Without this guard, parseFloat("0.0") → 0 → "0", erasing what was typed.
-      if (val.includes('.') && /^0+$/.test(val.split('.')[1])) return val;
-      if (val.includes(',') && /^0+$/.test(val.split(',')[1])) return val;
+      
+      // Normalizar para validación
       const normalizedVal = val.replace(',', '.');
       const num = parseFloat(normalizedVal);
+      
       if (isNaN(num)) return val;
-      const formatted = num.toFixed(8).replace(/\.?0+$/, '');
+      
+      // Si el valor tiene parte decimal, mantener exactamente como está
+      if (normalizedVal.includes('.')) {
+        return val; // Devolver el valor original sin formato
+      }
+      
+      // Si no tiene decimales, formatear normalmente
+      const formatted = num.toString();
       return selectedDecimalSeparator === 'Coma'
         ? formatted.replace('.', ',')
         : formatted;
@@ -1371,6 +1381,18 @@ const FactorFriccionCalc: React.FC = () => {
             )}
           </>
         )}
+
+        {!state.resultPrincipal && (
+          <View>
+            <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 10 }]} />
+            <View style={styles.descriptionContainer}>
+              <Text style={[styles.descriptionText, { color: themeColors.text, opacity: 0.6, fontSize: 14 * fontSizeFactor }]}>
+                {t('factorFriccionCalc.infoText') || 'Ingrese los valores y presione Calcular para obtener el factor de fricción'}
+              </Text>
+            </View>
+          </View>
+        )}
+
       </>
     ),
     [
@@ -1390,7 +1412,7 @@ const FactorFriccionCalc: React.FC = () => {
   // Main result display helpers
   // ---------------------------------------------------------------------------
   const getMainResultValue = useCallback(() => {
-    return state.resultPrincipal || '0';
+    return state.resultPrincipal || '一';
   }, [state.resultPrincipal]);
 
   const isKeyboardOpen = !!activeInputId;
@@ -1518,10 +1540,7 @@ const FactorFriccionCalc: React.FC = () => {
                       style={[
                         styles.flowLabel,
                         {
-                          color:
-                            currentTheme === 'dark'
-                              ? '#FFFFFF'
-                              : 'rgba(0,0,0,1)',
+                          color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)',
                           fontSize: 16 * fontSizeFactor,
                         },
                       ]}
@@ -1536,17 +1555,14 @@ const FactorFriccionCalc: React.FC = () => {
                       style={[
                         styles.flowValue,
                         {
-                          color:
-                            currentTheme === 'dark'
-                              ? '#FFFFFF'
-                              : 'rgba(0,0,0,1)',
+                          color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)',
                           fontSize: 30 * fontSizeFactor,
                         },
                       ]}
                     >
-                      {adjustDecimalSeparator(
-                        formatNumber(parseFloat(getMainResultValue()))
-                      )}
+                      {state.resultPrincipal
+                        ? adjustDecimalSeparator(formatNumber(parseFloat(state.resultPrincipal)))
+                        : '一'}
                     </Text>
                   </View>
                 </View>
@@ -1724,6 +1740,13 @@ const FactorFriccionCalc: React.FC = () => {
             )}
           </View>
         </View>
+        <View style={styles.logoContainer}>
+          <FastImage
+            source={currentTheme === 'dark' ? logoDark : logoLight}
+            style={styles.logoImage}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        </View>
       </ScrollView>
 
       {/* ── Teclado custom ── renderizado fuera del ScrollView para quedar siempre visible en el fondo */}
@@ -1875,9 +1898,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   caudalLabel: {
-    backgroundColor: 'rgba(142, 142, 142, 0.1)',
+    backgroundColor: 'rgba(142, 142, 142, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(104, 104, 104, 0.2)',
+    borderColor: 'rgba(104, 104, 104, 0.12)',
     borderRadius: 14,
     marginLeft: 11,
     marginTop: 11,
@@ -2110,6 +2133,31 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#f5f5f5',
+  },
+  logoContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    width: 40,
+    height: 40,
+    opacity: 1,
+    zIndex: 10,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  descriptionContainer: {
+    marginVertical: 5,
+    marginHorizontal: 5,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: 'rgb(170, 170, 170)',
+    fontFamily: 'SFUIDisplay-Regular',
+    lineHeight: 18,
+    marginBottom: 8,
   },
 });
 

@@ -91,6 +91,10 @@ import OptionsScreenDiseño from './screens/calculators/8_Diseño/OptionsScreenD
 import DiseñoCalc2 from './screens/calculators/9_Diseño2/DiseñoCalc2';
 import OptionsScreenDiseño2 from './screens/calculators/9_Diseño2/OptionsScreenDiseño2';
 
+// 10_POTENCIA
+import potenciaCalc from './screens/calculators/10_Potencia/PotenciaCalc';
+import OptionsScreenPotencia from './screens/calculators/10_Potencia/OptionsScreenPotencia';
+
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
 import HistoryScreenColebrook from './screens/calculators/Ffactor/HistoryScreenColebrook';
@@ -154,6 +158,8 @@ export type RootStackParamList = {
   DiseñoCalc2: undefined;
   OptionsScreenDiseño: undefined;
   OptionsScreenDiseño2: undefined;
+  potenciaCalc: undefined;
+  OptionsScreenPotencia: undefined;
 };
 
 export type RootTabParamList = {
@@ -533,6 +539,14 @@ const App = () => {
                         }}
                       />
                       <Stack.Screen
+                        name="potenciaCalc"
+                        component={potenciaCalc}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                        }}
+                      />
+                      <Stack.Screen
                         name="DiseñoCalc"
                         component={DiseñoCalc}
                         options={{
@@ -583,6 +597,14 @@ const App = () => {
                       <Stack.Screen
                         name="OptionsScreen"
                         component={OptionsScreen}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="OptionsScreenPotencia"
+                        component={OptionsScreenPotencia}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,

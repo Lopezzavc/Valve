@@ -34,9 +34,19 @@ type CalcCardProps = {
   navigation: any;
   themeColors: any;
   fontSizeFactor: number;
+  barColor?: string;
 };
 
-const CalcCard: React.FC<CalcCardProps> = ({ title, desc, math, route, navigation, themeColors, fontSizeFactor }) => {
+const CalcCard: React.FC<CalcCardProps> = ({ 
+  title, 
+  desc, 
+  math, 
+  route, 
+  navigation, 
+  themeColors, 
+  fontSizeFactor,
+  barColor
+}) => {
   const [boxW, setBoxW] = useState(0);
   const [open, setOpen] = useState(false);
   const translateX = useRef(new Animated.Value(0)).current;
@@ -155,7 +165,15 @@ const CalcCard: React.FC<CalcCardProps> = ({ title, desc, math, route, navigatio
               )}
             </Animated.View>
 
-            <Animated.View style={[stylesRef.verticalBar, { transform: [{ translateX }] }]} />
+            <Animated.View 
+              style={[
+                stylesRef.verticalBar, 
+                { 
+                  transform: [{ translateX }],
+                  backgroundColor: barColor || 'rgb(194, 254, 12)'
+                } 
+              ]} 
+            />
           </View>
         </Pressable>
       </View>
@@ -356,6 +374,7 @@ const HomeScreen = () => {
         desc: t(c.descKey) ?? '',
         math: c.math ?? '',
         route: c.route,
+        color: c.color,
       }))
   , [t]);
 
@@ -369,6 +388,21 @@ const HomeScreen = () => {
         desc: t(c.descKey) ?? '',
         math: c.math ?? '',
         route: c.route,
+        color: c.color,
+      }))
+  , [t]);
+
+  // Calculadoras BOMBAS
+  const bombCards = useMemo(() =>
+    calculatorsDef
+      .filter(c => ['bomb-Potencia'].includes(c.id))
+      .map(c => ({
+        key: c.id,
+        title: t(c.titleKey) ?? c.id,
+        desc: t(c.descKey) ?? '',
+        math: c.math ?? '',
+        route: c.route,
+        color: c.color,
       }))
   , [t]);
 
@@ -488,6 +522,7 @@ const HomeScreen = () => {
           </Text>
         </View>
 
+        {/* PRIMERA SECCIÓN: Calculadoras esenciales */}
         <View style={styles.preCardSubtitleWrap}>
           <Text
             style={[
@@ -501,7 +536,6 @@ const HomeScreen = () => {
           </Text>
         </View>
 
-        {/* PRIMERA SECCIÓN: Calculadoras esenciales */}
         {essentialCards.map(card => (
           <CalcCard
             key={card.key}
@@ -512,9 +546,11 @@ const HomeScreen = () => {
             navigation={navigation}
             themeColors={themeColors}
             fontSizeFactor={fontSizeFactor}
+            barColor={card.color}
           />
         ))}
 
+        {/* SEGUNDA SECCIÓN: canales y tuberias */}
         <View style={styles.preCardSubtitleWrap}>
           <Text
             style={[
@@ -538,6 +574,35 @@ const HomeScreen = () => {
             navigation={navigation}
             themeColors={themeColors}
             fontSizeFactor={fontSizeFactor}
+            barColor={card.color}
+          />
+        ))}
+
+        {/* TERCERA SECCIÓN: Bombas */}
+        <View style={styles.preCardSubtitleWrap}>
+          <Text
+            style={[
+              styles.preCardSubtitleBase,
+              { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
+            ]}
+          >
+            <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}></Text>
+            <Text></Text>
+            <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle3')}</Text>
+          </Text>
+        </View>
+
+        {bombCards.map(card => (
+          <CalcCard
+            key={card.key}
+            title={card.title}
+            desc={card.desc}
+            math={card.math}
+            route={card.route}
+            navigation={navigation}
+            themeColors={themeColors}
+            fontSizeFactor={fontSizeFactor}
+            barColor={card.color}
           />
         ))}
         <View style={styles.bottomSpacing} />

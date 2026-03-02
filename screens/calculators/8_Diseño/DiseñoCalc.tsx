@@ -1246,7 +1246,7 @@ const DiseñoCalc: React.FC = () => {
           {/* L */}
           {renderInputWithUnit(
             'L',
-            t('diseñoCalc.labels.L') || 'Longitud L',
+            `${t('diseñoCalc.labels.L') || 'Longitud'} L`,  // ← AGREGAR " L" al final
             state.L,
             state.LUnit,
             'length',
@@ -1260,7 +1260,7 @@ const DiseñoCalc: React.FC = () => {
           {/* D */}
           {renderInputWithUnit(
             'D',
-            t('diseñoCalc.labels.D') || 'Diámetro D',
+            `${t('diseñoCalc.labels.D') || 'Diámetro'} D`,  // ← AGREGAR " D" al final
             state.D,
             state.DUnit,
             'length',
@@ -1274,7 +1274,7 @@ const DiseñoCalc: React.FC = () => {
           {/* ks */}
           {renderInputWithUnit(
             'ks',
-            t('diseñoCalc.labels.ks') || 'Rugosidad ks',
+            `${t('diseñoCalc.labels.ks') || 'Rugosidad'} ks`,  // ← AGREGAR " ks" al final
             state.ks,
             state.ksUnit,
             'length',
@@ -1288,7 +1288,7 @@ const DiseñoCalc: React.FC = () => {
           {/* nu */}
           {renderInputWithUnit(
             'nu',
-            t('diseñoCalc.labels.nu') || 'Viscosidad cinemática ν',
+            `${t('diseñoCalc.labels.nu') || 'Viscosidad cinemática'} ν`,  // ← AGREGAR " ν" al final (nu griega)
             state.nu,
             state.nuUnit,
             'viscosity',
@@ -1302,7 +1302,7 @@ const DiseñoCalc: React.FC = () => {
           {/* Km – dimensionless */}
           {renderSimpleInput(
             'Km',
-            t('diseñoCalc.labels.Km') || 'Pérdidas menores Km',
+            `${t('diseñoCalc.labels.Km') || 'Pérdidas menores'} Km`,  // ← AGREGAR " Km" al final
             state.Km,
             (text) => setState(prev => ({ ...prev, Km: text }))
           )}
@@ -1316,7 +1316,7 @@ const DiseñoCalc: React.FC = () => {
           {/* z1 */}
           {renderInputWithUnit(
             'z1',
-            t('diseñoCalc.labels.z1') || 'z1 (aguas arriba)',
+            `${t('diseñoCalc.labels.z1') || 'z1 (aguas arriba)'} z₁`,  // ← AGREGAR " z₁" al final (usar subíndice)
             state.z1,
             state.z1Unit,
             'length',
@@ -1326,11 +1326,11 @@ const DiseñoCalc: React.FC = () => {
               setState(prev => ({ ...prev, z1: converted, z1Unit: newUnit }));
             }
           )}
-
+          
           {/* z2 */}
           {renderInputWithUnit(
             'z2',
-            t('diseñoCalc.labels.z2') || 'z2 (aguas abajo)',
+            `${t('diseñoCalc.labels.z2') || 'z2 (aguas abajo)'} z₂`,  // ← AGREGAR " z₂" al final (usar subíndice)
             state.z2,
             state.z2Unit,
             'length',
@@ -1340,11 +1340,11 @@ const DiseñoCalc: React.FC = () => {
               setState(prev => ({ ...prev, z2: converted, z2Unit: newUnit }));
             }
           )}
-
+          
           {/* g */}
           {renderInputWithUnit(
             'g',
-            t('diseñoCalc.labels.g') || 'g (gravedad)',
+            `${t('diseñoCalc.labels.g') || 'g (gravedad)'} g`,  // ← AGREGAR " g" al final
             state.g,
             state.gUnit,
             'acceleration',
