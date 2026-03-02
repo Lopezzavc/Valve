@@ -41,16 +41,21 @@ import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput
 const logoLight = require('../../../assets/icon/iconblack.webp');
 const logoDark = require('../../../assets/icon/iconwhite.webp');
 
-Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
+Decimal.set({ 
+  precision: 50, 
+  rounding: Decimal.ROUND_HALF_EVEN,
+  toExpNeg: -7,  // Para evitar notación científica en números pequeños
+  toExpPos: 21   // Para evitar notación científica en números grandes
+});
 
 // ─── Navigation types ──────────────────────────────────────────────────────────
 type RootStackParamList = {
-  OptionsScreenDiseño: {
+  OptionsScreenDiseño2: {
     category: string;
     onSelectOption?: (option: string) => void;
     selectedOption?: string;
   };
-  HistoryScreenDiseño: undefined;
+  HistoryScreenDiseño2: undefined;
   DiseñoTheory: undefined;
 };
 
@@ -73,6 +78,13 @@ const conversionFactors: { [key: string]: { [key: string]: number } } = {
     'cm²/s': 0.0001,
     'mm²/s': 0.000001,
     'ft²/s': 0.09290304,
+  },
+  flow: {
+    'm³/s': 1,
+    'L/s': 0.001,
+    'm³/min': 1 / 60,
+    'm³/h': 1 / 3600,
+    'ft³/s': 0.0283168,
   },
   acceleration: {
     'm/s²': 1,
@@ -110,227 +122,276 @@ const getDotColor = (hasValue: boolean, isInvalid: boolean): string => {
   return 'rgb(200,200,200)';
 };
 
-// ─── Iteration row type ────────────────────────────────────────────────────────
-interface IterationRow {
-  iter: number;
-  lambda: number;
-  hf: number;
-  V: number;
-  Q: number;
-  Re: number;
-  regimen: string;
+// ─── Design iteration row type ─────────────────────────────────────────────────
+interface DesignRow {
+  H: Decimal;
+  hf: Decimal;
+  D_in: string;
+  D_m: Decimal;
+  V: Decimal;
+  Qc: Decimal;
+  Qc_geq_Qd: boolean;
+  hm: Decimal;
+  hf_next: Decimal;
+  Vp: Decimal;
+}
+
+// ─── Design result ─────────────────────────────────────────────────────────────
+interface DesignResult {
+  found: boolean;
+  dLabel: string;
+  dMm: Decimal;
 }
 
 // ─── Calculator state ──────────────────────────────────────────────────────────
-interface CalculatorState {
+interface CalculatorState2 {
   L: string;
   LUnit: string;
-  D: string;
-  DUnit: string;
-  ks: string;
-  ksUnit: string;
-  nu: string;
-  nuUnit: string;
+  Ks: string;
+  KsUnit: string;
+  Qd: string;
+  QdUnit: string;
+  mu: string;
+  muUnit: string;
+  H: string;
+  HUnit: string;
   Km: string;
-  z1: string;
-  z1Unit: string;
-  z2: string;
-  z2Unit: string;
   g: string;
   gUnit: string;
   invalidFields: string[];
-  resultQ: number;
-  resultQUnit: string;
-  iterationTable: IterationRow[];
+  designResult: DesignResult;
+  iterationTable: DesignRow[];
 }
 
-const initialState = (): CalculatorState => ({
-  L: '150',
+const initialState = (): CalculatorState2 => ({
+  L: '200',
   LUnit: 'm',
-  D: '200e-3',
-  DUnit: 'm',
-  ks: '0.0015e-3',
-  ksUnit: 'm',
-  nu: '1e-6',
-  nuUnit: 'm²/s',
-  Km: '2.12',
-  z1: '25',
-  z1Unit: 'm',
-  z2: '10',
-  z2Unit: 'm',
+  Ks: '0.0015e-3',
+  KsUnit: 'm',
+  Qd: '100e-3',
+  QdUnit: 'm³/s',
+  mu: '1.114e-6',
+  muUnit: 'm²/s',
+  H: '30',
+  HUnit: 'm',
+  Km: '3',
   g: '9.81',
   gUnit: 'm/s²',
   invalidFields: [],
-  resultQ: 0,
-  resultQUnit: 'm³/s',
+  designResult: { found: false, dLabel: '', dMm: new Decimal(0) },
   iterationTable: [],
 });
 
-// ─── Core algorithm (translated from casos_conductos.py) ───────────────────────
+// ─── Commercial diameters list (label, float inches, D in metres) ───────────
+const DIAMETERS: Array<{ label: string; inches: number; D: number }> = [
+  { label: '1/8"',   inches: 0.125,  D: 0.003 },
+  { label: '1/4"',   inches: 0.25,   D: 0.006 },
+  { label: '3/8"',   inches: 0.375,  D: 0.010 },
+  { label: '1/2"',   inches: 0.5,    D: 0.013 },
+  { label: '3/4"',   inches: 0.75,   D: 0.019 },
+  { label: '1"',     inches: 1.0,    D: 0.025 },
+  { label: '1-1/4"', inches: 1.25,   D: 0.032 },
+  { label: '1-1/2"', inches: 1.5,    D: 0.038 },
+  { label: '2"',     inches: 2.0,    D: 0.051 },
+  { label: '2-1/2"', inches: 2.5,    D: 0.064 },
+  { label: '3"',     inches: 3.0,    D: 0.076 },
+  { label: '3-1/2"', inches: 3.5,    D: 0.089 },
+  { label: '4"',     inches: 4.0,    D: 0.102 },
+  { label: '5"',     inches: 5.0,    D: 0.127 },
+  { label: '6"',     inches: 6.0,    D: 0.152 },
+  { label: '8"',     inches: 8.0,    D: 0.203 },
+  { label: '10"',    inches: 10.0,   D: 0.254 },
+  { label: '12"',    inches: 12.0,   D: 0.305 },
+  { label: '14"',    inches: 14.0,   D: 0.356 },
+  { label: '16"',    inches: 16.0,   D: 0.406 },
+  { label: '18"',    inches: 18.0,   D: 0.457 },
+  { label: '20"',    inches: 20.0,   D: 0.508 },
+  { label: '24"',    inches: 24.0,   D: 0.610 },
+  { label: '30"',    inches: 30.0,   D: 0.762 },
+  { label: '36"',    inches: 36.0,   D: 0.914 },
+  { label: '42"',    inches: 42.0,   D: 1.067 },
+  { label: '48"',    inches: 48.0,   D: 1.219 },
+];
 
-function velocidadTurbulentaDesdeHf(
-  hf: number, L: number, D: number, ks: number, nu: number, g: number
+// ─── Velocity (Swamee-Jee) ─────────────────────────────────────────────────────
+function calculateVelocity(
+  D: Decimal,
+  hf: Decimal,
+  L: Decimal,
+  Ks: Decimal,
+  mu: Decimal,
+  g: Decimal
 ): Decimal {
-  const hfPos = new Decimal(Math.max(hf, 1e-30));
-  const Ldec = new Decimal(L);
-  const Ddec = new Decimal(D);
-  const ksdec = new Decimal(ks);
-  const nudec = new Decimal(nu);
-  const gdec = new Decimal(g);
+  const term1 = Ks.div(new Decimal(3.7).times(D));
+  const denom = D.times(
+    hf.times(D)
+      .times(2.0)
+      .times(g)
+      .sqrt()
+  );
   
-  const A = ksdec.div(new Decimal(3.7).times(Ddec));
-  const denom = Ddec.times(hfPos.times(Ddec).times(2).times(gdec).sqrt());
+  if (denom.equals(0)) throw new Error('denom zero');
   
-  if (denom.equals(0)) return new Decimal(0);
+  const term2 = new Decimal(2.51)
+    .times(mu)
+    .times(L.sqrt())
+    .div(denom);
   
-  const B = new Decimal(2.51).times(nudec).times(Ldec.sqrt()).div(denom);
-  const argumento = A.plus(B);
+  const arg = term1.plus(term2);
   
-  if (argumento.lessThanOrEqualTo(0) || !argumento.isFinite()) return new Decimal(0);
+  if (arg.lessThanOrEqualTo(0) || !arg.isFinite()) 
+    throw new Error('invalid log arg');
   
-  const factor = new Decimal(-2).times(Decimal.log10(argumento));
-  const V = factor.times(hfPos.times(Ddec).times(2).times(gdec).sqrt().div(Ldec.sqrt()));
+  const inner = hf.times(D)
+    .times(2.0)
+    .times(g)
+    .sqrt()
+    .div(L.sqrt());
   
-  return Decimal.max(V, 0);
+  return new Decimal(-2.0)
+    .times(Decimal.log10(arg))
+    .times(inner);
 }
 
-function velocidadLaminarDesdeHf(
-  hf: number, L: number, D: number, nu: number, g: number
-): Decimal {
-  const hfdec = new Decimal(Math.max(hf, 0));
-  const Ldec = new Decimal(L);
-  const Ddec = new Decimal(D);
-  const nudec = new Decimal(nu);
-  const gdec = new Decimal(g);
-  
-  const numerador = gdec.times(Ddec.pow(2)).times(hfdec);
-  const denominador = new Decimal(32).times(nudec).times(Ldec);
-  
-  return Decimal.max(numerador.div(denominador), 0);
+// ─── Core algorithm (translated from casos_2_diseño.py) ────────────────────────
+// ⚙️  CONVERGENCE PARAMETERS — adjust here if needed:
+//   tolerance          = 1e-5   // Head convergence tolerance  (try 1e-4 or 1e-6)
+//   velocity_tolerance = 1e-3   // Velocity convergence tolerance
+const HEAD_TOLERANCE: number = 1e-5;
+const VELOCITY_TOLERANCE: number = 1e-3;
+
+interface CalcResult2 {
+  designResult: DesignResult;
+  table: DesignRow[];
 }
 
-interface CalcResult {
-  Q: number;
-  table: IterationRow[];
-}
+function calcularDiseno2(
+  L: Decimal,
+  Ks: Decimal,
+  Qd: Decimal,
+  mu: Decimal,
+  H: Decimal,
+  Km: Decimal,
+  g: Decimal
+): CalcResult2 {
+  const allRows: DesignRow[] = [];
+  let designResult: DesignResult = { found: false, dLabel: '', dMm: new Decimal(0) };
 
-function calcularDiseno(
-  L: number, D: number, ks: number, nu: number, Km: number,
-  z1: number, z2: number, g: number = 9.81,
-  tolHf: number = 1e-8, tolRelQ: number = 1e-8, maxIter: number = 100
-): CalcResult {
-  // Convertir todo a Decimal
-  const Ldec = new Decimal(L);
-  const Ddec = new Decimal(D);
-  const ksdec = new Decimal(ks);
-  const nudec = new Decimal(nu);
-  const Kmdec = new Decimal(Km);
-  const z1dec = new Decimal(z1);
-  const z2dec = new Decimal(z2);
-  const gdec = new Decimal(g);
-  
-  let H = z1dec.minus(z2dec);
-  if (H.lessThanOrEqualTo(0)) {
-    H = H.abs();
-  }
+  for (const { label: dLabel, D } of DIAMETERS) {
+    const D_dec = new Decimal(D);
+    const A = new Decimal(Math.PI).times(D_dec.pow(2)).div(4.0);
 
-  const area = new Decimal(Math.PI).times(Ddec.pow(2)).div(4);
-  const rows: IterationRow[] = [];
+    let converged = false;
+    let headMultiplier = new Decimal(0.30);
+    const maxAttempts = 500;
 
-  let lam = new Decimal(1.0);
-  const lambdaMin = new Decimal(0.3);
-  const lambdaMax = new Decimal(1.0);
-  const shrink = new Decimal(0.5);
-  const grow = new Decimal(1.1);
-  const pacienciaSubida = 2;
-
-  let rPrev: Decimal | null = null;
-  let mejoras = 0;
-  let hf = H;
-  let qPrev: Decimal | null = null;
-
-  for (let it = 1; it <= maxIter; it++) {
-    const vTurb = velocidadTurbulentaDesdeHf(hf.toNumber(), L, D, ks, nu, g);
-    
-    let reTanteo: Decimal;
-    if (nudec.greaterThan(0)) {
-      reTanteo = vTurb.abs().times(Ddec).div(nudec);
-    } else {
-      reTanteo = new Decimal(Infinity);
-    }
-
-    let V: Decimal;
-    let regimen: string;
-    if (reTanteo.lessThan(2000)) {
-      V = velocidadLaminarDesdeHf(hf.toNumber(), L, D, nu, g);
-      regimen = 'laminar';
-    } else {
-      V = vTurb;
-      regimen = 'turbulent';
-    }
-
-    const Q = area.times(V);
-    const hm = Kmdec.times(V.pow(2)).div(new Decimal(2).times(gdec));
-    const hfNextRaw = H.minus(hm);
-    const R = hfNextRaw.minus(hf);
-    const hfNext = hf.plus(lam.times(R));
-
-    let Re: Decimal;
-    if (nudec.greaterThan(0)) {
-      Re = V.abs().times(Ddec).div(nudec);
-    } else {
-      Re = new Decimal(Infinity);
-    }
-
-    rows.push({
-      iter: it,
-      lambda: lam.toNumber(),
-      hf: hf.toNumber(),
-      V: V.toNumber(),
-      Q: Q.toNumber(),
-      Re: Re.toNumber(),
-      regimen,
-    });
-
-    // Convergence check - usando las tolerancias originales
-    const doneHf = hfNext.minus(hf).abs().lessThan(tolHf);
-    const doneQ = qPrev !== null && 
-      Q.minus(qPrev).abs().div(Decimal.max(Q.abs(), new Decimal(1e-30))).lessThan(tolRelQ);
+    for (let attempt = 0; attempt <= maxAttempts; attempt++) {
+      let hfCurrent = attempt === 0 
+        ? H 
+        : H.times(headMultiplier);
       
-    if (doneHf || doneQ) {
+      let diameterOk = true;
+      let wentNegative = false;
+
+      for (let iteration = 0; iteration < 300; iteration++) {
+        let V: Decimal;
+        try {
+          V = calculateVelocity(D_dec, hfCurrent, L, Ks, mu, g);
+        } catch {
+          diameterOk = false;
+          break;
+        }
+
+        if (V.lessThanOrEqualTo(0)) {
+          diameterOk = false;
+          break;
+        }
+
+        const Qc = V.times(A);
+
+        if (Qc.lessThan(Qd)) {
+          // Flow is too low for this diameter
+          allRows.push({
+            H,
+            hf: hfCurrent,
+            D_in: dLabel,
+            D_m: D_dec,
+            V,
+            Qc,
+            Qc_geq_Qd: false,
+            hm: new Decimal(0),
+            hf_next: new Decimal(0),
+            Vp: new Decimal(0),
+          });
+          diameterOk = false;
+          break;
+        }
+
+        const hm = Km.times(V.pow(2)).div(new Decimal(2.0).times(g));
+        const hfNext = H.minus(hm);
+
+        let Vp: Decimal;
+        if (hfNext.greaterThanOrEqualTo(0)) {
+          const diff = H.minus(hfCurrent);
+          Vp = diff.greaterThanOrEqualTo(0) 
+            ? diff.times(2.0).times(g).div(Km).sqrt() 
+            : new Decimal(0);
+        } else {
+          Vp = H.times(2.0).times(g).div(Km).sqrt();
+        }
+
+        allRows.push({
+          H,
+          hf: hfCurrent,
+          D_in: dLabel,
+          D_m: D_dec,
+          V,
+          Qc,
+          Qc_geq_Qd: true,
+          hm,
+          hf_next: hfNext,
+          Vp,
+        });
+
+        if (hfNext.lessThan(0)) {
+          wentNegative = true;
+          break;
+        }
+
+        // Convergence check (manteniendo las mismas tolerancias)
+        if (
+          hfCurrent.minus(hfNext).abs().lessThanOrEqualTo(HEAD_TOLERANCE) &&
+          V.minus(Vp).abs().lessThanOrEqualTo(VELOCITY_TOLERANCE)
+        ) {
+          converged = true;
+          break;
+        }
+
+        hfCurrent = hfNext;
+      }
+
+      if (converged) break;
+      if (!wentNegative) break;
+
+      headMultiplier = headMultiplier.minus(0.005);
+      if (headMultiplier.lessThanOrEqualTo(0)) break;
+    }
+
+    if (converged) {
+      designResult = { 
+        found: true, 
+        dLabel, 
+        dMm: D_dec.times(1000) 
+      };
       break;
     }
-
-    // Adaptive lambda - usando Decimal
-    if (rPrev !== null) {
-      if (R.times(rPrev).lessThan(0) || R.abs().greaterThan(new Decimal(0.9).times(rPrev.abs()))) {
-        lam = Decimal.max(lambdaMin, lam.times(shrink));
-        mejoras = 0;
-      } else if (R.abs().lessThan(new Decimal(0.5).times(rPrev.abs()))) {
-        mejoras++;
-        if (mejoras >= pacienciaSubida && lam.lessThan(lambdaMax)) {
-          lam = Decimal.min(lambdaMax, lam.times(grow));
-          mejoras = 0;
-        }
-      } else {
-        mejoras = 0;
-      }
-    }
-
-    rPrev = R;
-    qPrev = Q;
-    hf = Decimal.max(hfNext, 0);
   }
 
-  const lastRow = rows[rows.length - 1];
-  return {
-    Q: lastRow ? lastRow.Q : 0,
-    table: rows,
-  };
+  return { designResult, table: allRows };
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
-const DiseñoCalc: React.FC = () => {
+const DiseñoCalc2: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber } = useContext(PrecisionDecimalContext);
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
@@ -340,7 +401,7 @@ const DiseñoCalc: React.FC = () => {
 
   // ── Custom keyboard ──────────────────────────────────────────────────────────
   const { activeInputId, setActiveInputId } = useKeyboard();
-  const stateRef = useRef<CalculatorState>(initialState());
+  const stateRef = useRef<CalculatorState2>(initialState());
   const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRefs = useRef<Record<string, View | null>>({});
@@ -376,7 +437,6 @@ const DiseñoCalc: React.FC = () => {
       };
     }, [setActiveInputId])
   );
-  // ─────────────────────────────────────────────────────────────────────────────
 
   // ── Theme ───────────────────────────────────────────────────────────────────
   const themeColors = React.useMemo(() => {
@@ -416,7 +476,7 @@ const DiseñoCalc: React.FC = () => {
     };
   }, [currentTheme]);
 
-  const [state, setState] = useState<CalculatorState>(initialState);
+  const [state, setState] = useState<CalculatorState2>(initialState);
   const [tableModalVisible, setTableModalVisible] = useState(false);
 
   useEffect(() => {
@@ -441,7 +501,7 @@ const DiseñoCalc: React.FC = () => {
         await createTable(db);
         await createFavoritesTable(db);
         dbRef.current = db;
-        const fav = await isFavorite(db, 'DiseñoCalc');
+        const fav = await isFavorite(db, 'DiseñoCalc2');
         if (mounted) setIsFav(fav);
       } catch {}
     })();
@@ -456,8 +516,8 @@ const DiseñoCalc: React.FC = () => {
         await createFavoritesTable(db);
         dbRef.current = db;
       }
-      const route = 'DiseñoCalc';
-      const label = t('diseñoCalc.title');
+      const route = 'DiseñoCalc2';
+      const label = t('diseñoCalc2.title') || 'Diseño de Tuberías II';
       if (isFav) {
         await removeFavorite(db, route);
         setIsFav(false);
@@ -481,7 +541,11 @@ const DiseñoCalc: React.FC = () => {
     return val;
   }, [selectedDecimalSeparator]);
 
-  const formatResult = useCallback((value: number): string => {
+  const formatResult = useCallback((value: Decimal | number): string => {
+    if (value instanceof Decimal) {
+      if (!value.isFinite() || value.isNaN()) return '0';
+      return value.toSignificantDigits(8).toString();
+    }
     if (!isFinite(value) || isNaN(value)) return '0';
     const d = new Decimal(value);
     return d.toSignificantDigits(8).toString();
@@ -520,128 +584,104 @@ const DiseñoCalc: React.FC = () => {
     onSelectOption: (opt: string) => void,
     selectedOption?: string
   ) => {
-    navigation.navigate('OptionsScreenDiseño', { category, onSelectOption, selectedOption });
+    navigation.navigate('OptionsScreenDiseño2', { category, onSelectOption, selectedOption });
   }, [navigation]);
 
   // ── Convert field to SI ────────────────────────────────────────────────────
-  const toSI = useCallback((value: string, unit: string, category: string): number | null => {
+  const toSI = useCallback((value: string, unit: string, category: string): Decimal | null => {
     if (!value || value.trim() === '') return null;
     const num = parseFloat(value.replace(',', '.'));
     if (isNaN(num)) return null;
     const factor = conversionFactors[category]?.[unit] ?? 1;
-    // Usar Decimal para la conversión
-    const result = new Decimal(num).times(factor);
-    return result.toNumber(); // Convertir a number para compatibilidad
+    return new Decimal(num).times(factor);
   }, []);
-
-  const convertResultValue = useCallback((value: number, fromUnit: string, toUnit: string): string => {
-    if (value === 0) return '0';
-    
-    // Factores de conversión para caudal (desde m³/s)
-    const flowFactors: { [key: string]: number } = {
-      'm³/s': 1,
-      'L/s': 1000,
-      'm³/min': 60,
-      'm³/h': 3600,
-      'ft³/s': 35.3147,
-      'gal/min': 15850.3,
-      'L/min': 60000,
-      'L/h': 3600000,
-    };
-
-    const fromFactor = flowFactors[fromUnit] || 1;
-    const toFactor = flowFactors[toUnit] || 1;
-
-    // Convertir: (valor / fromFactor) * toFactor
-    const converted = (value / fromFactor) * toFactor;
-    return formatResult(converted);
-  }, [formatResult]);
 
   // ── Calculate ──────────────────────────────────────────────────────────────
   const handleCalculate = useCallback(() => {
     const invalid: string[] = [];
-  
+
     const L = toSI(state.L, state.LUnit, 'length');
-    const D = toSI(state.D, state.DUnit, 'length');
-    const ks = toSI(state.ks, state.ksUnit, 'length');
-    const nu = toSI(state.nu, state.nuUnit, 'viscosity');
+    const Ks = toSI(state.Ks, state.KsUnit, 'length');
+    const Qd = toSI(state.Qd, state.QdUnit, 'flow');
+    const mu = toSI(state.mu, state.muUnit, 'viscosity');
+    const H = toSI(state.H, state.HUnit, 'length');
     const KmRaw = parseFloat(state.Km.replace(',', '.'));
-    const Km = isNaN(KmRaw) ? null : KmRaw;
-    const z1 = toSI(state.z1, state.z1Unit, 'length');
-    const z2 = toSI(state.z2, state.z2Unit, 'length');
+    const Km = isNaN(KmRaw) ? null : new Decimal(KmRaw);
     const g = toSI(state.g, state.gUnit, 'acceleration');
-  
-    if (L === null || L <= 0) invalid.push('L');
-    if (D === null || D <= 0) invalid.push('D');
-    if (ks === null || ks < 0) invalid.push('ks');
-    if (nu === null || nu <= 0) invalid.push('nu');
-    if (Km === null || Km < 0) invalid.push('Km');
-    if (z1 === null) invalid.push('z1');
-    if (z2 === null) invalid.push('z2');
-    if (g === null || g <= 0) invalid.push('g');
-  
+
+    if (L === null || L.lessThanOrEqualTo(0)) invalid.push('L');
+    if (Ks === null || Ks.lessThan(0)) invalid.push('Ks');
+    if (Qd === null || Qd.lessThanOrEqualTo(0)) invalid.push('Qd');
+    if (mu === null || mu.lessThanOrEqualTo(0)) invalid.push('mu');
+    if (H === null || H.lessThanOrEqualTo(0)) invalid.push('H');
+    if (Km === null || Km.lessThan(0)) invalid.push('Km');
+    if (g === null || g.lessThanOrEqualTo(0)) invalid.push('g');
+
     if (invalid.length > 0) {
       setState(prev => ({ ...prev, invalidFields: invalid }));
       Toast.show({
         type: 'error',
         text1: t('common.error'),
-        text2: t('diseñoCalc.toasts.missingFields') || 'Faltan campos obligatorios',
+        text2: t('diseñoCalc2.toasts.missingFields') || 'Faltan campos obligatorios',
       });
       return;
     }
-  
+
     try {
-      const result = calcularDiseno(
-        L!, D!, ks!, nu!, Km!, z1!, z2!, g!
-      );
+      const result = calcularDiseno2(L!, Ks!, Qd!, mu!, H!, Km!, g!);
       setState(prev => ({
         ...prev,
         invalidFields: [],
-        resultQ: result.Q,
+        designResult: result.designResult,
         iterationTable: result.table,
-        // Mantener la unidad actual, no resetearla
       }));
-      
-      // Opcional: Log para verificar la precisión
-      console.log('Cálculo completado con decimal.js - Q:', new Decimal(result.Q).toPrecision(50));
-      
+
+      if (!result.designResult.found) {
+        Toast.show({
+          type: 'error',
+          text1: t('common.error'),
+          text2: t('diseñoCalc2.toasts.noSolution') || 'No se encontró diámetro adecuado',
+        });
+      }
     } catch (e) {
       Toast.show({
         type: 'error',
         text1: t('common.error'),
-        text2: t('diseñoCalc.toasts.calcError') || 'Error en el cálculo',
+        text2: t('diseñoCalc2.toasts.calcError') || 'Error en el cálculo',
       });
     }
   }, [state, toSI, t]);
 
   // ── Copy ──────────────────────────────────────────────────────────────────
   const handleCopy = useCallback(() => {
-    const qStr = formatResult(state.resultQ);
-    let text = `${t('diseñoCalc.resultLabel')}: ${convertResultValue(state.resultQ, 'm³/s', state.resultQUnit)} ${state.resultQUnit}\n`;
+    const { dLabel, dMm, found } = state.designResult;
+    let text = found
+      ? `${t('diseñoCalc2.resultLabel') || 'Diámetro de diseño'}: ${dLabel} (${dMm.toFixed(1)} mm)\n`
+      : `${t('diseñoCalc2.resultLabel') || 'Diámetro de diseño'}: -\n`;
     text += `L: ${state.L} ${state.LUnit}\n`;
-    text += `D: ${state.D} ${state.DUnit}\n`;
-    text += `ks: ${state.ks} ${state.ksUnit}\n`;
-    text += `ν: ${state.nu} ${state.nuUnit}\n`;
+    text += `Ks: ${state.Ks} ${state.KsUnit}\n`;
+    text += `Qd: ${state.Qd} ${state.QdUnit}\n`;
+    text += `μ: ${state.mu} ${state.muUnit}\n`;
+    text += `H: ${state.H} ${state.HUnit}\n`;
     text += `Km: ${state.Km}\n`;
-    text += `z1: ${state.z1} ${state.z1Unit}\n`;
-    text += `z2: ${state.z2} ${state.z2Unit}\n`;
     text += `g: ${state.g} ${state.gUnit}\n`;
     Clipboard.setString(text);
-    Toast.show({ type: 'success', text1: t('common.success'), text2: t('diseñoCalc.toasts.copied') || 'Copiado al portapapeles' });
-  }, [state, formatResult, t]);
+    Toast.show({
+      type: 'success',
+      text1: t('common.success'),
+      text2: t('diseñoCalc2.toasts.copied') || 'Copiado al portapapeles',
+    });
+  }, [state, t]);
 
   // ── Clear ─────────────────────────────────────────────────────────────────
   const handleClear = useCallback(() => {
-    setState({
-      ...initialState(),
-      resultQUnit: 'm³/s', // Asegurar unidad por defecto
-    });
+    setState(initialState());
   }, []);
 
   // ── Save to history ────────────────────────────────────────────────────────
   const handleSaveHistory = useCallback(async () => {
-    if (state.resultQ === 0) {
-      Toast.show({ type: 'error', text1: t('common.error'), text2: t('diseñoCalc.toasts.nothingToSave') || 'Nada para guardar' });
+    if (!state.designResult.found) {
+      Toast.show({ type: 'error', text1: t('common.error'), text2: t('diseñoCalc2.toasts.nothingToSave') || 'Nada para guardar' });
       return;
     }
     try {
@@ -652,35 +692,30 @@ const DiseñoCalc: React.FC = () => {
       }
       const inputs = {
         L: state.L, LUnit: state.LUnit,
-        D: state.D, DUnit: state.DUnit,
-        ks: state.ks, ksUnit: state.ksUnit,
-        nu: state.nu, nuUnit: state.nuUnit,
+        Ks: state.Ks, KsUnit: state.KsUnit,
+        Qd: state.Qd, QdUnit: state.QdUnit,
+        mu: state.mu, muUnit: state.muUnit,
+        H: state.H, HUnit: state.HUnit,
         Km: state.Km,
-        z1: state.z1, z1Unit: state.z1Unit,
-        z2: state.z2, z2Unit: state.z2Unit,
         g: state.g, gUnit: state.gUnit,
       };
-      await saveCalculation(db, 'DiseñoCalc', JSON.stringify(inputs), `${convertResultValue(state.resultQ, 'm³/s', state.resultQUnit)} ${state.resultQUnit}`);
-      Toast.show({ type: 'success', text1: t('common.success'), text2: t('diseñoCalc.toasts.saved') || 'Guardado en historial' });
+      const resultStr = state.designResult.found
+        ? `${state.designResult.dLabel} (${state.designResult.dMm.toFixed(1)} mm)`
+        : '-';
+      await saveCalculation(db, 'DiseñoCalc2', JSON.stringify(inputs), resultStr);
+      Toast.show({ type: 'success', text1: t('common.success'), text2: t('diseñoCalc2.toasts.saved') || 'Guardado en historial' });
     } catch {
-      Toast.show({ type: 'error', text1: t('common.error'), text2: t('diseñoCalc.toasts.saveError') || 'Error al guardar' });
+      Toast.show({ type: 'error', text1: t('common.error'), text2: t('diseñoCalc2.toasts.saveError') || 'Error al guardar' });
     }
-  }, [state, formatResult, t]);
+  }, [state, t]);
 
-  // ── Handlers del teclado custom ──────────────────────────────────────────────
+  // ── Custom keyboard handlers ──────────────────────────────────────────────
   const getActiveValue = useCallback((): string => {
     const id = activeInputIdRef.current;
     if (!id) return '';
     const s = stateRef.current;
     const map: Record<string, string> = {
-      L: s.L,
-      D: s.D,
-      ks: s.ks,
-      nu: s.nu,
-      Km: s.Km,
-      z1: s.z1,
-      z2: s.z2,
-      g: s.g,
+      L: s.L, Ks: s.Ks, Qd: s.Qd, mu: s.mu, H: s.H, Km: s.Km, g: s.g,
     };
     return map[id] ?? '';
   }, []);
@@ -732,7 +767,6 @@ const DiseñoCalc: React.FC = () => {
   const handleKeyboardSubmit = useCallback(() => {
     setActiveInputId(null);
   }, [setActiveInputId]);
-  // ─────────────────────────────────────────────────────────────────────────────
 
   // ─── Render helpers ────────────────────────────────────────────────────────
 
@@ -772,9 +806,7 @@ const DiseñoCalc: React.FC = () => {
           <View style={[styles.Container, { experimental_backgroundImage: themeColors.gradient }]}>
             <View style={[styles.innerWhiteContainer, { backgroundColor: themeColors.card }]}>
               <Pressable
-                onPress={() => {
-                  setActiveInputId(id);
-                }}
+                onPress={() => { setActiveInputId(id); }}
                 style={StyleSheet.absoluteFill}
               />
               <TextInput
@@ -834,9 +866,7 @@ const DiseñoCalc: React.FC = () => {
         <View style={[styles.Container, { experimental_backgroundImage: themeColors.gradient, width: '100%', flex: undefined }]}>
           <View style={[styles.innerWhiteContainer, { backgroundColor: themeColors.card }]}>
             <Pressable
-              onPress={() => {
-                setActiveInputId(id);
-              }}
+              onPress={() => { setActiveInputId(id); }}
               style={StyleSheet.absoluteFill}
             />
             <TextInput
@@ -854,7 +884,7 @@ const DiseñoCalc: React.FC = () => {
     );
   }, [state.invalidFields, themeColors, currentTheme, fontSizeFactor, setActiveInputId]);
 
-  /** Iteration results table */
+  /** Design iteration table */
   const renderTable = useCallback(() => {
     if (state.iterationTable.length === 0) return null;
 
@@ -862,7 +892,13 @@ const DiseñoCalc: React.FC = () => {
     const hBg = themeColors.tableHeader;
     const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-    const fmtNum = (n: number): string => {
+    const fmtNum = (n: Decimal | number): string => {
+      if (n instanceof Decimal) {
+        if (!n.isFinite() || n.isNaN()) return '-';
+        if (n.isZero()) return '0';
+        const s = formatResult(n);
+        return s.length > 10 ? s.substring(0, 10) : s;
+      }
       if (!isFinite(n) || isNaN(n)) return '-';
       if (n === 0) return '0';
       const s = formatResult(n);
@@ -871,16 +907,19 @@ const DiseñoCalc: React.FC = () => {
 
     // Column definitions: [header, width]
     const cols: [string, number][] = [
-      [t('diseñoCalc.table.header.iter') || 'Iter', 44],
-      [t('diseñoCalc.table.header.lambda') || 'λ', 56],
-      [t('diseñoCalc.table.header.hf') || 'hf [m]', 90],
-      [t('diseñoCalc.table.header.v') || 'V [m/s]', 90],
-      [t('diseñoCalc.table.header.q') || 'Q [m³/s]', 90],
-      [t('diseñoCalc.table.header.re') || 'Re [-]', 90],
-      [t('diseñoCalc.table.header.regimen') || 'Régimen', 80],
+      [t('diseñoCalc2.table.header.iter') || 'Iter', 44],      // ← NUEVA COLUMNA
+      [t('diseñoCalc2.table.header.H')       || 'H [m]',      78],
+      [t('diseñoCalc2.table.header.hf')      || 'hf [m]',     78],
+      [t('diseñoCalc2.table.header.D_in')    || 'D [in]',     56],
+      [t('diseñoCalc2.table.header.D_mm')    || 'D [mm]',     62],
+      [t('diseñoCalc2.table.header.V')       || 'V [m/s]',    78],
+      [t('diseñoCalc2.table.header.Qc')      || 'Q [m³/s]',   90],
+      [t('diseñoCalc2.table.header.qgeq')    || 'Qc≥Qd',      54],
+      [t('diseñoCalc2.table.header.hm')      || 'hm [m]',     78],
+      [t('diseñoCalc2.table.header.hf_next') || 'hfi+1 [m]',  80],
+      [t('diseñoCalc2.table.header.Vp')      || 'Vp [m/s]',   78],
     ];
 
-    // Calcular el ancho total de la tabla
     const totalTableWidth = cols.reduce((sum, [, width]) => sum + width, 0) * fontSizeFactor;
 
     const renderTableContent = (scale: number, textBg: string, textColor: string, textStrong: string) => (
@@ -889,7 +928,7 @@ const DiseñoCalc: React.FC = () => {
         <View style={styles.tableRow}>
           {cols.map(([hdr, colWidth], ci) => (
             <View
-              key={`hdr-${ci}`}
+              key={`hdr2-${ci}`}
               style={[
                 styles.tableCell,
                 { width: colWidth * scale, borderColor: bc, backgroundColor: hBg, borderBottomWidth: 1 },
@@ -908,28 +947,37 @@ const DiseñoCalc: React.FC = () => {
         {/* Data rows */}
         {state.iterationTable.map((row, i) => {
           const isLast = i === state.iterationTable.length - 1;
-          const rowBg = isLast
+          const isConverged = isLast && state.designResult.found;
+          const rowBg = isConverged
             ? (currentTheme === 'dark' ? 'rgba(194,254,12,0.08)' : 'rgba(194,254,12,0.15)')
             : i % 2 !== 0
               ? (currentTheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)')
               : 'transparent';
+
           const rowData: string[] = [
-            isLast ? '→ ' + String(row.iter) : String(row.iter),
-            fmtNum(row.lambda),
+            isConverged ? '→ ' + String(i + 1) : String(i + 1),
+            fmtNum(row.H),
             fmtNum(row.hf),
+            isConverged ? '→ ' + row.D_in : row.D_in,
+            fmtNum(row.D_m.times(1000)),
             fmtNum(row.V),
-            fmtNum(row.Q),
-            fmtNum(row.Re),
-            t(`reynoldsCalc.regime.${row.regimen.toLowerCase()}`) || row.regimen
+            fmtNum(row.Qc),
+            row.Qc_geq_Qd
+              ? (t('diseñoCalc2.table.si') || 'SI')
+              : (t('diseñoCalc2.table.no') || 'NO'),
+            fmtNum(row.hm),
+            fmtNum(row.hf_next),
+            fmtNum(row.Vp),
           ];
+
           return (
-            <View key={`row-${i}`} style={[styles.tableRow, { backgroundColor: rowBg }]}>
+            <View key={`row2-${i}`} style={[styles.tableRow, { backgroundColor: rowBg }]}>
               {cols.map(([, colWidth], ci) => (
-                <View key={`cell-${i}-${ci}`} style={[styles.tableCell, { width: colWidth * scale, borderColor: bc }]}>
+                <View key={`cell2-${i}-${ci}`} style={[styles.tableCell, { width: colWidth * scale, borderColor: bc }]}>
                   <Text
                     style={[
-                      isLast ? styles.tableCellHeaderText : styles.tableCellText,
-                      { color: isLast ? textStrong : textColor, fontSize: 11 * scale },
+                      isConverged ? styles.tableCellHeaderText : styles.tableCellText,
+                      { color: isConverged ? textStrong : textColor, fontSize: 11 * scale },
                     ]}
                     numberOfLines={1}
                   >
@@ -943,7 +991,6 @@ const DiseñoCalc: React.FC = () => {
       </View>
     );
 
-    // Landscape modal dimensions: rotamos 90°, así el "ancho" es la altura real de la pantalla
     const modalLandscapeWidth = screenHeight;
     const modalLandscapeHeight = screenWidth;
 
@@ -952,32 +999,22 @@ const DiseñoCalc: React.FC = () => {
         {/* Title row with expand button */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 }}>
           <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
-            {t('diseñoCalc.table.title') || 'Tabla de iteraciones'}
+            {t('diseñoCalc2.table.title') || 'Tabla de iteraciones'}
           </Text>
           <Pressable
             onPress={() => setTableModalVisible(true)}
             style={styles.expandButton}
           >
-            {/* CAPA 1: Fondo base */}
             <View style={[styles.buttonBackground2, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient2 }]} />
-            
-            {/* CAPA 2: Gradiente exterior (borde) */}
             <MaskedView
               style={styles.expandButtonMasked}
               maskElement={<View style={styles.expandButtonMask} />}
             >
-              <View
-                style={[
-                  styles.buttonGradient2,
-                  { experimental_backgroundImage: themeColors.gradient2 },
-                ]}
-              />
+              <View style={[styles.buttonGradient2, { experimental_backgroundImage: themeColors.gradient2 }]} />
             </MaskedView>
-              
-            {/* CAPA 3: Contenido del botón (texto + icono) */}
             <View style={styles.expandButtonContent}>
               <Text style={[styles.expandButtonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-                {t('diseñoCalc.table.viewFull') || 'Ver completo'}
+                {t('diseñoCalc2.table.viewFull') || 'Ver completo'}
               </Text>
               <IconExpand name="expand-sharp" size={20} color={themeColors.icon} />
             </View>
@@ -1000,7 +1037,6 @@ const DiseñoCalc: React.FC = () => {
           statusBarTranslucent
         >
           <View style={styles.modalOverlay}>
-            {/* Container rotado 90° para simular landscape */}
             <View
               style={[
                 styles.modalLandscapeContainer,
@@ -1012,19 +1048,14 @@ const DiseñoCalc: React.FC = () => {
                 },
               ]}
             >
-              {/* ScrollView que envuelve TODO el contenido del modal */}
               <ScrollView
                 style={{ flex: 1, backgroundColor: currentTheme === 'dark' ? 'rgb(14,14,14)' : 'rgb(255,255,255)' }}
-                contentContainerStyle={{ 
-                  paddingVertical: 0,
-                  alignItems: 'center',
-                }}
+                contentContainerStyle={{ paddingVertical: 0, alignItems: 'center' }}
                 showsVerticalScrollIndicator
               >
-                {/* Header del modal */}
                 <View style={[
-                  styles.modalHeader, 
-                  { 
+                  styles.modalHeader,
+                  {
                     backgroundColor: 'transparent',
                     width: totalTableWidth + 40,
                     paddingHorizontal: 0,
@@ -1032,10 +1063,8 @@ const DiseñoCalc: React.FC = () => {
                   }
                 ]}>
                   <Text style={[styles.modalTitle, { color: themeColors.textStrong }]}>
-                    {t('diseñoCalc.table.title') || 'Tabla de iteraciones'}
+                    {t('diseñoCalc2.table.title') || 'Tabla de iteraciones'}
                   </Text>
-              
-                  {/* Botón de cerrar */}
                   <Pressable
                     onPress={() => setTableModalVisible(false)}
                     style={styles.modalCloseButton}
@@ -1045,25 +1074,14 @@ const DiseñoCalc: React.FC = () => {
                       style={styles.modalCloseButtonMasked}
                       maskElement={<View style={styles.modalCloseButtonMask} />}
                     >
-                      <View
-                        style={[
-                          styles.buttonGradient22,
-                          { experimental_backgroundImage: themeColors.gradient2 },
-                        ]}
-                      />
+                      <View style={[styles.buttonGradient22, { experimental_backgroundImage: themeColors.gradient2 }]} />
                     </MaskedView>
                     <Icon name="x" size={18} color={themeColors.icon} style={styles.modalCloseButtonIcon} />
                   </Pressable>
                 </View>
-                      
-                {/* Tabla con scroll horizontal */}
+
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {renderTableContent(
-                    fontSizeFactor * 1.1,
-                    themeColors.text,
-                    themeColors.text,
-                    themeColors.textStrong
-                  )}
+                  {renderTableContent(fontSizeFactor * 1.1, themeColors.text, themeColors.text, themeColors.textStrong)}
                 </ScrollView>
               </ScrollView>
             </View>
@@ -1071,12 +1089,15 @@ const DiseñoCalc: React.FC = () => {
         </Modal>
       </View>
     );
-  }, [state.iterationTable, themeColors, currentTheme, fontSizeFactor, t, formatResult, tableModalVisible]);
+  }, [state.iterationTable, state.designResult, themeColors, currentTheme, fontSizeFactor, t, formatResult, tableModalVisible]);
 
-  // ── Main result display value ──────────────────────────────────────────────
-  const mainResultValue = state.resultQ === 0 
-    ? '一' 
-    : adjustDecimalSeparator(formatNumber(parseFloat(formatResult(state.resultQ))));
+  // ── Main result display ────────────────────────────────────────────────────
+  const mainResultLabel = state.designResult.found
+    ? state.designResult.dLabel
+    : '一';
+  const mainResultSub = state.designResult.found
+    ? `${state.designResult.dMm.toFixed(1)} mm`
+    : '';
 
   const isKeyboardOpen = !!activeInputId;
 
@@ -1129,10 +1150,10 @@ const DiseñoCalc: React.FC = () => {
         {/* ── Titles ── */}
         <View style={styles.titlesContainer}>
           <Text style={[styles.subtitle, { fontSize: 18 * fontSizeFactor }]}>
-            {t('diseñoCalc.calculator') || 'Calculadora'}
+            {t('diseñoCalc2.calculator') || 'Calculadora'}
           </Text>
           <Text style={[styles.title, { fontSize: 30 * fontSizeFactor }]}>
-            {t('diseñoCalc.title') || 'Diseño de Tuberías'}
+            {t('diseñoCalc2.title') || 'Diseño de Tuberías'}
           </Text>
         </View>
 
@@ -1156,51 +1177,37 @@ const DiseñoCalc: React.FC = () => {
                     />
                   )}
                   <View style={styles.caudalLabel}>
-                    <Pressable
-                      onPress={() => navigateToOptions(
-                        'flow',
-                        (option: string) => {
-                          // Convertir el valor actual a la nueva unidad
-                          const newValue = convertResultValue(state.resultQ, state.resultQUnit, option);
-                          setState(prev => ({
-                            ...prev,
-                            resultQUnit: option,
-                          }));
-                        },
-                        state.resultQUnit
-                      )}
+                    <Text
+                      style={[styles.flowLabel, {
+                        color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)',
+                        fontSize: 16 * fontSizeFactor,
+                      }]}
                     >
-                      <Text
-                        style={[styles.flowLabel, {
-                          color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)',
-                          fontSize: 16 * fontSizeFactor,
-                        }]}
-                      >
-                        {state.resultQ === 0
-                          ? 'な'
-                          : `${t('diseñoCalc.resultLabel') || 'Q'} (${state.resultQUnit})`
-                        }
-                      </Text>
-                    </Pressable>
+                      {!state.designResult.found
+                        ? 'な'
+                        : (t('diseñoCalc2.resultLabel') || 'Diámetro de diseño')}
+                    </Text>
                   </View>
                   <View style={styles.flowValueContainer}>
                     <Text
                       style={[styles.flowValue, {
                         color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)',
                         fontSize: 30 * fontSizeFactor,
+                        marginBottom: -5,
                       }]}
                     >
-                      {state.resultQ === 0 
-                        ? '一' 
-                        : adjustDecimalSeparator(
-                            formatNumber(
-                              parseFloat(
-                                convertResultValue(state.resultQ, 'm³/s', state.resultQUnit)
-                              )
-                            )
-                          )
-                      }
+                      {mainResultLabel}
                     </Text>
+                    {mainResultSub !== '' && (
+                      <Text style={[styles.flowLabel, {
+                        color: currentTheme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
+                        fontSize: 16 * fontSizeFactor,
+                        marginLeft: 0,
+                        marginBottom: 5,
+                      }]}>
+                        {mainResultSub}
+                      </Text>
+                    )}
                   </View>
                 </View>
               </View>
@@ -1211,10 +1218,10 @@ const DiseñoCalc: React.FC = () => {
         {/* ── Action buttons ── */}
         <View style={styles.buttonsContainer}>
           {[
-            { icon: 'terminal', label: t('common.calculate') || 'Calcular', action: handleCalculate },
-            { icon: 'copy', label: t('common.copy') || 'Copiar', action: handleCopy },
-            { icon: 'trash', label: t('common.clear') || 'Limpiar', action: handleClear },
-            { icon: 'clock', label: t('common.history') || 'Historial', action: () => navigation.navigate('HistoryScreenDiseño') },
+            { icon: 'terminal', label: t('common.calculate') || 'Calcular',  action: handleCalculate },
+            { icon: 'copy',     label: t('common.copy')      || 'Copiar',    action: handleCopy },
+            { icon: 'trash',    label: t('common.clear')     || 'Limpiar',   action: handleClear },
+            { icon: 'clock',    label: t('common.history')   || 'Historial', action: () => navigation.navigate('HistoryScreenDiseño2') },
           ].map(({ icon, label, action }) => (
             <View style={styles.actionWrapper} key={label}>
               <View style={styles.actionButtonMain}>
@@ -1240,13 +1247,13 @@ const DiseñoCalc: React.FC = () => {
         <View style={[styles.inputsSection, { backgroundColor: themeColors.card, paddingBottom: isKeyboardOpen ? 330 : 70 }]}>
 
           <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
-            {t('diseñoCalc.paramsSection') || 'Parámetros de diseño'}
+            {t('diseñoCalc2.paramsSection') || 'Parámetros de diseño'}
           </Text>
 
-          {/* L */}
+          {/* L — Pipe length */}
           {renderInputWithUnit(
             'L',
-            t('diseñoCalc.labels.L') || 'Longitud L',
+            t('diseñoCalc2.labels.L') || 'Longitud L',
             state.L,
             state.LUnit,
             'length',
@@ -1257,94 +1264,80 @@ const DiseñoCalc: React.FC = () => {
             }
           )}
 
-          {/* D */}
+          {/* Ks — Absolute roughness */}
           {renderInputWithUnit(
-            'D',
-            t('diseñoCalc.labels.D') || 'Diámetro D',
-            state.D,
-            state.DUnit,
+            'Ks',
+            t('diseñoCalc2.labels.Ks') || 'Rugosidad absoluta Ks',
+            state.Ks,
+            state.KsUnit,
             'length',
-            (text) => setState(prev => ({ ...prev, D: text })),
+            (text) => setState(prev => ({ ...prev, Ks: text })),
             (newUnit, oldUnit) => {
-              const converted = convertValue(state.D, oldUnit, newUnit, 'length');
-              setState(prev => ({ ...prev, D: converted, DUnit: newUnit }));
+              const converted = convertValue(state.Ks, oldUnit, newUnit, 'length');
+              setState(prev => ({ ...prev, Ks: converted, KsUnit: newUnit }));
             }
           )}
 
-          {/* ks */}
+          {/* Qd — Design flow rate */}
           {renderInputWithUnit(
-            'ks',
-            t('diseñoCalc.labels.ks') || 'Rugosidad ks',
-            state.ks,
-            state.ksUnit,
-            'length',
-            (text) => setState(prev => ({ ...prev, ks: text })),
+            'Qd',
+            t('diseñoCalc2.labels.Qd') || 'Caudal de diseño Qd',
+            state.Qd,
+            state.QdUnit,
+            'flow',
+            (text) => setState(prev => ({ ...prev, Qd: text })),
             (newUnit, oldUnit) => {
-              const converted = convertValue(state.ks, oldUnit, newUnit, 'length');
-              setState(prev => ({ ...prev, ks: converted, ksUnit: newUnit }));
+              const converted = convertValue(state.Qd, oldUnit, newUnit, 'flow');
+              setState(prev => ({ ...prev, Qd: converted, QdUnit: newUnit }));
             }
           )}
 
-          {/* nu */}
+          {/* mu — Kinematic viscosity */}
           {renderInputWithUnit(
-            'nu',
-            t('diseñoCalc.labels.nu') || 'Viscosidad cinemática ν',
-            state.nu,
-            state.nuUnit,
+            'mu',
+            t('diseñoCalc2.labels.mu') || 'Viscosidad cinemática μ',
+            state.mu,
+            state.muUnit,
             'viscosity',
-            (text) => setState(prev => ({ ...prev, nu: text })),
+            (text) => setState(prev => ({ ...prev, mu: text })),
             (newUnit, oldUnit) => {
-              const converted = convertValue(state.nu, oldUnit, newUnit, 'viscosity');
-              setState(prev => ({ ...prev, nu: converted, nuUnit: newUnit }));
+              const converted = convertValue(state.mu, oldUnit, newUnit, 'viscosity');
+              setState(prev => ({ ...prev, mu: converted, muUnit: newUnit }));
             }
-          )}
-
-          {/* Km – dimensionless */}
-          {renderSimpleInput(
-            'Km',
-            t('diseñoCalc.labels.Km') || 'Pérdidas menores Km',
-            state.Km,
-            (text) => setState(prev => ({ ...prev, Km: text }))
           )}
 
           <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
 
           <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
-            {t('diseñoCalc.energySection') || 'Condiciones de energía'}
+            {t('diseñoCalc2.energySection') || 'Condiciones de energía'}
           </Text>
 
-          {/* z1 */}
+          {/* H — Total available head */}
           {renderInputWithUnit(
-            'z1',
-            t('diseñoCalc.labels.z1') || 'z1 (aguas arriba)',
-            state.z1,
-            state.z1Unit,
+            'H',
+            t('diseñoCalc2.labels.H') || 'Carga disponible H',
+            state.H,
+            state.HUnit,
             'length',
-            (text) => setState(prev => ({ ...prev, z1: text })),
+            (text) => setState(prev => ({ ...prev, H: text })),
             (newUnit, oldUnit) => {
-              const converted = convertValue(state.z1, oldUnit, newUnit, 'length');
-              setState(prev => ({ ...prev, z1: converted, z1Unit: newUnit }));
+              const converted = convertValue(state.H, oldUnit, newUnit, 'length');
+              setState(prev => ({ ...prev, H: converted, HUnit: newUnit }));
             }
           )}
 
-          {/* z2 */}
-          {renderInputWithUnit(
-            'z2',
-            t('diseñoCalc.labels.z2') || 'z2 (aguas abajo)',
-            state.z2,
-            state.z2Unit,
-            'length',
-            (text) => setState(prev => ({ ...prev, z2: text })),
-            (newUnit, oldUnit) => {
-              const converted = convertValue(state.z2, oldUnit, newUnit, 'length');
-              setState(prev => ({ ...prev, z2: converted, z2Unit: newUnit }));
-            }
+          {/* Km — Minor loss coefficient (dimensionless) */}
+          {renderSimpleInput(
+            'Km',
+            t('diseñoCalc2.labels.Km') || 'Pérdidas menores Km',
+            state.Km,
+            (text) => setState(prev => ({ ...prev, Km: text }))
           )}
 
-          {/* g */}
+          {/* g — Gravity */}
           {renderInputWithUnit(
             'g',
-            t('diseñoCalc.labels.g') || 'g (gravedad)',
+            t('diseñoCalc2.labels.g') || 'g (gravedad)',
             state.g,
             state.gUnit,
             'acceleration',
@@ -1356,7 +1349,7 @@ const DiseñoCalc: React.FC = () => {
           )}
 
           {state.iterationTable.length > 0 && (
-            <View style={[styles.separator, { backgroundColor: themeColors.separator, marginVertical: 15 }]} />
+            <View style={[styles.separator, { backgroundColor: themeColors.separator, marginVertical: 10 }]} />
           )}
 
           {/* Iteration table */}
@@ -1368,15 +1361,13 @@ const DiseñoCalc: React.FC = () => {
               <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 10 }]} />
               <View style={styles.descriptionContainer}>
                 <Text style={[styles.descriptionText, { color: themeColors.text, opacity: 0.6, fontSize: 14 * fontSizeFactor }]}>
-                  {t('diseñoCalc.infoText')}
+                  {t('diseñoCalc2.infoText')}
                 </Text>
               </View>
             </View>
           )}
-
         </View>
 
-        {/* Logo de la aplicación al final del contenido */}
         <View style={styles.logoContainer}>
           <FastImage
             source={currentTheme === 'dark' ? logoDark : logoLight}
@@ -1384,9 +1375,10 @@ const DiseñoCalc: React.FC = () => {
             resizeMode={FastImage.resizeMode.contain}
           />
         </View>
+
       </ScrollView>
 
-      {/* ── Teclado custom ── renderizado fuera del ScrollView para quedar siempre visible en el fondo */}
+      {/* ── Custom keyboard ── */}
       {isKeyboardOpen && (
         <View style={styles.customKeyboardWrapper}>
           <CustomKeyboardPanel
@@ -1673,6 +1665,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(235, 235, 235)',
     marginVertical: 10,
   },
+  separator2: {
+    height: 1,
+    backgroundColor: 'rgb(235, 235, 235)',
+  },
   text: {
     fontFamily: 'SFUIDisplay-Medium',
     fontSize: 16,
@@ -1711,7 +1707,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SFUIDisplay-Regular',
     fontSize: 11,
   },
-  // ── Teclado custom ──────────────────────────────────────────────────────────
+  // ── Custom keyboard ──────────────────────────────────────────────────────────
   customKeyboardWrapper: {
     position: 'absolute',
     bottom: 0,
@@ -1793,7 +1789,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     borderRadius: 25,
   },
-  // mas
   modalCloseButton: {
     width: 40,
     height: 40,
@@ -1830,6 +1825,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginRight: 5,
   },
+  descriptionContainer: {
+    marginVertical: 5,
+    marginHorizontal: 5,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: 'rgb(170, 170, 170)',
+    fontFamily: 'SFUIDisplay-Regular',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
   logoContainer: {
     position: 'absolute',
     bottom: 20,
@@ -1844,21 +1850,6 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'contain',
   },
-  separator2: {
-    height: 1,
-    backgroundColor: 'rgb(235, 235, 235)',
-  },
-  descriptionContainer: {
-    marginVertical: 5,
-    marginHorizontal: 5,
-  },
-  descriptionText: {
-    fontSize: 14,
-    color: 'rgb(170, 170, 170)',
-    fontFamily: 'SFUIDisplay-Regular',
-    lineHeight: 18,
-    marginBottom: 8,
-  },
 });
 
-export default DiseñoCalc;
+export default DiseñoCalc2;

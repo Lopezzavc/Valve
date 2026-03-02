@@ -1506,7 +1506,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'SFUIDisplay-Bold',
     color: 'rgb(0, 0, 0)',
-    marginTop: 5,
-    marginBottom: 5,
+    marginTop: 10,
+    marginBottom: 3,
   },
 });

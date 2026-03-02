@@ -77,13 +77,13 @@
   },
   "continuidadCalc": {
     "calculator": "Calculadora",
-    "title": "Ecuación de continuidad",
+    "title": "ECUACIÓN DE CONTINUIDAD",
     "saveToHistory": "Guardar en el historial",
     "flow": "Caudal",
-    "section": "Sección",
-    "section1": "Sección 1",
-    "section2": "Sección 2",
-    "fluidProps": "Propiedades del fluido",
+    "section": "SECCIÓN",
+    "section1": "SECCIÓN 1",
+    "section2": "SECCIÓN 2",
+    "fluidProps": "PROPIEDADES DEL FLUIDO",
     "fill": "Llenado",
     "labels": {
       "sectionType": "Tipo de sección",
@@ -130,7 +130,9 @@
       "area": "Área",
       "pressure": "Presión",
       "velocity": "Velocidad",
-      "acceleration": "Aceleración"
+      "acceleration": "Gravedad",
+      "viscosity": "Viscosidad cinemática",
+      "gravity": "Gravedad"
     },
     "subtitles": {
       "selection": "Selección",
@@ -274,13 +276,13 @@
     }
   },
   "reynoldsCalc": {
-    "title": "Número de Reynolds",
+    "title": "NÚMERO DE REYNOLDS",
     "calculator": "Calculadora",
     "reynolds": "Reynolds",
     "saveToHistory": "Guardar en historial",
     "reynoldsNumber": "Número de Reynolds",
-    "flowParameters": "Parámetros de Flujo",
-    "fluidProperties": "Propiedades del Fluido",
+    "flowParameters": "PARÁMETROS DE FLUJO",
+    "fluidProperties": "PROPIEDADES DEL FLUIDO",
     "labels": {
       "velocity": "Velocidad",
       "dimension": "Dimensión Característica",
@@ -409,12 +411,12 @@
   },
   "froudeCalc": {
     "calculator": "Calculadora",
-    "title": "Número de Froude",
+    "title": "NÚMERO DE FROUDE",
     "froudeNumber": "Número de Froude",
     "froude": "Froude",
     "saveToHistory": "Guardar en historial",
-    "flowParameters": "Parámetros de Flujo",
-    "geometryParameters": "Parámetros Geométricos",
+    "flowParameters": "PARÁMETROS DE FLUJO",
+    "geometryParameters": "PARÁMETROS GEOMÉTRICOS",
     "regime": {
       "subcritical": "Subcrítico",
       "critical": "Crítico",
@@ -449,13 +451,13 @@
     "systemType": "Tipo de sistema",
     "closed": "Cerrado",
     "open": "Abierto",
-    "closedSystem": "Sistema Cerrado",
+    "closedSystem": "SISTEMA CERRADO",
     "openSystem": "Sistema Abierto",
-    "vaporPressure": "Presión de Vapor",
+    "vaporPressure": "PRESIÓN DE VAPOR",
     "cavitationStatus": "Estado de cavitación",
     "useRhoForGamma": "Usar densidad (ρ)",
     "useTempForPv": "Calcular Pv desde temperatura",
-    "title": "Energía / Bernoulli",
+    "title": "ENERGÍA / BERNOULLI",
     "calculator": "Calculadora",
     "modec": "Modo",
     "mode": {
@@ -463,12 +465,12 @@
       "losses": "W/ pérdidas",
       "cavitation": "Cavitación"
     },
-    "section1": "Sección 1",
-    "section2": "Sección 2",
+    "section1": "SECCIÓN 1",
+    "section2": "SECCIÓN 2",
     "suctionSection": "Sección de Succión",
-    "fluidProps": "Propiedades del Fluido",
-    "pumpTurbine": "Bomba/Turbina",
-    "losses": "Pérdidas",
+    "fluidProps": "PROPIEDADES DEL FLUIDO",
+    "pumpTurbine": "BOMBA/TURBINA",
+    "losses": "PÉRDIDAS",
     "cavitationParams": "Parámetros de Cavitación",
     "energyDifference": "Diferencia de Energía",
     "cavitationMargin": "Margen de Cavitación",
@@ -547,7 +549,7 @@
     "calculator": "Calculadora",
     "cardTitle1":"Geometría de Secciones",
     "cardDesc1":"Calcula área, perímetro y radio hidráulico de diferentes tipos de secciones.",
-    "title": "Geometría de Secciones",
+    "title": "GEOMETRÍA DE SECCIONES",
     "y2": "Tirante (y₂)",
     "area": "Área",
     "perimeter": "Perímetro",
@@ -601,8 +603,8 @@
         "parabolico": "Canal parabólico"
       }
     },
-    "paramsSection": "Parámetros Geométricos",
-    "resultsSection": "Resultados Geométricos",
+    "paramsSection": "PARÁMETROS GEOMÉTRICOS",
+    "resultsSection": "RESULTADOS GEOMÉTRICOS",
     "toasts": {
       "copied": "Resultados copiados al portapapeles",
       "nothingToSave": "No hay resultados para guardar",
@@ -792,12 +794,12 @@
     }
   },
   "factorFriccionCalc": {
-    "title": "Factor de Fricción",
+    "title": "FACTOR DE FRICCIÓN",
     "calculator": "Calculadora",
     "saveToHistory": "Guardar en historial",
     "frictionFactor": "Factor de fricción (f)",
     "equation": "Ecuación",
-    "roughnessSection": "Rugosidad relativa",
+    "roughnessSection": "RUGOSIDAD RELATIVA",
     "moodyDiagramHint": "Abriendo diagrama de Moody…",
     "mode": {
       "numeric": "Numérico",
@@ -844,15 +846,15 @@
     "transitionBadge": "Transición  ·  Región incierta",
     "frictionFactorLabel": "Factor de fricción",
     "frictionFactorSubLabel": "f  (Darcy-Weisbach)",
-    "variablesTitle": "Control interactivo de variables",
-    "ffactorresult": "Factor de fricción (f)"
+    "variablesTitle": "CONTROL INTERACTIVO DE VARIABLES",
+    "ffactorresult": "FACTOR DE FRICCIÓN (F)"
   },
   "factorFriccion": {
     "title": "Factor de fricción",
-    "desc": "Calcula el factor de fricción con ecuaciones de Colebrook, Haaland y un diagrama de Moody interactivo."
+    "desc": "Calcula el factor de fricción con distintas ecuaciones y un diagrama de Moody interactivo."
   },
   "perdidasLocalizadasCalc": {
-    "title": "Pérdidas Localizadas",
+    "title": "PÉRDIDAS LOCALIZADAS",
     "calculator": "Calculadora",
     "modec": "Modo",
 
@@ -863,10 +865,10 @@
     },
 
     "globalParams": "Parámetros Globales",
-    "accessories": "Accesorios",
+    "accessories": "ACCESORIOS",
     "accessoryTitle": "Accesorio",
     "addAccessory": "Agregar accesorio",
-    "tableTitle": "Tabla de resultados",
+    "tableTitle": "TABLA DE RESULTADOS",
     "totalLoss": "hL total (m)",
 
     "fittingType": "Tipo de accesorio",
@@ -1008,26 +1010,26 @@
   },
   "perdidasLocalizadas": {
     "title": "Pérdidas Localizadas",
-    "desc": "Calcular pérdidas localizadas en sistemas hidráulicos mediante coeficientes y parámetros de flujo."
+    "desc": "Calcular pérdidas localizadas en sistemas mediante coeficientes de los accesorios."
   },
   "diseñoCalc": {
-    "title": "Diseño de Tuberías",
+    "title": "COMPROBACIÓN DE DISEÑO",
     "calculator": "Calculadora",
-    "paramsSection": "Parámetros de diseño",
-    "energySection": "Condiciones de energía",
-    "resultLabel": "Q (m³/s)",
+    "paramsSection": "PARÁMETROS DE DISEÑO",
+    "energySection": "CONDICIONES DE ENERGÍA",
+    "resultLabel": "Q",
     "labels": {
-      "L": "Longitud L",
-      "D": "Diámetro D",
-      "ks": "Rugosidad ks",
-      "nu": "Viscosidad cinemática ν",
-      "Km": "Pérdidas menores Km",
+      "L": "Longitud",
+      "D": "Diámetro",
+      "ks": "Rugosidad",
+      "nu": "Viscosidad cinemática",
+      "Km": "Pérdidas menores",
       "z1": "z1 (aguas arriba)",
       "z2": "z2 (aguas abajo)",
       "g": "g (gravedad)"
     },
     "table": {
-      "title": "Tabla de iteraciones",
+      "title": "TABLA DE ITERACIONES",
       "header": {
         "iter": "Iter",
         "lambda": "λ",
@@ -1036,7 +1038,8 @@
         "q": "Q [m³/s]",
         "re": "Re [-]",
         "regimen": "Régimen"
-      }
+      },
+      "viewFull": "Ver"
     },
     "toasts": {
       "missingFields": "Faltan campos obligatorios",
@@ -1045,6 +1048,64 @@
       "nothingToSave": "Nada para guardar",
       "saved": "Guardado en historial",
       "saveError": "Error al guardar"
-    }
+    },
+    "infoText": "El cálculo del caudal se realiza mediante un proceso iterativo (hasta 100 iteraciones) que resuelve las ecuaciones de energía y fricción. Puede tomar algunos segundos en converger. Las tolerancias definidas son: absoluta para hf = 1e-8 y relativa para Q = 1e-8."
+  },
+  "tuberiaSimple": {
+    "title": "Comprobación de diseño",
+    "desc": "Calcula el caudal en tuberías mediante iteraciones de pérdida de carga y régimen de flujo."
+  },
+  "tuberiaSimple2": {
+    "title": "Diseño",
+    "desc": "Cálculo iterativo del diámetro comercial óptimo según caudal, pérdidas y energía."
+  },
+  "diseñoCalc2": {
+    "calculator": "Calculadora",
+    "title": "DISEÑO DE TUBERÍAS",
+    "paramsSection": "PARÁMETROS DE DISEÑO",
+    "energySection": "CONDICIONES DE ENERGÍA",
+    "resultLabel": "Diámetro de diseño",
+  
+    "labels": {
+      "L": "Longitud",
+      "Ks": "Rugosidad absoluta",
+      "Qd": "Caudal de diseño",
+      "mu": "Viscosidad cinemática",
+      "H": "Carga disponible",
+      "Km": "Pérdidas menores",
+      "g": "Gravedad"
+    },
+  
+    "table": {
+      "title": "TABLA DE ITERACIONES",
+      "viewFull": "Ver",
+      "si": "SI",
+      "no": "NO",
+      "header": {
+        "iter": "Iter",
+        "H": "H [m]",
+        "hf": "hf [m]",
+        "D_in": "D [in]",
+        "D_mm": "D [mm]",
+        "V": "V [m/s]",
+        "Qc": "Q [m³/s]",
+        "qgeq": "Qc≥Qd",
+        "hm": "hm [m]",
+        "hf_next": "hfi+1 [m]",
+        "Vp": "Vp [m/s]"
+      }
+    },
+  
+    "toasts": {
+      "missingFields": "Faltan campos obligatorios",
+      "noSolution": "No se encontró un diámetro adecuado en la lista comercial",
+      "calcError": "Error en el cálculo",
+      "copied": "Copiado al portapapeles",
+      "saved": "Guardado en historial",
+      "saveError": "Error al guardar",
+      "nothingToSave": "Primero realiza un cálculo"
+    },
+
+    "infoText": "Tenga en cuenta que este proceso iterativo puede tomar algunos segundos, ya que evalúa múltiples diámetros comerciales hasta alcanzar la convergencia. Estos criterios de tolerancia están definidos en el código como (tolerancia de carga = 1e-5, tolerancia de velocidad = 1e-3)"
   }
 }

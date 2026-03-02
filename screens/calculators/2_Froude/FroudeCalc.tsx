@@ -980,7 +980,8 @@ const styles = StyleSheet.create({
     color: 'rgb(255, 255, 255)', 
     fontSize: 30, 
     fontFamily: 'SFUIDisplay-Bold', 
-    marginTop: -10 
+    lineHeight: 30,
+    marginBottom: 10,
   },
   resultsMain: { 
     paddingHorizontal: 20 

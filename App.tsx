@@ -85,6 +85,11 @@ import OptionsScreenPerdidasLocalizadas from './screens/calculators/7_PerdidasLo
 
 // 8_CASO 1 DISEÑO
 import DiseñoCalc from './screens/calculators/8_Diseño/DiseñoCalc';
+import OptionsScreenDiseño from './screens/calculators/8_Diseño/OptionsScreenDiseño';
+
+// 9_CASO 2 DISEÑO
+import DiseñoCalc2 from './screens/calculators/9_Diseño2/DiseñoCalc2';
+import OptionsScreenDiseño2 from './screens/calculators/9_Diseño2/OptionsScreenDiseño2';
 
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
@@ -146,6 +151,9 @@ export type RootStackParamList = {
   PerdidasLocalizadasCalc: undefined;
   OptionsScreenPerdidasLocalizadas: undefined;
   DiseñoCalc: undefined;
+  DiseñoCalc2: undefined;
+  OptionsScreenDiseño: undefined;
+  OptionsScreenDiseño2: undefined;
 };
 
 export type RootTabParamList = {
@@ -533,6 +541,14 @@ const App = () => {
                         }}
                       />
                       <Stack.Screen
+                        name="DiseñoCalc2"
+                        component={DiseñoCalc2}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                        }}
+                      />
+                      <Stack.Screen
                         name="PerdidasLocalizadasCalc"
                         component={PerdidasLocalizadasCalc}
                         options={{
@@ -567,6 +583,22 @@ const App = () => {
                       <Stack.Screen
                         name="OptionsScreen"
                         component={OptionsScreen}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="OptionsScreenDiseño2"
+                        component={OptionsScreenDiseño2}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="OptionsScreenDiseño"
+                        component={OptionsScreenDiseño}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,

@@ -362,7 +362,7 @@ const HomeScreen = () => {
   // Calculadoras de la nueva sección (Flujo en tubería y pérdidas)
   const pipeFlowCards = useMemo(() =>
     calculatorsDef
-      .filter(c => ['factor-friccion', 'perdidas-localizadas', 'tuberia-simple', 'hazen-williams'].includes(c.id))
+      .filter(c => ['factor-friccion', 'perdidas-localizadas', 'comprobacion-diseño', 'diseño'].includes(c.id))
       .map(c => ({
         key: c.id,
         title: t(c.titleKey) ?? c.id,

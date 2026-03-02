@@ -9,6 +9,7 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import IconAnt from 'react-native-vector-icons/AntDesign';
 import { useKeyboard } from '../../contexts/KeyboardContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import Decimal from 'decimal.js';
 
 interface CustomKeyboardInputProps {
@@ -18,7 +19,7 @@ interface CustomKeyboardInputProps {
   label?: string;
   onBlur?: () => void;
   autoFocus?: boolean;
-  inputId: string; // Nuevo: identificador único para cada input
+  inputId: string;
 }
 
 const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
@@ -31,7 +32,9 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   inputId,
 }) => {
   const { activeInputId, setActiveInputId } = useKeyboard();
+  const { currentTheme } = useTheme();
   const inputRef = useRef<View>(null);
+  const isDark = currentTheme === 'dark';
 
   const isActive = activeInputId === inputId;
 
@@ -68,17 +71,46 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
     setActiveInputId(inputId);
   };
 
+  const inputColors = isDark
+    ? {
+        inputBg: 'rgba(30, 30, 30, 1)',
+        inputText: 'rgb(235, 235, 235)',
+        inputBorder: 'rgba(255, 255, 255, 0.12)',
+        placeholderText: '#666',
+        labelText: 'rgb(235, 235, 235)',
+        keyboardBg: 'rgb(24, 24, 24)',
+      }
+    : {
+        inputBg: '#f9f9f9',
+        inputText: '#333',
+        inputBorder: '#ddd',
+        placeholderText: '#999',
+        labelText: '#333',
+        keyboardBg: '#f5f5f5',
+      };
+
   return (
     <>
       <View ref={inputRef} style={styles.container}>
-        {label && <Text style={styles.label}>{label}</Text>}
+        {label && (
+          <Text style={[styles.label, { color: inputColors.labelText }]}>
+            {label}
+          </Text>
+        )}
         <Pressable onPress={handleInputPress}>
           <View pointerEvents="none">
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: inputColors.inputBg,
+                  borderColor: inputColors.inputBorder,
+                  color: inputColors.inputText,
+                },
+              ]}
               value={value}
               placeholder={placeholder}
-              placeholderTextColor="#999"
+              placeholderTextColor={inputColors.placeholderText}
               editable={false}
               showSoftInputOnFocus={false}
             />
@@ -87,7 +119,7 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
       </View>
 
       {isActive && (
-        <View style={styles.keyboardWrapper}>
+        <View style={[styles.keyboardWrapper, { backgroundColor: inputColors.keyboardBg }]}>
           <CustomKeyboard
             onKeyPress={handleKeyPress}
             onDelete={handleDelete}
@@ -95,6 +127,7 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
             onMultiplyBy10={handleMultiplyBy10}
             onDivideBy10={handleDivideBy10}
             onClear={handleClear}
+            backgroundColor={inputColors.keyboardBg}
           />
         </View>
       )}
@@ -102,22 +135,44 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   );
 };
 
-// El componente CustomKeyboard se mantiene igual que antes
-const CustomKeyboard = ({ 
-  onKeyPress, 
-  onDelete, 
-  onSubmit,
-  onMultiplyBy10,
-  onDivideBy10,
-  onClear
-}: { 
+// ── CustomKeyboard ──────────────────────────────────────────────────────────────
+
+interface CustomKeyboardProps {
   onKeyPress: (key: string) => void;
   onDelete: () => void;
   onSubmit: () => void;
   onMultiplyBy10: () => void;
   onDivideBy10: () => void;
   onClear: () => void;
+  backgroundColor?: string;
+}
+
+const CustomKeyboard: React.FC<CustomKeyboardProps> = ({
+  onKeyPress,
+  onDelete,
+  onSubmit,
+  onMultiplyBy10,
+  onDivideBy10,
+  onClear,
+  backgroundColor,
 }) => {
+  const { currentTheme } = useTheme();
+  const isDark = currentTheme === 'dark';
+
+  const colors = isDark
+    ? {
+        keyBg: 'rgba(40, 40, 40, 1)',
+        keyText: 'rgb(235, 235, 235)',
+        extraKeyBg: 'rgba(40, 40, 40, 1)',
+        extraKeyText: 'rgb(235, 235, 235)',
+      }
+    : {
+        keyBg: '#ffffff',
+        keyText: '#000000',
+        extraKeyBg: '#ffffff',
+        extraKeyText: '#000000',
+      };
+
   const mainKeys = [
     ['1', '2', '3'],
     ['4', '5', '6'],
@@ -154,46 +209,58 @@ const CustomKeyboard = ({
 
   const renderKeyContent = (key: string) => {
     if (key === '⌫') {
-      return <Icon name="delete" size={24} color="#333" />;
+      return <Icon name="delete" size={24} color="#ffffff" />;
     }
-    return <Text style={styles.keyText}>{key}</Text>;
+    return <Text style={[styles.keyText, { color: colors.keyText }]}>{key}</Text>;
   };
 
   const renderExtraContent = (button: string, isSubmit: boolean) => {
     if (isSubmit) {
       return <IconAnt name="enter" size={24} color="#000000" />;
     }
-    return <Text style={styles.extraKeyText}>{button}</Text>;
+    return (
+      <Text style={[styles.extraKeyText, { color: colors.extraKeyText }]}>
+        {button}
+      </Text>
+    );
   };
 
   return (
-    <View style={styles.keyboardContainer}>
+    <View style={[
+        styles.keyboardContainer,
+        { backgroundColor: isDark ? 'rgb(24, 24, 24)' : '#f5f5f5' }
+      ]}>
       {mainKeys.map((row, rowIndex) => {
         const extraButton = extraButtons[rowIndex];
         const isSubmitButton = extraButton === '✓';
-        
+
         return (
           <View key={rowIndex} style={styles.keyboardRow}>
             <View style={styles.numericKeysContainer}>
-              {row.map((key) => (
-                <Pressable
-                  key={key}
-                  style={({ pressed }) => [
-                    styles.key,
-                    pressed && styles.keyPressed,
-                  ]}
-                  onPress={() => handlePress(key)}
-                >
-                  {renderKeyContent(key)}
-                </Pressable>
-              ))}
+              {row.map((key) => {
+                const isDeleteKey = key === '⌫';
+                return (
+                  <Pressable
+                    key={key}
+                    style={({ pressed }) => [
+                      styles.key,
+                      { backgroundColor: isDeleteKey ? 'rgb(255, 50, 50)' : colors.keyBg },
+                      pressed && styles.keyPressed,
+                    ]}
+                    onPress={() => handlePress(key)}
+                  >
+                    {renderKeyContent(key)}
+                  </Pressable>
+                );
+              })}
             </View>
-            
+
             <View style={styles.separator} />
-            
+
             <Pressable
               style={({ pressed }) => [
                 styles.extraKey,
+                { backgroundColor: colors.extraKeyBg },
                 isSubmitButton && styles.submitExtraKey,
                 pressed && styles.keyPressed,
               ]}
@@ -216,25 +283,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
     marginBottom: 4,
   },
   input: {
     height: 56,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 18,
-    backgroundColor: '#f9f9f9',
-    color: '#333',
   },
   keyboardWrapper: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#f5f5f5',
   },
   keyboardContainer: {
     width: '100%',
@@ -265,21 +327,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 55,
-    backgroundColor: '#fff',
     borderRadius: 8,
     elevation: 2,
-    shadowColor: 'rgba(0, 0, 0, 0.2)',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.7,
-    shadowRadius: 2,
+    shadowColor: 'rgba(0, 0, 0, 0.5)',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   keyPressed: {
-    backgroundColor: '#e0e0e0',
+    opacity: 0.75,
     transform: [{ scale: 0.98 }],
   },
   keyText: {
     fontSize: 24,
-    color: '#000000',
     fontFamily: 'HomeVideo-BLG6G',
   },
   extraKey: {
@@ -287,17 +350,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 55,
-    backgroundColor: '#fff',
     borderRadius: 8,
     elevation: 2,
-    shadowColor: 'rgba(0, 0, 0, 0.2)',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.7,
-    shadowRadius: 2,
+    shadowColor: 'rgba(0, 0, 0, 0.5)',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   extraKeyText: {
     fontSize: 20,
-    color: '#000000',
     fontFamily: 'HomeVideo-BLG6G',
   },
   submitExtraKey: {
@@ -307,3 +371,4 @@ const styles = StyleSheet.create({
 
 const CustomKeyboardPanel = React.memo(CustomKeyboard);
 export { CustomKeyboardPanel };
+export default CustomKeyboardInput;

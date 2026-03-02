@@ -74,7 +74,7 @@ export const calculatorsDef: CalcDef[] = [
   },
   {
     desc: '',
-    id: 'tuberia-simple',
+    id: 'comprobacion-diseño',
     route: 'DiseñoCalc',
     icon: 'wind',
     titleKey: 'tuberiaSimple.title',
@@ -83,11 +83,11 @@ export const calculatorsDef: CalcDef[] = [
   },
   {
     desc: '',
-    id: 'hazen-williams',
-    route: 'HazenWilliamsCalc',
+    id: 'diseño',
+    route: 'DiseñoCalc2',
     icon: 'wind',
-    titleKey: 'hazenWilliams.title',
-    descKey: 'hazenWilliams.desc',
+    titleKey: 'tuberiaSimple2.title',
+    descKey: 'tuberiaSimple2.desc',
     math: 'h_f = 10.67 \\frac{L Q^{1.85}}{C^{1.85} D^{4.87}}',
   },
 ];

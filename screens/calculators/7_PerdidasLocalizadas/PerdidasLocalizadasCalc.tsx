@@ -35,6 +35,9 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 
+const logoLight = require('../../../assets/icon/iconblack.webp');
+const logoDark = require('../../../assets/icon/iconwhite.webp');
+
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 
 // ─── Navigation types ────────────────────────────────────────────────────────
@@ -1192,14 +1195,14 @@ const PerdidasLocalizadasCalc: React.FC = () => {
         ? [
             [t('perdidasLocalizadasCalc.table.name') || 'Accesorio', 3],
             ['K', 1],
-            ['h_m (m)', 2],
+            ['hm (m)', 2],
             ['%', 1],
           ]
         : /* equivalent */ [
             [t('perdidasLocalizadasCalc.table.name') || 'Accesorio', 3],
             ['K', 1],
             ['L_eq (m)', 2],
-            ['h_m (m)', 2],
+            ['hm (m)', 2],
           ];
 
     return (
@@ -1498,7 +1501,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
                         },
                       ]}
                     >
-                      {mainResultValue}
+                      {totalHl === 0 ? '一' : mainResultValue}
                     </Text>
                   </View>
                 </View>
@@ -1704,6 +1707,15 @@ const PerdidasLocalizadasCalc: React.FC = () => {
             {renderTable()}
           </View>
         </View>
+
+        <View style={styles.logoContainer}>
+          <FastImage
+            source={currentTheme === 'dark' ? logoDark : logoLight}
+            style={styles.logoImage}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        </View>
+
       </ScrollView>
 
       {/* ── Teclado custom ── renderizado fuera del ScrollView para quedar siempre visible en el fondo */}
@@ -1801,7 +1813,8 @@ const styles = StyleSheet.create({
     color: 'rgb(255, 255, 255)',
     fontSize: 30,
     fontFamily: 'SFUIDisplay-Bold',
-    marginTop: -10,
+    lineHeight: 30,
+    marginBottom: 10,
   },
   resultsMain: {
     paddingHorizontal: 20,
@@ -1852,9 +1865,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   caudalLabel: {
-    backgroundColor: 'rgba(142, 142, 142, 0.1)',
+    backgroundColor: 'rgba(142, 142, 142, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(104, 104, 104, 0.2)',
+    borderColor: 'rgba(104, 104, 104, 0.12)',
     borderRadius: 14,
     marginLeft: 11,
     marginTop: 11,
@@ -2147,6 +2160,20 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#f5f5f5',
+  },
+  logoContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    width: 40,
+    height: 40,
+    opacity: 1,
+    zIndex: 10,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
   },
 });
 
