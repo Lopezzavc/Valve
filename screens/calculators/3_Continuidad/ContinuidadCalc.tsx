@@ -29,6 +29,9 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 
+const logoLight = require('../../../assets/icon/iconblack.webp');
+const logoDark = require('../../../assets/icon/iconwhite.webp');
+
 import Decimal from 'decimal.js';
 
 Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
@@ -1410,7 +1413,7 @@ const ContinuidadCalc: React.FC = () => {
                       }}
                     />
                   )}
-                  <View style={[styles.caudalLabel, { backgroundColor: 'rgba(142, 142, 142, 0.1)' }]}>
+                  <View style={[styles.caudalLabel]}>
                     <Text
                       style={[
                         styles.flowLabel,
@@ -1433,7 +1436,7 @@ const ContinuidadCalc: React.FC = () => {
                         }
                       ]}
                     >
-                      {adjustDecimalSeparator(formatNumber(parseFloat(getMainResultValue())))}
+                      {getMainResultValue() === '0' ? '一' : adjustDecimalSeparator(formatNumber(parseFloat(getMainResultValue())))}
                     </Text>
                   </View>
                 </View>
@@ -1507,6 +1510,21 @@ const ContinuidadCalc: React.FC = () => {
           <View style={styles.inputsContainer}>
             {state.mode === 'caudal' ? renderCaudalInputs() : renderContinuityInputs()}
           </View>
+          <View>
+            <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 10 }]} />
+            <View style={styles.descriptionContainer}>
+              <Text style={[styles.descriptionText, { color: themeColors.text, opacity: 0.6, fontSize: 14 * fontSizeFactor }]}>
+                {t('continuidadCalc.infoText')}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.logoContainer}>
+          <FastImage
+            source={currentTheme === 'dark' ? logoDark : logoLight}
+            style={styles.logoImage}
+            resizeMode={FastImage.resizeMode.contain}
+          />
         </View>
       </ScrollView>
 
@@ -1652,18 +1670,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     position: 'relative' 
   },
-  caudalLabel: { 
-    backgroundColor: 'rgba(142, 142, 142, 0.1)', 
-    borderWidth: 1, 
-    borderColor: 'rgba(104, 104, 104, 0.2)', 
-    borderRadius: 14, 
-    marginLeft: 11, 
-    marginTop: 11, 
-    height: 28, 
-    minWidth: 90, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    paddingHorizontal: 12 
+  caudalLabel: {
+    backgroundColor: 'rgba(142, 142, 142, 0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(104, 104, 104, 0.12)',
+    borderRadius: 14,
+    marginLeft: 11,
+    marginTop: 11,
+    height: 28,
+    minWidth: 90,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
   },
   flowLabel: { 
     fontSize: 14, 
@@ -1873,6 +1891,31 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#f5f5f5',
+  },
+  logoContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    width: 40,
+    height: 40,
+    opacity: 1,
+    zIndex: 10,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  descriptionContainer: {
+    marginVertical: 5,
+    marginHorizontal: 5,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: 'rgb(170, 170, 170)',
+    fontFamily: 'SFUIDisplay-Regular',
+    lineHeight: 18,
+    marginBottom: 8,
   },
 });
 

@@ -935,7 +935,7 @@ const HistoryScreenEnergiaBernoulli = () => {
             </View>
 
             <View style={styles.titlesContainer}>
-              <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>{t('energiaBernoulliCalc.title')}</Text>
+              <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>{t('energiaBernoulliCalc.titlehistory')}</Text>
               <Text style={[styles.title, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>{t('history.title')}</Text>
             </View>
           </>

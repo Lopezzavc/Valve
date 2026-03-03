@@ -18,6 +18,9 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 
+const logoLight = require('../../../assets/icon/iconblack.webp');
+const logoDark = require('../../../assets/icon/iconwhite.webp');
+
 type RootStackParamList = {
   OptionsScreenFroude: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
   HistoryScreenFroude: undefined;
@@ -795,7 +798,7 @@ const FroudeCalc: React.FC = () => {
                         { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 14 * fontSizeFactor }
                       ]}
                     >
-                      {t(regimeKey)}
+                      {state.resultFroude === 0 ? 'な' : t(regimeKey)}
                     </Text>
                   </View>
                   <View style={styles.flowValueContainer}>
@@ -805,7 +808,7 @@ const FroudeCalc: React.FC = () => {
                         { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 30 * fontSizeFactor }
                       ]}
                     >
-                      {adjustDecimalSeparator(formatNumber(state.resultFroude))}
+                      {state.resultFroude === 0 ? '一' : adjustDecimalSeparator(formatNumber(state.resultFroude))}
                     </Text>
                   </View>
                 </View>
@@ -892,6 +895,22 @@ const FroudeCalc: React.FC = () => {
               state.resultHydraulicDepth
             )}
           </View>
+          <View>
+            <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 10 }]} />
+            <View style={styles.descriptionContainer}>
+              <Text style={[styles.descriptionText, { color: themeColors.text, opacity: 0.6, fontSize: 14 * fontSizeFactor }]}>
+                {t('froudeCalc.infoText')}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.logoContainer}>
+          <FastImage
+            source={currentTheme === 'dark' ? logoDark : logoLight}
+            style={styles.logoImage}
+            resizeMode={FastImage.resizeMode.contain}
+          />
         </View>
       </ScrollView>
 
@@ -1030,18 +1049,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     position: 'relative' 
   },
-  caudalLabel: { 
-    backgroundColor: 'rgba(142, 142, 142, 0.1)', 
-    borderWidth: 1, 
-    borderColor: 'rgba(104, 104, 104, 0.2)', 
-    borderRadius: 14, 
-    marginLeft: 11, 
-    marginTop: 11, 
-    height: 28, 
-    minWidth: 90, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    paddingHorizontal: 12 
+  caudalLabel: {
+    backgroundColor: 'rgba(142, 142, 142, 0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(104, 104, 104, 0.12)',
+    borderRadius: 14,
+    marginLeft: 11,
+    marginTop: 11,
+    height: 28,
+    minWidth: 90,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
   },
   flowLabel: { 
     fontSize: 14, 
@@ -1197,6 +1216,35 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#f5f5f5',
+  },
+  logoContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    width: 40,
+    height: 40,
+    opacity: 1,
+    zIndex: 10,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  separator2: {
+    height: 1,
+    backgroundColor: 'rgb(235, 235, 235)',
+  },
+  descriptionContainer: {
+    marginVertical: 5,
+    marginHorizontal: 5,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: 'rgb(170, 170, 170)',
+    fontFamily: 'SFUIDisplay-Regular',
+    lineHeight: 18,
+    marginBottom: 8,
   },
 });
 

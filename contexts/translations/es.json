@@ -76,8 +76,10 @@
     "inputs": "Entradas"
   },
   "continuidadCalc": {
+    "infoText": "Ingrese 3 de los 4 parámetros (A₁, v₁, A₂, v₂) para calcular el caudal y la variable desconocida.",
     "calculator": "Calculadora",
     "title": "ECUACIÓN DE CONTINUIDAD",
+    "titlehistory": "Ecuación de continuidad",
     "saveToHistory": "Guardar en el historial",
     "flow": "Caudal",
     "section": "SECCIÓN",
@@ -143,7 +145,7 @@
     }
   },
   "history": {
-    "title": "Historial de cálculos",
+    "title": "HISTORIAL DE CÁLCULOS",
     "savedOn": "Guardado el",
     "empty": "Historial vacío",
     "deleteAll": {
@@ -278,7 +280,9 @@
     }
   },
   "reynoldsCalc": {
+    "infoText": "Tenga en cuenta que los rangos que determinan si el flujo es laminar (Re < 2300), transicional (2300 ≤ Re < 4000) o turbulento (Re ≥ 4000) pueden variar según la referencia bibliográfica consultada.",
     "title": "NÚMERO DE REYNOLDS",
+    "titleHistory": "Número de Reynolds",
     "calculator": "Calculadora",
     "reynolds": "Reynolds",
     "saveToHistory": "Guardar en historial",
@@ -413,8 +417,10 @@
     "desc": "Calcula el número de Froude que relaciona la inercia con la gravedad en el movimiento de un fluido."
   },
   "froudeCalc": {
+    "infoText": "Ingrese al menos 2 parámetros geométricos junto con velocidad y gravedad para calcular el número de Froude",
     "calculator": "Calculadora",
     "title": "NÚMERO DE FROUDE",
+    "titlehistory": "Número de Froude",
     "froudeNumber": "Número de Froude",
     "froude": "Froude",
     "saveToHistory": "Guardar en historial",
@@ -447,6 +453,7 @@
     "cardDesc1": "Resuelve la ecuación general de energía, incluyendo el caso ideal, pérdidas de carga y cavitación."
   },
   "energiaBernoulliCalc": {
+    "infoText": "Ingrese todos los parámetros excepto uno para calcular la variable desconocida y la diferencia de energía",
     "safe": "Seguro",
     "noCavitation": "Sin riesgo",
     "lowMargin": "Margen bajo",
@@ -461,6 +468,7 @@
     "useRhoForGamma": "Usar densidad (ρ)",
     "useTempForPv": "Calcular Pv desde temperatura",
     "title": "ENERGÍA / BERNOULLI",
+    "titlehistory": "Energía / Bernoulli",
     "calculator": "Calculadora",
     "modec": "Modo",
     "mode": {
@@ -626,7 +634,7 @@
     "terms": {
       "R": {
         "title": "Número de Reynolds (R)",
-        "description": "El número de Reynolds (Re) es un parámetro adimensional fundamental en la mecánica de fluidos que permite predecir el régimen de flujo de un fluido, comparando la influencia relativa de las fuerzas inerciales frente a las fuerzas viscosas.\n\nSe define como la razón entre las fuerzas inerciales (asociadas al movimiento del fluido) y las fuerzas viscosas (asociadas a la resistencia interna del fluido). Matemáticamente, se expresa como Re = (ρ·V·D)/μ.\n\nUn valor bajo de Re indica que las fuerzas viscosas dominan, lo que produce un flujo laminar, caracterizado por capas de fluido que se desplazan ordenadamente sin mezclarse. Esto ocurre típicamente cuando Re < 2300.\n\nA medida que Re aumenta, las fuerzas inerciales se vuelven comparables a las viscosas, generando un régimen de transición donde el flujo puede volverse inestable. Este rango suele ubicarse entre 2300 y 4000.\n\nCuando Re es alto (Re > 4000), las fuerzas inerciales predominan y el flujo se vuelve turbulento, caracterizado por remolinos, fluctuaciones de velocidad y mezcla caótica del fluido. Este comportamiento es crucial en ingeniería, ya que afecta la pérdida de energía, el transporte de calor y masa, y el diseño de tuberías, bombas y sistemas hidráulicos.\n\nEl concepto fue introducido por George Stokes y popularizado por Osborne Reynolds en 1883, quien demostró experimentalmente la transición entre flujo laminar y turbulento."
+        "description": "El número de Reynolds es un parámetro adimensional utilizado en mecánica de fluidos para describir la relación entre las fuerzas inerciales y las fuerzas viscosas dentro de un flujo. Permite caracterizar el comportamiento del fluido al desplazarse en el interior de tuberías, alrededor de cuerpos sólidos o en canales abiertos. En términos físicos, compara la tendencia del fluido a mantener su movimiento debido a la inercia con la resistencia interna que ofrece la viscosidad. Su forma matemática se expresa como Re = ρVL/μ, donde ρ es la densidad del fluido, V es la velocidad característica, L es una longitud representativa y μ es la viscosidad dinámica.\n\nEste número es fundamental para clasificar los regímenes de flujo según su estabilidad y estructura interna. Cuando su valor es bajo, el flujo tiende a ser ordenado y predecible, mientras que valores elevados indican una mayor propensión a la inestabilidad y a la formación de fluctuaciones complejas. La transición entre estos comportamientos depende de la geometría del sistema y de las condiciones específicas del flujo, pero el número de Reynolds constituye el criterio principal para anticipar ese cambio.\n\nCuando el número de Reynolds es menor que aproximadamente dos mil en el caso de flujo interno en tuberías, el régimen suele ser laminar, lo que implica que las partículas del fluido se desplazan en capas paralelas con mínima mezcla transversal y predominio de la disipación viscosa. En un intervalo intermedio se presenta una zona de transición donde pequeñas perturbaciones pueden amplificarse. Cuando el valor supera aproximadamente cuatro mil, el flujo suele volverse turbulento, lo que implica movimiento caótico, mezcla intensa, mayores pérdidas de energía y una distribución de velocidades más uniforme en la sección transversal.\n\nEl concepto fue desarrollado en el siglo XIX por el físico e ingeniero irlandés Osborne Reynolds, quien realizó experimentos clásicos en tuberías transparentes para observar la transición entre flujo laminar y turbulento. Sus estudios demostraron que esta transición no dependía únicamente de la velocidad, sino de una combinación específica de propiedades del fluido y dimensiones geométricas, lo que condujo a la formulación del número adimensional que lleva su nombre y que hoy es esencial en la ingeniería, la aerodinámica y la hidráulica."
       },
       "ρ": {
         "title": "Densidad del fluido (ρ)",
@@ -676,7 +684,7 @@
     "terms": {
       "Fr": {
         "title": "Número de Froude (Fr)",
-        "description": "El Número de Froude es un parámetro adimensional de vital importancia en la mecánica de fluidos, nombrado en honor al ingeniero naval William Froude. Representa la proporción entre las fuerzas de inercia y las fuerzas de gravedad que actúan sobre un fluido.\n\nFísicamente, este número define el régimen de flujo en canales abiertos. Si Fr < 1, el flujo es 'subcrítico': las ondas superficiales viajan más rápido que la corriente, permitiendo que las perturbaciones se propaguen aguas arriba (flujo tranquilo). Si Fr > 1, el flujo es 'supercrítico': el fluido se mueve más rápido que sus propias ondas, impidiendo que la información del nivel del agua suba por la corriente (flujo rápido y torrencial). En Fr = 1, el flujo alcanza su estado crítico, donde la energía específica es mínima para un caudal dado."
+        "description": "El número de Froude es un parámetro adimensional utilizado en mecánica de fluidos para describir la relación entre la inercia de un flujo y el efecto de la gravedad. Permite determinar cómo se comporta un fluido cuando existe una superficie libre, como en ríos, canales, oleaje o el movimiento de embarcaciones. En términos físicos, compara la velocidad característica del flujo con la velocidad a la que se propagan las ondas gravitatorias en ese mismo medio. Su forma matemática se expresa como Fr = V / √(gL), donde V es la velocidad característica, g es la aceleración de la gravedad y L es una longitud representativa del sistema.\n\nEste número es fundamental para clasificar los regímenes de flujo. Cuando su valor es menor que uno, el flujo se denomina subcrítico y las perturbaciones pueden propagarse aguas arriba. Cuando es igual a uno, se encuentra en condición crítica, lo que implica un equilibrio entre inercia y gravedad. Cuando es mayor que uno, el flujo es supercrítico y las perturbaciones no pueden viajar contra la corriente. Esta clasificación resulta esencial en el diseño de canales, vertederos, presas y en el análisis del comportamiento de barcos y estructuras hidráulicas.\n\nCuando el número de Froude es menor que uno, la gravedad domina sobre la inercia, lo que implica un flujo relativamente lento y profundo, estable frente a pequeñas perturbaciones y sensible a las condiciones aguas abajo. Si es igual a uno, el sistema alcanza un estado crítico en el que la velocidad del flujo coincide con la velocidad de propagación de las ondas superficiales, generando una condición de transición altamente sensible. Cuando es mayor que uno, la inercia predomina sobre la gravedad, el flujo es rápido y poco profundo, y cualquier alteración queda confinada aguas abajo, favoreciendo fenómenos como resaltos hidráulicos.\n\nEl concepto fue introducido en el siglo XIX por el ingeniero y arquitecto naval británico William Froude, quien investigó la resistencia al avance de los buques. Su trabajo permitió establecer leyes de semejanza dinámica que todavía se utilizan en ensayos con modelos a escala en ingeniería naval e hidráulica. Al reconocer que la similitud en el número de Froude garantizaba una correspondencia adecuada entre modelo y prototipo en fenómenos dominados por la gravedad, sentó una base experimental sólida para el diseño moderno de embarcaciones y obras hidráulicas."
       },
       "V": {
         "title": "Velocidad Media (v)",

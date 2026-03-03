@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, ScrollView, Linking } from 'react-na
 import { WebView } from 'react-native-webview';
 import Icon2 from 'react-native-vector-icons/Feather';
 import Icon3 from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon4 from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -40,6 +41,25 @@ const EXPANDABLE_TERMS: Record<string, ExpandableConfig> = {
     latex: "\\gamma = \\rho g",
     initialTerm: 'ρ',
     validTerms: new Set(['γ', 'ρ', 'g']),
+  },
+};
+
+const SOLVED_TERMS: Record<string, { latex: string; initialTerm: string }> = {
+  'P': {
+    latex: "P_1 = \\gamma \\left( \\frac{P_2}{\\gamma} + \\frac{V_2^2}{2g} + z_2 + h_f - \\frac{V_1^2}{2g} - z_1 \\right)",
+    initialTerm: 'P',
+  },
+  'V': {
+    latex: "V_1 = \\sqrt{ 2g \\left( \\frac{P_2}{\\gamma} + \\frac{V_2^2}{2g} + z_2 + h_f - \\frac{P_1}{\\gamma} - z_1 \\right) }",
+    initialTerm: 'V',
+  },
+  'z': {
+    latex: "z_1 = \\frac{P_2}{\\gamma} + \\frac{V_2^2}{2g} + z_2 + h_f - \\frac{P_1}{\\gamma} - \\frac{V_1^2}{2g}",
+    initialTerm: 'z',
+  },
+  'h_f': {
+    latex: "h_f = \\frac{P_1}{\\gamma} + \\frac{V_1^2}{2g} + z_1 - \\frac{P_2}{\\gamma} - \\frac{V_2^2}{2g} - z_2",
+    initialTerm: 'h',
   },
 };
 
@@ -462,6 +482,9 @@ const EnergiaBernoulliTheory = ({ initialSelectedTerm = 'h' }: { initialSelected
   const isExpandedRef                       = useRef(false);
   const expandedFromTerm                    = useRef<string>('h');
 
+  const [isSolved, setIsSolved]             = useState(false);
+  const isSolvedRef                         = useRef(false);
+
   const references = useMemo(() => REFERENCES, []);
 
   // ── Callbacks del WebView ────────────────────────────────────────────────────
@@ -538,6 +561,11 @@ const EnergiaBernoulliTheory = ({ initialSelectedTerm = 'h' }: { initialSelected
       setIsExpanded(false);
       setWebViewHeight(WEBVIEW_SINGLE_HEIGHT);
     } else {
+
+      if (isSolvedRef.current) {
+        isSolvedRef.current = false;
+        setIsSolved(false);
+      }
       // — Expandir (solo si el término seleccionado es expandible) —
       // selectedTerm está en clave i18n (e.g. 'h_f', 'γ'); EXPANDABLE_TERMS usa esas mismas claves.
       const config = EXPANDABLE_TERMS[selectedTerm];
@@ -552,10 +580,42 @@ const EnergiaBernoulliTheory = ({ initialSelectedTerm = 'h' }: { initialSelected
     }
   }, [selectedTerm]);
 
+  const handleSolve = useCallback(() => {
+    if (isSolvedRef.current) {
+      // — Comprimir modo solve —
+      const restore = expandedFromTerm.current;
+      webViewRef.current?.injectJavaScript(
+        `window.collapseEquation(${JSON.stringify(restore)}); true;`
+      );
+      isSolvedRef.current = false;
+      setIsSolved(false);
+      setWebViewHeight(WEBVIEW_SINGLE_HEIGHT);
+    } else {
+      // — Activar modo solve —
+      if (isExpandedRef.current) {
+        isExpandedRef.current = false;
+        setIsExpanded(false);
+      }
+      const config = SOLVED_TERMS[selectedTerm];
+      if (!config) return;
+
+      expandedFromTerm.current = selectedTerm;
+      webViewRef.current?.injectJavaScript(
+        `window.expandTo(${JSON.stringify(config.latex)}, ${JSON.stringify(config.initialTerm)}); true;`
+      );
+      isExpandedRef.current = true;
+      isSolvedRef.current = true;
+      setIsSolved(true);
+    }
+  }, [selectedTerm]);
+
   // ── Helpers de estado ────────────────────────────────────────────────────────
   // Para 'canExpand' también verificamos las claves directas del WebView que se mapean a expandibles.
   // 'h' → 'h_f', 'γ' → 'γ'
   const canExpand = isExpanded || Boolean(EXPANDABLE_TERMS[selectedTerm]);
+
+  const canSolve      = isSolved || Boolean(SOLVED_TERMS[selectedTerm]);
+  const solveIconName = isSolved ? 'chevron-up' : 'corner-down-left';
 
   const equationHTML = React.useMemo(
     () => buildEquationHTML(LATEX_EQUATION, isDark, initialSelectedTerm),
@@ -650,6 +710,26 @@ const EnergiaBernoulliTheory = ({ initialSelectedTerm = 'h' }: { initialSelected
           </MaskedView>
           <Icon3
             name={isExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'}
+            size={20}
+            color={themeColors.icon}
+            style={styles.buttonIcon}
+          />
+        </Pressable>
+
+        <Pressable
+          style={[styles.simpleButtonContainer2, !canSolve && styles.buttonDisabled]}
+          onPress={handleSolve}
+          disabled={!canSolve}
+        >
+          <View style={[styles.buttonBackground2, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
+          <MaskedView
+            style={styles.maskedButton2}
+            maskElement={<View style={[styles.transparentButtonMask2, isSolved && styles.expandedButtonMask]} />}
+          >
+            <View style={[styles.buttonGradient2, { experimental_backgroundImage: themeColors.gradient }]} />
+          </MaskedView>
+          <Icon4
+            name={solveIconName}
             size={20}
             color={themeColors.icon}
             style={styles.buttonIcon}

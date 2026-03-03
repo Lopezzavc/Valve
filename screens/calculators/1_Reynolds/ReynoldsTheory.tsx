@@ -2,7 +2,8 @@ import React, { memo, useCallback, useContext, useMemo, useRef, useState } from 
 import { View, Text, StyleSheet, Pressable, ScrollView, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Icon2 from 'react-native-vector-icons/Feather';
-import Icon3 from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon3 from 'react-native-vector-icons/Feather';
+import Icon4 from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -43,6 +44,13 @@ const EXPANDABLE_TERMS: Record<string, ExpandableConfig> = {
     initialTerm: 'τ',
     validTerms: new Set(['τ', 'μ', 'du', 'dy']),
   },
+};
+
+const SOLVED_TERMS: Record<string, { latex: string; initialTerm: string }> = {
+  'ρ': { latex: "\\rho = \\frac{R \\mu}{V D}",  initialTerm: 'ρ' },
+  'V': { latex: "V = \\frac{R \\mu}{\\rho D}",  initialTerm: 'V' },
+  'D': { latex: "D = \\frac{R \\mu}{\\rho V}",  initialTerm: 'D' },
+  'μ': { latex: "\\mu = \\frac{\\rho V D}{R}",  initialTerm: 'μ' },
 };
 
 // ─── Términos válidos de la ecuación principal ────────────────────────────────
@@ -426,6 +434,9 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
   const isExpandedRef                       = useRef(false);
   const expandedFromTerm                    = useRef<string>('R');
 
+  const [isSolved, setIsSolved]             = useState(false);
+  const isSolvedRef                         = useRef(false);
+
   const references = useMemo(() => REFERENCES, []);
 
   // ── Callbacks del WebView ─────────────────────────────────────────────────────
@@ -501,6 +512,11 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
       // Restaurar altura fija al comprimir
       setWebViewHeight(WEBVIEW_SINGLE_HEIGHT);
     } else {
+      
+      if (isSolvedRef.current) {
+        isSolvedRef.current = false;
+        setIsSolved(false);
+      }
       // — Expandir (solo si el término seleccionado es expandible) —
       const config = EXPANDABLE_TERMS[selectedTerm];
       if (!config) return;
@@ -514,10 +530,43 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
     }
   }, [selectedTerm]);
 
+  const handleSolve = useCallback(() => {
+    if (isSolvedRef.current) {
+      // — Comprimir modo solve —
+      const restore = expandedFromTerm.current;
+      webViewRef.current?.injectJavaScript(
+        `window.collapseEquation(${JSON.stringify(restore)}); true;`
+      );
+      isSolvedRef.current = false;
+      setIsSolved(false);
+      setWebViewHeight(WEBVIEW_SINGLE_HEIGHT);
+    } else {
+      // — Activar modo solve —
+      // Si expand está activo, lo desactivamos (expandTo reemplazará la ecuación secundaria)
+      if (isExpandedRef.current) {
+        isExpandedRef.current = false;
+        setIsExpanded(false);
+      }
+      const config = SOLVED_TERMS[selectedTerm];
+      if (!config) return;
+
+      expandedFromTerm.current = selectedTerm;
+      webViewRef.current?.injectJavaScript(
+        `window.expandTo(${JSON.stringify(config.latex)}, ${JSON.stringify(config.initialTerm)}); true;`
+      );
+      // Reutilizamos isExpandedRef para que handleWebViewMessage reporte la altura correctamente
+      isExpandedRef.current = true;
+      isSolvedRef.current = true;
+      setIsSolved(true);
+    }
+  }, [selectedTerm]);
+
   // ── Helpers de estado ─────────────────────────────────────────────────────────
   const isValidTerm    = ALL_VALID_TERMS.has(selectedTerm);
-  const expandIconName = isExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical';
+  const expandIconName = isExpanded ? 'chevron-up' : 'search';
   const canExpand      = isExpanded || Boolean(EXPANDABLE_TERMS[selectedTerm]);
+  const canSolve      = isSolved || Boolean(SOLVED_TERMS[selectedTerm]);
+  const solveIconName = isSolved ? 'chevron-up' : 'corner-down-left';   // o el ícono Feather que prefieras
 
   const equationHTML = React.useMemo(
     () => buildEquationHTML(LATEX_EQUATION, isDark, initialSelectedTerm),
@@ -614,6 +663,26 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
             name={expandIconName}
             size={20}
             color={isExpanded ? themeColors.icon : themeColors.icon}
+            style={styles.buttonIcon}
+          />
+        </Pressable>
+
+        <Pressable
+          style={[styles.simpleButtonContainer2, !canSolve && styles.buttonDisabled]}
+          onPress={handleSolve}
+          disabled={!canSolve}
+        >
+          <View style={[styles.buttonBackground2, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
+          <MaskedView
+            style={styles.maskedButton2}
+            maskElement={<View style={[styles.transparentButtonMask2, isSolved && styles.expandedButtonMask]} />}
+          >
+            <View style={[styles.buttonGradient2, { experimental_backgroundImage: themeColors.gradient }]} />
+          </MaskedView>
+          <Icon3
+            name={solveIconName}
+            size={20}
+            color={themeColors.icon}
             style={styles.buttonIcon}
           />
         </Pressable>
@@ -742,7 +811,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
     marginTop: 0,
   },
   selectedRow: {

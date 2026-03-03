@@ -663,7 +663,7 @@ const HistoryScreenReynolds = () => {
             </View>
 
             <View style={styles.titlesContainer}>
-              <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>{t('reynoldsCalc.title') || 'Número de Reynolds'}</Text>
+              <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>{t('reynoldsCalc.titleHistory') || 'Número de Reynolds'}</Text>
               <Text style={[styles.title, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>{t('history.title')}</Text>
             </View>
           </>
