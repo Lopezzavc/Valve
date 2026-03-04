@@ -35,6 +35,7 @@ type CalcCardProps = {
   themeColors: any;
   fontSizeFactor: number;
   barColor?: string;
+  progress?: number;  // ← NUEVA PROPIEDAD
 };
 
 const CalcCard: React.FC<CalcCardProps> = ({ 
@@ -45,8 +46,41 @@ const CalcCard: React.FC<CalcCardProps> = ({
   navigation, 
   themeColors, 
   fontSizeFactor,
-  barColor
+  barColor,
+  progress
 }) => {
+  const renderProgressDots = () => {
+    const dots = [];
+    const currentProgress = progress || 0; // ← Usar la variable directa
+    
+    for (let i = 1; i <= 5; i++) {
+      let dotColor = '#E0E0E0'; // Gris por defecto
+
+      if (i <= currentProgress) {
+        if (i === 1) {
+          dotColor = '#FF3B30'; // Rojo para el primero
+        } else if (i === 2) {
+          dotColor = '#FF9500'; // Naranja para segundo y tercero
+        } else if (i === 3 || i === 4) {
+          dotColor = '#34C759'; // Verde para el cuarto
+        } else if (i === 5) {
+          dotColor = '#FFD700'; // Dorado para el quinto
+        }
+      }
+
+      dots.push(
+        <View
+          key={i}
+          style={[
+            styles.progressDot,
+            { backgroundColor: dotColor }
+          ]}
+        />
+      );
+    }
+
+    return <View style={styles.progressContainer}>{dots}</View>;
+  };
   const [boxW, setBoxW] = useState(0);
   const [open, setOpen] = useState(false);
   const translateX = useRef(new Animated.Value(0)).current;
@@ -153,6 +187,9 @@ const CalcCard: React.FC<CalcCardProps> = ({
                 </View>
                 <View style={stylesRef.descContainer}>
                   <Text style={[stylesRef.subtitleText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>{desc}</Text>
+                </View>
+                <View style={styles.progressWrapper}>
+                  {renderProgressDots()}
                 </View>
               </View>
 
@@ -375,13 +412,14 @@ const HomeScreen = () => {
         math: c.math ?? '',
         route: c.route,
         color: c.color,
+        progress: c.progress,
       }))
   , [t]);
 
   // Calculadoras de la nueva sección (Flujo en tubería y pérdidas)
   const pipeFlowCards = useMemo(() =>
     calculatorsDef
-      .filter(c => ['factor-friccion', 'perdidas-localizadas', 'comprobacion-diseño', 'diseño'].includes(c.id))
+      .filter(c => ['factor-friccion', 'perdidas-localizadas'].includes(c.id))
       .map(c => ({
         key: c.id,
         title: t(c.titleKey) ?? c.id,
@@ -389,6 +427,37 @@ const HomeScreen = () => {
         math: c.math ?? '',
         route: c.route,
         color: c.color,
+        progress: c.progress,
+      }))
+  , [t]);
+
+  // Calculadoras DISEÑO
+  const designCards = useMemo(() =>
+    calculatorsDef
+      .filter(c => ['diseño_simple', 'diseño_serie', 'diseño_paralelo'].includes(c.id))
+      .map(c => ({
+        key: c.id,
+        title: t(c.titleKey) ?? c.id,
+        desc: t(c.descKey) ?? '',
+        math: c.math ?? '',
+        route: c.route,
+        color: c.color,
+        progress: c.progress,
+      }))
+  , [t]);
+
+  // Calculadoras COMPROBACION DISEÑO
+  const designcompCards = useMemo(() =>
+    calculatorsDef
+      .filter(c => ['compdiseño_simple', 'compdiseño_serie', 'compdiseño_paralelo'].includes(c.id))
+      .map(c => ({
+        key: c.id,
+        title: t(c.titleKey) ?? c.id,
+        desc: t(c.descKey) ?? '',
+        math: c.math ?? '',
+        route: c.route,
+        color: c.color,
+        progress: c.progress,
       }))
   , [t]);
 
@@ -403,6 +472,7 @@ const HomeScreen = () => {
         math: c.math ?? '',
         route: c.route,
         color: c.color,
+        progress: c.progress,
       }))
   , [t]);
 
@@ -547,6 +617,7 @@ const HomeScreen = () => {
             themeColors={themeColors}
             fontSizeFactor={fontSizeFactor}
             barColor={card.color}
+            progress={card.progress}
           />
         ))}
 
@@ -575,10 +646,11 @@ const HomeScreen = () => {
             themeColors={themeColors}
             fontSizeFactor={fontSizeFactor}
             barColor={card.color}
+            progress={card.progress}
           />
         ))}
 
-        {/* TERCERA SECCIÓN: Bombas */}
+        {/* TERCERA SECCIÓN: diseño */}
         <View style={styles.preCardSubtitleWrap}>
           <Text
             style={[
@@ -589,6 +661,64 @@ const HomeScreen = () => {
             <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}></Text>
             <Text></Text>
             <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle3')}</Text>
+          </Text>
+        </View>
+
+        {designCards.map(card => (
+          <CalcCard
+            key={card.key}
+            title={card.title}
+            desc={card.desc}
+            math={card.math}
+            route={card.route}
+            navigation={navigation}
+            themeColors={themeColors}
+            fontSizeFactor={fontSizeFactor}
+            barColor={card.color}
+            progress={card.progress}
+          />
+        ))}
+
+        {/* TERCERA SECCIÓN: comprobacion diseño */}
+        <View style={styles.preCardSubtitleWrap}>
+          <Text
+            style={[
+              styles.preCardSubtitleBase,
+              { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
+            ]}
+          >
+            <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}></Text>
+            <Text></Text>
+            <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle4')}</Text>
+          </Text>
+        </View>
+
+        {designcompCards.map(card => (
+          <CalcCard
+            key={card.key}
+            title={card.title}
+            desc={card.desc}
+            math={card.math}
+            route={card.route}
+            navigation={navigation}
+            themeColors={themeColors}
+            fontSizeFactor={fontSizeFactor}
+            barColor={card.color}
+            progress={card.progress}
+          />
+        ))}
+
+        {/* AUN NO SECCIÓN: Bombas */}
+        <View style={styles.preCardSubtitleWrap}>
+          <Text
+            style={[
+              styles.preCardSubtitleBase,
+              { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
+            ]}
+          >
+            <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}></Text>
+            <Text></Text>
+            <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle5')}</Text>
           </Text>
         </View>
 
@@ -603,8 +733,107 @@ const HomeScreen = () => {
             themeColors={themeColors}
             fontSizeFactor={fontSizeFactor}
             barColor={card.color}
+            progress={card.progress}
           />
         ))}
+        
+        {/* SECCIÓN DE INFORMACIÓN DE PROGRESO */}
+        <View style={styles.infoSection}>
+          <View style={[styles.separatorInfo, { backgroundColor: themeColors.separator }]} />
+
+          <Text style={[styles.infoTitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
+            {t('home.progressInfo.title') || 'Indicador de progreso'}
+          </Text>
+
+          {/* Caso 1: 1 punto */}
+          <View style={styles.infoRow}>
+            <View style={styles.infoDotsContainer}>
+              {[1,2,3,4,5].map((i) => {
+                let dotColor = '#E0E0E0';
+                if (i === 1) dotColor = '#FF3B30';
+                return (
+                  <View key={`info1-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                );
+              })}
+            </View>
+            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+              {t('home.progressInfo.level1') || 'Nivel 1: Introducción'}
+            </Text>
+          </View>
+
+          {/* Caso 2: 2 puntos */}
+          <View style={styles.infoRow}>
+            <View style={styles.infoDotsContainer}>
+              {[1,2,3,4,5].map((i) => {
+                let dotColor = '#E0E0E0';
+                if (i === 1) dotColor = '#FF3B30';
+                if (i === 2) dotColor = '#FF9500';
+                return (
+                  <View key={`info2-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                );
+              })}
+            </View>
+            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+              {t('home.progressInfo.level2') || 'Nivel 2: Conceptos básicos'}
+            </Text>
+          </View>
+
+          {/* Caso 3: 3 puntos */}
+          <View style={styles.infoRow}>
+            <View style={styles.infoDotsContainer}>
+              {[1,2,3,4,5].map((i) => {
+                let dotColor = '#E0E0E0';
+                if (i === 1) dotColor = '#FF3B30';
+                if (i === 2) dotColor = '#FF9500';
+                if (i === 3) dotColor = '#34C759';
+                return (
+                  <View key={`info3-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                );
+              })}
+            </View>
+            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+              {t('home.progressInfo.level3') || 'Nivel 3: Aplicaciones prácticas'}
+            </Text>
+          </View>
+
+          {/* Caso 4: 4 puntos */}
+          <View style={styles.infoRow}>
+            <View style={styles.infoDotsContainer}>
+              {[1,2,3,4,5].map((i) => {
+                let dotColor = '#E0E0E0';
+                if (i === 1) dotColor = '#FF3B30';
+                if (i === 2) dotColor = '#FF9500';
+                if (i === 4 || i === 3) dotColor = '#34C759';
+                return (
+                  <View key={`info4-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                );
+              })}
+            </View>
+            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+              {t('home.progressInfo.level4') || 'Nivel 4: Análisis avanzado'}
+            </Text>
+          </View>
+
+          {/* Caso 5: 5 puntos */}
+          <View style={styles.infoRow}>
+            <View style={styles.infoDotsContainer}>
+              {[1,2,3,4,5].map((i) => {
+                let dotColor = '#E0E0E0';
+                if (i === 1) dotColor = '#FF3B30';
+                if (i === 2) dotColor = '#FF9500';
+                if (i === 4 || i === 3) dotColor = '#34C759';
+                if (i === 5) dotColor = '#FFD700';
+                return (
+                  <View key={`info5-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                );
+              })}
+            </View>
+            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+              {t('home.progressInfo.level5') || 'Nivel 5: Experto'}
+            </Text>
+          </View>
+        </View>
+
         <View style={styles.bottomSpacing} />
     </ScrollView>
   );
@@ -823,11 +1052,67 @@ const styles = StyleSheet.create({
   bottomSpacing: {
     height: 40,
   },
+  progressWrapper: {
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  infoSection: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  separatorInfo: {
+    height: 1,
+    marginBottom: 20,
+  },
+  infoTitle: {
+    fontFamily: 'SFUIDisplay-Bold',
+    marginBottom: 10,
+    marginTop: -7,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  infoDotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    width: 60, // Ancho fijo para alinear los textos
+    marginRight: 12,
+  },
+  infoDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  infoText: {
+    flex: 1,
+    fontFamily: 'SFUIDisplay-Regular',
+    lineHeight: 18,
+  },
+  infoFootnote: {
+    fontFamily: 'SFUIDisplay-Regular',
+    fontStyle: 'italic',
+    marginTop: 5,
+    opacity: 0.7,
+  },
 });
 
 const stylesRef = StyleSheet.create({
   contentBox: {
-    minHeight: 90,
+    minHeight: 110,
     width: '100%',
     experimental_backgroundImage:
       'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',

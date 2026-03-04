@@ -9,6 +9,7 @@ export type CalcDef = {
   descKey: string;
   math?: string;
   color?: string;
+  progress?: number;
 };
 
 export const calculatorsDef: CalcDef[] = [
@@ -20,7 +21,8 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'calc.cardTitle3',
     descKey: 'calc.cardDesc3',
-    color: 'rgb(194, 254, 12)',
+    color: '#15BFAE',
+    progress: 4,
   },
   {
     desc: '',
@@ -29,7 +31,8 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'froude.title',
     descKey: 'froude.desc',
-    color: 'rgb(194, 254, 12)',
+    color: '#15BFAE',
+    progress: 4,
   },
   {
     desc: '',
@@ -38,7 +41,8 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'calc.cardTitle1',
     descKey: 'calc.cardDesc1',
-    color: 'rgb(194, 254, 12)',
+    color: '#15BFAE',
+    progress: 4,
   },
   {
     desc: '',
@@ -47,7 +51,8 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'EnergiaBernoulliCalc.cardTitle1',
     descKey: 'EnergiaBernoulliCalc.cardDesc1',
-    color: 'rgb(194, 254, 12)',
+    color: '#15BFAE',
+    progress: 4,
   },
   {
     desc: '',
@@ -56,7 +61,8 @@ export const calculatorsDef: CalcDef[] = [
     icon: 'wind',
     titleKey: 'geometriaSeccionesCalc.cardTitle1',
     descKey: 'geometriaSeccionesCalc.cardDesc1',
-    color: 'rgb(194, 254, 12)',
+    color: '#15BFAE',
+    progress: 4,
   },
 
   //SECCION FLUJO EN TUBERIA
@@ -69,7 +75,8 @@ export const calculatorsDef: CalcDef[] = [
     titleKey: 'factorFriccion.title',
     descKey: 'factorFriccion.desc',
     math: 'f = \\frac{64}{Re} ; \\frac{1}{\\sqrt{f}} = -2 \\log \\left( \\frac{\\varepsilon/D}{3.7} + \\frac{2.51}{Re \\sqrt{f}} \\right)',
-    color: 'rgb(172, 150, 255)',
+    color: '#188C81',
+    progress: 2,
   },
   {
     desc: '',
@@ -79,27 +86,80 @@ export const calculatorsDef: CalcDef[] = [
     titleKey: 'perdidasLocalizadas.title',
     descKey: 'perdidasLocalizadas.desc',
     math: 'h_L = K \\frac{V^2}{2g}',
-    color: 'rgb(172, 150, 255)',
+    color: '#188C81',
+    progress: 2,
   },
+
+  // DISEÑO
+
   {
     desc: '',
-    id: 'comprobacion-diseño',
-    route: 'DiseñoCalc',
-    icon: 'wind',
-    titleKey: 'tuberiaSimple.title',
-    descKey: 'tuberiaSimple.desc',
-    math: 'h_f = f \\frac{L}{D} \\frac{V^2}{2g}',
-    color: 'rgb(172, 150, 255)',
-  },
-  {
-    desc: '',
-    id: 'diseño',
+    id: 'diseño_simple',
     route: 'DiseñoCalc2',
     icon: 'wind',
     titleKey: 'tuberiaSimple2.title',
     descKey: 'tuberiaSimple2.desc',
     math: 'h_f = 10.67 \\frac{L Q^{1.85}}{C^{1.85} D^{4.87}}',
-    color: 'rgb(172, 150, 255)',
+    color: '#94F2E9',
+    progress: 2,
+  },
+  // {
+  //   desc: '',
+  //   id: 'diseño_serie',
+  //   route: '',
+  //   icon: 'wind',
+  //   titleKey: '',
+  //   descKey: '',
+  //   math: 'h_f = 10.67 \\frac{L Q^{1.85}}{C^{1.85} D^{4.87}}',
+  //   color: 'rgb(255, 150, 229)',
+  //   progress: 0,
+  // },
+  // {
+  //   desc: '',
+  //   id: 'diseño_paralelo',
+  //   route: '',
+  //   icon: 'wind',
+  //   titleKey: '',
+  //   descKey: '',
+  //   math: 'h_f = 10.67 \\frac{L Q^{1.85}}{C^{1.85} D^{4.87}}',
+  //   color: 'rgb(255, 150, 229)',
+  //   progress: 0,
+  // },
+
+  // COMPROBACION DE DISEÑO
+  
+  {
+    desc: '',
+    id: 'compdiseño_simple',
+    route: 'DiseñoCalc',
+    icon: 'wind',
+    titleKey: 'tuberiaSimple.title',
+    descKey: 'tuberiaSimple.desc',
+    math: 'h_f = f \\frac{L}{D} \\frac{V^2}{2g}',
+    color: '#A8BAC3',
+    progress: 2,
+  },
+  {
+    desc: '',
+    id: 'compdiseño_serie',
+    route: 'CompDiseñoSerie',
+    icon: 'wind',
+    titleKey: 'compDiseñoSerie.titlecard',
+    descKey: 'compDiseñoSerie.desccard',
+    math: 'h_f = f \\frac{L}{D} \\frac{V^2}{2g}',
+    color: '#A8BAC3',
+    progress: 2,
+  },
+  {
+    desc: '',
+    id: 'compdiseño_paralelo',
+    route: 'CompParaleloCalc',
+    icon: 'wind',
+    titleKey: 'compDiseñoParalelo.titlecard',
+    descKey: 'compDiseñoParalelo.desccard',
+    math: 'h_f = f \\frac{L}{D} \\frac{V^2}{2g}',
+    color: '#A8BAC3',
+    progress: 2,
   },
 
   //SECCION BOMBAS
@@ -112,6 +172,9 @@ export const calculatorsDef: CalcDef[] = [
     titleKey: 'potenciaCalcHm.title',
     descKey: 'potenciaCalcHm.desc',
     math: 'h_f = 10.67 \\frac{L Q^{1.85}}{C^{1.85} D^{4.87}}',
-    color: 'rgb(82, 82, 82)',
+    color: 'rgb(255, 55, 155)',
+    progress: 2,
   },
+
+  
 ];

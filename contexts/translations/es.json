@@ -215,7 +215,15 @@
   "home": {
     "calculatorsTitle": "Menú Principal",
     "pressureDuctsTitle": "Calculadoras",
-    "marquee": "Esta es una versión Beta, es normal que hayan errores"
+    "marquee": "Esta es una versión Beta, es normal que hayan errores",
+    "progressInfo": {
+      "title": "Indicador de progreso",
+      "level1": "Calculadora base sin funcionalidades extra",
+      "level2": "Calculadora base + cambio de unidades",
+      "level3": "Calculadora base con cambio de unidades + historial de cálculos",
+      "level4": "Calculadora base con cambio de unidades, historial de cálculos y contenido teórico",
+      "level5": "Todas las funcionalidades, probada y verificada"
+    }
   },
   "bernoulliCalc": {
     "title": "Principio de Bernoulli",
@@ -384,7 +392,9 @@
     "subtitleEssential": "Essential",
     "subtitle1": "Mecánica de fluidos",
     "subtitle2": "Flujo en tubería (lisa/rugosa) y pérdidas",
-    "subtitle3": "Bombas y estaciones de bombeo"
+    "subtitle3": "Diseño de tuberías",
+    "subtitle4": "Comprobación diseño de tuberías",
+    "subtitle5": "Potencia"
   },
   "theoryReynolds": {
     "subtitle": "¿Qué es?",
@@ -414,7 +424,7 @@
   },
   "froude": {
     "title": "Número de Froude",
-    "desc": "Calcula el número de Froude que relaciona la inercia con la gravedad en el movimiento de un fluido."
+    "desc": "Calculadora que determina el número de Froude para analizar regímenes de flujo en hidráulica."
   },
   "froudeCalc": {
     "infoText": "Ingrese al menos 2 parámetros geométricos junto con velocidad y gravedad para calcular el número de Froude",
@@ -450,7 +460,7 @@
   },
   "EnergiaBernoulliCalc": {
     "cardTitle1": "Energía y Bernoulli",
-    "cardDesc1": "Resuelve la ecuación general de energía, incluyendo el caso ideal, pérdidas de carga y cavitación."
+    "cardDesc1": "Resuelve la ecuación general de energía, con pérdidas de carga y cavitación."
   },
   "energiaBernoulliCalc": {
     "infoText": "Ingrese todos los parámetros excepto uno para calcular la variable desconocida y la diferencia de energía",
@@ -561,6 +571,7 @@
     "cardTitle1":"Geometría de Secciones",
     "cardDesc1":"Calcula área, perímetro y radio hidráulico de diferentes tipos de secciones.",
     "title": "GEOMETRÍA DE SECCIONES",
+    "titlehistory": "Geometría de Secciones",
     "y2": "Tirante (y₂)",
     "area": "Área",
     "perimeter": "Perímetro",
@@ -1025,7 +1036,7 @@
     "desc": "Calcular pérdidas localizadas en sistemas mediante coeficientes de los accesorios."
   },
   "diseñoCalc": {
-    "title": "COMPROBACIÓN DE DISEÑO",
+    "title": "COMPROBACIÓN TUBERÍA SIMPLE",
     "calculator": "Calculadora",
     "paramsSection": "PARÁMETROS DE DISEÑO",
     "energySection": "CONDICIONES DE ENERGÍA",
@@ -1064,16 +1075,16 @@
     "infoText": "El cálculo del caudal se realiza mediante un proceso iterativo (hasta 100 iteraciones) que resuelve las ecuaciones de energía y fricción. Puede tomar algunos segundos en converger. Las tolerancias definidas son: absoluta para hf = 1e-8 y relativa para Q = 1e-8."
   },
   "tuberiaSimple": {
-    "title": "Comprobación de diseño",
+    "title": "Comprobación - Tubería simple",
     "desc": "Calcula el caudal en tuberías mediante iteraciones de pérdida de carga y régimen de flujo."
   },
   "tuberiaSimple2": {
-    "title": "Diseño",
+    "title": "Diseño - Tubería simple",
     "desc": "Cálculo iterativo del diámetro comercial óptimo según caudal, pérdidas y energía."
   },
   "diseñoCalc2": {
     "calculator": "Calculadora",
-    "title": "DISEÑO DE TUBERÍAS",
+    "title": "DISEÑO TUBERÍA SIMPLE",
     "paramsSection": "PARÁMETROS DE DISEÑO",
     "energySection": "CONDICIONES DE ENERGÍA",
     "resultLabel": "Diámetro de diseño",
@@ -1123,74 +1134,189 @@
 
   "potenciaCalcHm": {
     "title": "Potencia de bomba",
-    "desc": "Calcular carga total y potencia de bombeo considerando fricción, pérdidas menores y diferencias de presión."
+    "desc": "Calcular carga total y potencia de bombeo considerando fricción y pérdidas menores."
   },
 
   "potenciaCalc": {
-  "calculator": "Calculadora",
-  "title": "POTENCIA DE BOMBA",
-  "saveToHistory": "Guardar en historial",
-  "resultLabel": "P",
-  "includePresiones": "Incluir presiones en los puntos",
-  "infoText": "Completa todos los parámetros y pulsa Calcular para obtener los resultados. El factor de fricción se resuelve mediante el método de Newton-Raphson aplicado a la ecuación implícita de Colebrook-White, con una tolerancia de convergencia de 1e-20, por lo que tenga en cuenta que puede tardar en converger.",
-  "resultsTitle": "RESULTADOS",
+    "calculator": "Calculadora",
+    "title": "POTENCIA DE BOMBA",
+    "saveToHistory": "Guardar en historial",
+    "resultLabel": "P",
+    "includePresiones": "Incluir presiones en los puntos",
+    "infoText": "Completa todos los parámetros y pulsa Calcular para obtener los resultados. El factor de fricción se resuelve mediante el método de Newton-Raphson aplicado a la ecuación implícita de Colebrook-White, con una tolerancia de convergencia de 1e-20, por lo que tenga en cuenta que puede tardar en converger.",
+    "resultsTitle": "RESULTADOS",
 
-  "sections": {
-    "pipe": "PARÁMETROS DE TUBERÍA",
-    "fluid": "FLUIDO Y SISTEMA",
-    "heights": "ALTURAS",
-    "pressures": "PRESIONES"
+    "sections": {
+      "pipe": "PARÁMETROS DE TUBERÍA",
+      "fluid": "FLUIDO Y SISTEMA",
+      "heights": "ALTURAS",
+      "pressures": "PRESIONES"
+    },
+
+    "labels": {
+      "D": "Diámetro interno D",
+      "Q": "Caudal volumétrico Q",
+      "ks": "Rugosidad equivalente ks",
+      "nu": "Viscosidad cinemática ν",
+      "L": "Longitud total del sistema L",
+      "km": "Coeficiente de pérdida menor km",
+      "gamma": "Peso específico del fluido γ",
+      "eta": "Eficiencia de la bomba η (0 – 1)",
+      "z1": "Altura lámina de agua inferior z₁",
+      "z2": "Altura lámina de agua superior z₂",
+      "p1": "Presión en el punto inferior p₁",
+      "p2": "Presión en el punto superior p₂"
+    },
+
+    "table": {
+      "parameter": "Parámetro",
+      "value": "Valor"
+    },
+
+    "results": {
+      "A": "Área transversal A",
+      "V": "Velocidad media V",
+      "Re": "Número de Reynolds Re",
+      "regimen": "Régimen de flujo",
+      "f": "Factor de fricción f",
+      "hf": "Pérdida mayor (Darcy) hf",
+      "hm": "Pérdida menor hm",
+      "deltaZ": "Diferencia de alturas ΔZ",
+      "deltaPGamma": "ΔP/γ = (p₂ − p₁) / γ",
+      "Ht": "Carga total Ht",
+      "Ph": "Potencia hidráulica Ph",
+      "P": "Potencia de bomba P"
+    },
+
+    "regimen": {
+      "laminar": "LAMINAR",
+      "transicion": "TRANSICIÓN",
+      "turbulento": "TURBULENTO"
+    },
+
+    "toasts": {
+      "missingFields": "Completa todos los campos requeridos.",
+      "invalidValues": "Verifica que los valores sean físicamente válidos.",
+      "copied": "Resultados copiados al portapapeles.",
+      "nothingToCopy": "No hay resultados para copiar.",
+      "saved": "Cálculo guardado en el historial.",
+      "nothingToSave": "No hay resultados para guardar.",
+      "saveError": "Error al guardar. Intenta de nuevo."
+    }
   },
-
-  "labels": {
-    "D": "Diámetro interno D",
-    "Q": "Caudal volumétrico Q",
-    "ks": "Rugosidad equivalente ks",
-    "nu": "Viscosidad cinemática ν",
-    "L": "Longitud total del sistema L",
-    "km": "Coeficiente de pérdida menor km",
-    "gamma": "Peso específico del fluido γ",
-    "eta": "Eficiencia de la bomba η (0 – 1)",
-    "z1": "Altura lámina de agua inferior z₁",
-    "z2": "Altura lámina de agua superior z₂",
-    "p1": "Presión en el punto inferior p₁",
-    "p2": "Presión en el punto superior p₂"
+  "compDiseñoSerie": {
+    "titlecard": "Comprobación - Tuberías en serie",
+    "desccard": "Calcula el caudal en tuberías en serie mediante iteraciones de pérdida de carga y régimen de flujo.",
+    "infoText": "Tenga en cuenta que este proceso iterativo puede tomar algunos segundos dependiendo del número de tramos. El algoritmo ajusta proporcionalmente las pérdidas por fricción en cada iteración hasta que la suma de pérdidas totales converja con la carga disponible (ΔH = H1 − H2). Los parámetros de convergencia están definidos en el código como tolerancia = 1e-6 m y máximo de 200 iteraciones.",
+    "calculator": "Calculadora",
+    "title": "COMPROBACIÓN TUBERÍAS EN SERIE",
+    "resultLabel": "Q entrada (m³/s)",
+    "globalParams": "Parámetros globales",
+    "convergenceParams": "Parámetros de convergencia",
+    "tramosSection": "Tramos",
+    "tramoTitle": "Tramo",
+    "converged": "Convergió en",
+    "iterations": "iteraciones",
+    "notConverged": "No convergió",
+    "labels": {
+      "nu": "Viscosidad cinemática ν",
+      "H1": "Carga piezométrica aguas arriba H1",
+      "H2": "Carga piezométrica aguas abajo H2",
+      "TOL": "Tolerancia [m]",
+      "MAX_ITER": "Máx. iteraciones",
+      "D": "Diámetro D",
+      "L": "Longitud L",
+      "Km": "Coef. pérdidas menores Km",
+      "ks": "Rugosidad absoluta ks",
+      "q_lat": "Extracción lateral q_lat",
+      "Q_entrada": "Q entrada (tramo 1)"
+    },
+    "table": {
+      "summaryTitle": "Resumen final",
+      "iterTitle": "Tabla de iteraciones",
+      "viewFull": "Ver",
+      "tramo": "Tramo",
+      "D": "D [m]",
+      "L": "L [m]",
+      "Q": "Q [m³/s]",
+      "V": "V [m/s]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [m]",
+      "hm": "hm [m]",
+      "htotal": "h_tot [m]",
+      "qlat": "q_lat [m³/s]",
+      "total": "Σ",
+      "iter": "Iter",
+      "Hcalc": "H_calc [m]",
+      "error": "Error [m]"
+    },
+    "balance": {
+      "entrada": "Q entrada (tramo 1)",
+      "extraido": "Q extraído (Σ q_lat)",
+      "salida": "Q salida (nodo B)"
+    },
+    "toasts": {
+      "missingFields": "Faltan campos obligatorios",
+      "notConverged": "No se alcanzó la convergencia",
+      "calcError": "Error en el cálculo",
+      "nothingToSave": "Nada para guardar",
+      "saved": "Guardado en historial",
+      "saveError": "Error al guardar",
+      "copied": "Copiado al portapapeles"
+    }
   },
-
-  "table": {
-    "parameter": "Parámetro",
-    "value": "Valor"
+  "compParaleloCalc": {
+    "calculator": "Calculadora",
+    "title": "COMPROBACIÓN TUBERÍAS EN PARALELO",
+    "resultLabel": "Q total [m³/s]",
+    "globalParams": "Parámetros globales",
+    "ramalesSection": "Ramales",
+    "ramalTitle": "Ramal",
+    "labels": {
+      "nu": "Viscosidad cinemática ν",
+      "H1": "Carga piezométrica aguas arriba H1",
+      "H2": "Carga piezométrica aguas abajo H2",
+      "D": "Diámetro D",
+      "L": "Longitud L",
+      "Km": "Coef. pérdidas menores Km",
+      "ks": "Rugosidad absoluta ks",
+      "Q_total": "Q total (sistema)"
+    },
+    "table": {
+      "summaryTitle": "Resumen final",
+      "iterTitle": "Tabla de iteraciones",
+      "viewFull": "Ver",
+      "ramal": "Ramal",
+      "D": "D [m]",
+      "L": "L [m]",
+      "Q": "Q [m³/s]",
+      "V": "V [m/s]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [m]",
+      "hm": "hm [m]",
+      "Hramal": "H [m]",
+      "total": "Σ",
+      "iter": "Iter",
+      "Qtotal": "Q_tot [m³/s]"
+    },
+    "balance": {
+      "Qtotal": "Q total (sistema)"
+    },
+    "toasts": {
+      "missingFields": "Faltan campos obligatorios",
+      "notConverged": "No se alcanzó la convergencia",
+      "calcError": "Error en el cálculo",
+      "nothingToSave": "Nada para guardar",
+      "saved": "Guardado en historial",
+      "saveError": "Error al guardar",
+      "copied": "Copiado al portapapeles"
+    },
+    "infoText": "Introduce los parámetros globales y los datos de cada ramal, luego pulsa Calcular. El algoritmo resuelve independientemente cada ramal mediante el método de la secante, encontrando el caudal que produce una pérdida de carga igual a ΔH = H1 − H2. El caudal total es la suma de los caudales individuales. Parámetros de convergencia definidos en el código: tolerancia = 1e-8 m, máximo 300 iteraciones."
   },
-
-  "results": {
-    "A": "Área transversal A",
-    "V": "Velocidad media V",
-    "Re": "Número de Reynolds Re",
-    "regimen": "Régimen de flujo",
-    "f": "Factor de fricción f",
-    "hf": "Pérdida mayor (Darcy) hf",
-    "hm": "Pérdida menor hm",
-    "deltaZ": "Diferencia de alturas ΔZ",
-    "deltaPGamma": "ΔP/γ = (p₂ − p₁) / γ",
-    "Ht": "Carga total Ht",
-    "Ph": "Potencia hidráulica Ph",
-    "P": "Potencia de bomba P"
-  },
-
-  "regimen": {
-    "laminar": "LAMINAR",
-    "transicion": "TRANSICIÓN",
-    "turbulento": "TURBULENTO"
-  },
-
-  "toasts": {
-    "missingFields": "Completa todos los campos requeridos.",
-    "invalidValues": "Verifica que los valores sean físicamente válidos.",
-    "copied": "Resultados copiados al portapapeles.",
-    "nothingToCopy": "No hay resultados para copiar.",
-    "saved": "Cálculo guardado en el historial.",
-    "nothingToSave": "No hay resultados para guardar.",
-    "saveError": "Error al guardar. Intenta de nuevo."
+  "compDiseñoParalelo": {
+    "titlecard": "Comprobación - Tuberías en paralelo",
+    "desccard": "Calcula el caudal en tuberías en paralelo mediante iteraciones de pérdida de carga y régimen de flujo."
   }
-}
 }

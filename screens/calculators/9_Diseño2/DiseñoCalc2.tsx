@@ -164,17 +164,17 @@ interface CalculatorState2 {
 }
 
 const initialState = (): CalculatorState2 => ({
-  L: '200',
+  L: '',
   LUnit: 'm',
-  Ks: '0.0015e-3',
+  Ks: '',
   KsUnit: 'm',
-  Qd: '100e-3',
+  Qd: '',
   QdUnit: 'm³/s',
-  mu: '1.114e-6',
+  mu: '',
   muUnit: 'm²/s',
-  H: '30',
+  H: '',
   HUnit: 'm',
-  Km: '3',
+  Km: '',
   g: '9.81',
   gUnit: 'm/s²',
   invalidFields: [],

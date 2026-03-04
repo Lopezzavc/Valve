@@ -10,7 +10,8 @@ import {
   Image, 
   Keyboard,
   Animated,
-  Dimensions
+  Dimensions,
+  ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/Ionicons';
@@ -26,7 +27,7 @@ import { CommonActions } from '@react-navigation/native';
 import { calculatorsDef } from '../../../src/data/calculators';
 
 // Importar la imagen del easter egg
-const EASTER_EGG_IMAGE = require('../../../assets/easter_egg/IMG_8677.webp'); // Ajusta la ruta según tu estructura de carpetas
+const EASTER_EGG_IMAGE = require('../../../assets/easter_egg/IMG_8677.webp');
 
 const { width, height } = Dimensions.get('window');
 
@@ -216,83 +217,89 @@ const SearchScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.headerContainer}>
-        <View style={styles.rightIconsContainer}>
-          <View style={[styles.iconWrapper2, { experimental_backgroundImage: colors.gradient }]}>
-            <Pressable
-              style={[styles.iconContainer, { experimental_backgroundImage: colors.cardGradient }]}
-              onPress={handleToggleSort}
-            >
-              <Icon2 name="filter" size={20} color={colors.icon} />
-            </Pressable>
-          </View>
-          <View style={[styles.iconWrapper, { experimental_backgroundImage: colors.gradient }]}>
-            <Pressable
-              style={[styles.iconContainer, { experimental_backgroundImage: colors.cardGradient }]}
-              onPress={() => navigation.goBack()}
-            >
-              <Icon name="chevron-down" size={22} color={colors.icon} />
-            </Pressable>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.headerContainer}>
+          <View style={styles.rightIconsContainer}>
+            <View style={[styles.iconWrapper2, { experimental_backgroundImage: colors.gradient }]}>
+              <Pressable
+                style={[styles.iconContainer, { experimental_backgroundImage: colors.cardGradient }]}
+                onPress={handleToggleSort}
+              >
+                <Icon2 name="filter" size={20} color={colors.icon} />
+              </Pressable>
+            </View>
+            <View style={[styles.iconWrapper, { experimental_backgroundImage: colors.gradient }]}>
+              <Pressable
+                style={[styles.iconContainer, { experimental_backgroundImage: colors.cardGradient }]}
+                onPress={() => navigation.goBack()}
+              >
+                <Icon name="chevron-down" size={22} color={colors.icon} />
+              </Pressable>
+            </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.titlesContainer}>
-        <Text style={[styles.subtitle, { color: colors.text, fontSize: 18 * fontSizeFactor }]}>
-          {t('search.title')}
-        </Text>
-        <Text style={[styles.title, { color: colors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('search.title2')}
-        </Text>
-      </View>
+        <View style={styles.titlesContainer}>
+          <Text style={[styles.subtitle, { color: colors.text, fontSize: 18 * fontSizeFactor }]}>
+            {t('search.title')}
+          </Text>
+          <Text style={[styles.title, { color: colors.textStrong, fontSize: 30 * fontSizeFactor }]}>
+            {t('search.title2')}
+          </Text>
+        </View>
 
-      <View style={styles.searchWrapper}>
-        <View style={styles.redContainer}>
-          <View style={[styles.ContainerSearch, { experimental_backgroundImage: colors.gradient }]}>
-            <View style={[styles.innerWhiteContainer, { backgroundColor: colors.card }]}>
-              <TextInput
-                value={query}
-                onChangeText={setQuery}
-                autoCorrect={false}
-                autoCapitalize="none"
-                style={[
-                  styles.input,
-                  {
-                    color: colors.text,
-                    fontSize: 16 * fontSizeFactor,
-                    paddingRight: 44,
-                  },
-                ]}
-                placeholder={t('search.placeholder') ?? 'Buscar...'}
-                placeholderTextColor={currentTheme === 'dark'
-                  ? 'rgba(255, 255, 255, 0.35)'
-                  : 'rgba(0, 0, 0, 0.35)'}
-                editable
-              />
-              <View pointerEvents="none" style={styles.searchIconContainer}>
-                <Icon name="search" size={20} color={currentTheme === 'dark' ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'} />
+        <View style={styles.searchWrapper}>
+          <View style={styles.redContainer}>
+            <View style={[styles.ContainerSearch, { experimental_backgroundImage: colors.gradient }]}>
+              <View style={[styles.innerWhiteContainer, { backgroundColor: colors.card }]}>
+                <TextInput
+                  value={query}
+                  onChangeText={setQuery}
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  style={[
+                    styles.input,
+                    {
+                      color: colors.text,
+                      fontSize: 16 * fontSizeFactor,
+                      paddingRight: 44,
+                    },
+                  ]}
+                  placeholder={t('search.placeholder') ?? 'Buscar...'}
+                  placeholderTextColor={currentTheme === 'dark'
+                    ? 'rgba(255, 255, 255, 0.35)'
+                    : 'rgba(0, 0, 0, 0.35)'}
+                  editable
+                />
+                <View pointerEvents="none" style={styles.searchIconContainer}>
+                  <Icon name="search" size={20} color={currentTheme === 'dark' ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'} />
+                </View>
               </View>
             </View>
           </View>
         </View>
-      </View>
-      
-      {filtered.length === 0 ? (
-        <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
-          <Text style={{ opacity: 0.6, fontFamily: 'SFUIDisplay-Regular' }}>
-            {t('search.emptyPrefix')} “{query}”.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(it) => it.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          keyboardShouldPersistTaps="handled"
-        />
-      )}
+        
+        {filtered.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: colors.text, opacity: 0.6 }]}>
+              {t('search.emptyPrefix')} “{query}”.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.listContainer}>
+            {filtered.map((item) => (
+              <View key={item.id} style={styles.listItem}>
+                {renderItem({ item })}
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
 
       {/* Easter Egg Overlay */}
       {showEasterEgg && (
@@ -335,7 +342,17 @@ const SearchScreen = () => {
 export default SearchScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'rgb(255, 255, 255)' },
+  container: { 
+    flex: 1, 
+    backgroundColor: 'rgb(255, 255, 255)' 
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -396,6 +413,7 @@ const styles = StyleSheet.create({
   searchWrapper: {
     paddingHorizontal: 20,
     marginTop: -5,
+    marginBottom: 10,
     backgroundColor: 'transparent'
   },
   redContainer: {
@@ -407,9 +425,21 @@ const styles = StyleSheet.create({
   },
   ContainerSearch: {
     experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
-    justifyContent: 'center', height: 50, overflow: 'hidden', borderRadius: 25, padding: 1, width: '100%',
+    justifyContent: 'center', 
+    height: 50, 
+    overflow: 'hidden', 
+    borderRadius: 25, 
+    padding: 1, 
+    width: '100%',
   },
-  innerWhiteContainer: { backgroundColor: 'white', width: '100%', height: '100%', justifyContent: 'center', borderRadius: 25, position: 'relative' },
+  innerWhiteContainer: { 
+    backgroundColor: 'white', 
+    width: '100%', 
+    height: '100%', 
+    justifyContent: 'center', 
+    borderRadius: 25, 
+    position: 'relative' 
+  },
   input: {
     height: 50,
     backgroundColor: 'transparent',
@@ -426,9 +456,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center'
   },
-  listContent: {
+  emptyContainer: {
+    paddingHorizontal: 20,
+    marginTop: 10,
+  },
+  emptyText: {
+    fontFamily: 'SFUIDisplay-Regular',
+  },
+  listContainer: {
     padding: 20,
-    paddingTop: 12
+    paddingTop: 12,
+  },
+  listItem: {
+    marginBottom: 10,
   },
   cardWrapper: {
     minHeight: 90,

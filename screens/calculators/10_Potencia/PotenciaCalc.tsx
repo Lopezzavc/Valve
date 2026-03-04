@@ -871,8 +871,8 @@ const PotenciaCalc: React.FC = () => {
                   {unit}
                 </Text>
                 <Icon
-                  name="chevron-right"
-                  size={16 * fontSizeFactor}
+                  name="plus"
+                  size={20}
                   color={themeColors.icon}
                   style={styles.icon}
                 />

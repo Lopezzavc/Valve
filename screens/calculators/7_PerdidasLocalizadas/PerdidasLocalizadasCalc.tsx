@@ -1007,8 +1007,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
           style={[
             styles.accessoryBlock,
             {
-              backgroundColor: 'transparent',
-              experimental_backgroundImage: themeColors.cardGradient2,
+              backgroundColor: currentTheme === 'dark' ? 'rgb(30,30,30)' : 'rgb(255, 255, 255)',
             },
           ]}
         >
@@ -2077,7 +2076,8 @@ const styles = StyleSheet.create({
   accessoryBlockMain: {
     padding: 1,
     marginBottom: 12,
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    // experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    backgroundColor: 'transparent',
     borderRadius: 25,
   },
   accessoryBlock: {
@@ -2085,7 +2085,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 15,
     paddingTop: 15,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(255, 255, 255, 1)',
   },
   accessoryHeader: {
     flexDirection: 'row',

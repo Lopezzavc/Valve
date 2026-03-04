@@ -95,6 +95,15 @@ import OptionsScreenDiseño2 from './screens/calculators/9_Diseño2/OptionsScree
 import potenciaCalc from './screens/calculators/10_Potencia/PotenciaCalc';
 import OptionsScreenPotencia from './screens/calculators/10_Potencia/OptionsScreenPotencia';
 
+// 11_COMPROBACIN DISEÑO SERIE
+import CompDiseñoSerie from './screens/calculators/11_CompDiseñoSerie/CompDiseñoSerie';
+import OptionsScreenCompDiseñoSerie from './screens/calculators/11_CompDiseñoSerie/OptionsScreenCompDiseñoSerie';
+
+// 11_COMPROBACIN DISEÑO SERIE
+import CompParaleloCalc from './screens/calculators/12_CompParalelo/CompParaleloCalc';
+import OptionsScreenCompParaleloCalc from './screens/calculators/12_CompParalelo/OptionsScreenCompParaleloCalc';
+
+
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
 import HistoryScreenColebrook from './screens/calculators/Ffactor/HistoryScreenColebrook';
@@ -160,6 +169,10 @@ export type RootStackParamList = {
   OptionsScreenDiseño2: undefined;
   potenciaCalc: undefined;
   OptionsScreenPotencia: undefined;
+  CompDiseñoSerie: undefined;
+  OptionsScreenCompDiseñoSerie: undefined;
+  CompParaleloCalc: undefined;
+  OptionsScreenCompParaleloCalc: undefined;
 };
 
 export type RootTabParamList = {
@@ -539,6 +552,14 @@ const App = () => {
                         }}
                       />
                       <Stack.Screen
+                        name="CompDiseñoSerie"
+                        component={CompDiseñoSerie}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                        }}
+                      />
+                      <Stack.Screen
                         name="potenciaCalc"
                         component={potenciaCalc}
                         options={{
@@ -731,8 +752,24 @@ const App = () => {
                         }}
                       />
                       <Stack.Screen
+                        name="CompParaleloCalc"
+                        component={CompParaleloCalc}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                        }}
+                      />
+                      <Stack.Screen
                         name="OptionsScreenBernoulli"
                         component={OptionsScreenBernoulli}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="OptionsScreenCompDiseñoSerie"
+                        component={OptionsScreenCompDiseñoSerie}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
@@ -813,6 +850,14 @@ const App = () => {
                       <Stack.Screen
                         name="OptionsScreenFroude"
                         component={OptionsScreenFroude}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="OptionsScreenCompParaleloCalc"
+                        component={OptionsScreenCompParaleloCalc}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
