@@ -1133,13 +1133,16 @@
   },
 
   "potenciaCalcHm": {
-    "title": "Potencia de bomba",
+    "title": "Potencia - Tubería simple",
     "desc": "Calcular carga total y potencia de bombeo considerando fricción y pérdidas menores."
   },
-
+  "seriePotencia":{
+    "title": "Potencia - Tuberías en serie",
+    "desc": "Calcula la potencia requerida por una bomba en un sistema de tuberías en serie."
+  },
   "potenciaCalc": {
     "calculator": "Calculadora",
-    "title": "POTENCIA DE BOMBA",
+    "title": "POTENCIA TUBERÍA SIMPLE",
     "saveToHistory": "Guardar en historial",
     "resultLabel": "P",
     "includePresiones": "Incluir presiones en los puntos",
@@ -1318,5 +1321,177 @@
   "compDiseñoParalelo": {
     "titlecard": "Comprobación - Tuberías en paralelo",
     "desccard": "Calcula el caudal en tuberías en paralelo mediante iteraciones de pérdida de carga y régimen de flujo."
+  },
+  "seriePotenciaCalc": {
+    "title": "POTENCIA TUBERÍAS EN SERIE",
+    "calculator": "Calculadora",
+    "globalParams": "Parámetros globales",
+    "tramosSection": "Tramos",
+    "tramoTitle": "Tramo",
+    "resultLabel": "Potencia requerida [kW]",
+    "infoText": "Ingresa los parámetros globales y los datos de cada tramo para calcular la cabeza requerida y la potencia de la bomba en un sistema de tuberías en serie.",
+    "labels": {
+      "eficiencia": "Eficiencia η [%]",
+      "densidad": "Densidad ρ",
+      "viscosidad": "Viscosidad dinámica μ",
+      "cabeza": "Cabeza total H",
+      "D": "Diámetro D",
+      "L": "Longitud L",
+      "ks": "Rugosidad absoluta ks",
+      "Km": "Coef. pérdidas menores Km",
+      "Q": "Caudal Q"
+    },
+    "balance": {
+      "Qentrada": "Caudal de entrada Q:",
+      "Htotal": "Cabeza requerida H_total:",
+      "P": "Potencia requerida P:"
+    },
+    "table": {
+      "summaryTitle": "Resumen final",
+      "viewFull": "Ver completo",
+      "tramo": "Tramo",
+      "D": "D [m]",
+      "L": "L [m]",
+      "Q": "Q [m³/s]",
+      "V": "V [m/s]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [m]",
+      "hm": "hm [m]",
+      "htotal": "h_tot [m]",
+      "total": "Σ"
+    },
+    "toasts": {
+      "missingFields": "Faltan campos obligatorios o contienen valores inválidos",
+      "calcError": "Error en el cálculo",
+      "copied": "Copiado al portapapeles",
+      "saved": "Guardado en historial",
+      "saveError": "Error al guardar",
+      "nothingToSave": "Primero realiza un cálculo"
+    }
+  },
+  "paraleloPotencia": {
+    "title": "Potencia - Tuberías en paralelo",
+    "desc": "Calcula la potencia requerida en sistemas de tuberías en paralelo con Darcy-Weisbach."
+  },
+  "paraleloPotenciaCalc": {
+    "title": "POTENCIA TUBERÍAS EN PARALELO",
+    "calculator": "Calculadora",
+    "globalParams": "Parámetros globales",
+    "tramosSection": "Tuberías",
+    "tramoTitle": "Tubería",
+    "resultLabel": "Potencia requerida [kW]",
+    "infoText": "Ingresa los parámetros globales y los datos de cada tubería para calcular la distribución de caudales y la potencia en un sistema de tuberías en paralelo.",
+    "labels": {
+      "H_presion": "Cabeza total H",
+      "rho": "Densidad ρ",
+      "nu": "Viscosidad cinemática ν",
+      "Q_total": "Caudal total Q",
+      "D": "Diámetro D",
+      "L": "Longitud L",
+      "ks": "Rugosidad absoluta ks",
+      "Km": "Coef. pérdidas menores Km"
+    },
+    "balance": {
+      "Hmetros": "Cabeza hidráulica H:",
+      "Qtotal": "Caudal total Q:",
+      "P": "Potencia requerida P:",
+      "iteraciones": "Convergencia en iteraciones:"
+    },
+    "table": {
+      "summaryTitle": "Resumen por tubería",
+      "viewFull": "Ver completo",
+      "tramo": "Tubería",
+      "D": "D [m]",
+      "L": "L [m]",
+      "Q": "Q [m³/s]",
+      "V": "V [m/s]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [m]",
+      "total": "Σ"
+    },
+    "toasts": {
+      "missingFields": "Faltan campos obligatorios o contienen valores inválidos",
+      "calcError": "Error en el cálculo",
+      "copied": "Copiado al portapapeles",
+      "saved": "Guardado en historial",
+      "saveError": "Error al guardar",
+      "nothingToSave": "Primero realiza un cálculo"
+    }
+  },
+  "orbit": {
+    "title": "ORBIT",
+    "subtitle": "Simulador hidráulico"
+  },
+  "axis": {
+    "field": {
+      "nodeType": "Tipo de elemento",
+      "id": "ID",
+      "x": "X",
+      "y": "Y",
+      "ht": "Ht",
+      "elevation": "Elevación",
+      "demanda": "Dem. Base",
+      "nivelIni": "Nivel Ini.",
+      "diametro": "Diámetro",
+      "volumen": "Volumen",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "longitud": "Longitud (m)",
+      "rugosidad": "Rugosidad"
+    },
+    "nodeType": {
+      "nodo": "Nodo",
+      "tanque": "Tanque",
+      "reservorio": "Reservorio"
+    },
+    "pipe": "Tubería",
+    "tab": {
+      "elementos": "Elementos",
+      "conexiones": "Conexiones"
+    },
+    "section": {
+      "elementos": "Elementos de la red",
+      "tuberias": "Tuberías",
+      "nodos": "Nodos",
+      "resultados": "Resultados"
+    },
+    "modoNodo": {
+      "presion": "Presión (m)",
+      "cabeza": "Cabeza (m)",
+      "ninguno": "Ninguno"
+    },
+    "modoTub": {
+      "caudal": "Caudal (l/s)",
+      "velocidad": "Velocidad (m/s)",
+      "friccion": "Fricción (f)",
+      "ninguno": "Ninguno"
+    },
+    "table": {
+      "id": "ID",
+      "hm": "H (m)",
+      "zm": "z (m)",
+      "pm": "P (m)",
+      "desde": "Desde",
+      "hasta": "Hasta",
+      "qls": "Q (l/s)",
+      "vms": "V (m/s)",
+      "f": "f"
+    },
+    "action": {
+      "verMas": "Ver más"
+    },
+    "options": {
+      "selectOption": "Selecciona una opción",
+      "selectNode": "Seleccionar nodo",
+      "title": {
+        "length": "Longitud",
+        "flow": "Caudal",
+        "volume": "Volumen",
+        "modoNodo": "Mostrar en nodos",
+        "modoTuberia": "Mostrar en tuberías"
+      }
+    }
   }
 }

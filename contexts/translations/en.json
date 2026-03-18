@@ -1,430 +1,1489 @@
 {
   "infoScreen": {
-    "creadoPor": "creadoPor.NotTranslated"
+    "creadoPor": "Created by"
   },
   "settings": {
-    "title": "title.NotTranslated",
-    "language": "language.NotTranslated",
-    "theme": "theme.NotTranslated",
-    "font": "font.NotTranslated",
-    "sep": "sep.NotTranslated",
-    "sepInfo": "sepInfo.NotTranslated",
-    "pre": "pre.NotTranslated",
-    "preInfo1": "preInfo1.NotTranslated",
-    "preInfo2": "preInfo2.NotTranslated",
-    "preInfo3": "preInfo3.NotTranslated",
-    "preInfo4": "preInfo4.NotTranslated",
-    "themeSystem": "themeSystem.NotTranslated",
-    "themeLight": "themeLight.NotTranslated",
-    "themeDark": "themeDark.NotTranslated",
-    "langSpanish": "langSpanish.NotTranslated",
-    "langEnglish": "langEnglish.NotTranslated",
-    "langFrench": "langFrench.NotTranslated",
-    "langGerman": "langGerman.NotTranslated",
-    "langChinese": "langChinese.NotTranslated",
-    "langJapanese": "langJapanese.NotTranslated",
-    "fontVerySmall": "fontVerySmall.NotTranslated",
-    "fontSmall": "fontSmall.NotTranslated",
-    "fontNormal": "fontNormal.NotTranslated",
-    "fontLarge": "fontLarge.NotTranslated",
-    "fontVeryLarge": "fontVeryLarge.NotTranslated",
-    "sepDot": "sepDot.NotTranslated",
-    "sepComma": "sepComma.NotTranslated",
-    "preNormal": "preNormal.NotTranslated",
-    "preFix": "preFix.NotTranslated",
-    "preScientific": "preScientific.NotTranslated",
-    "preEngineering": "preEngineering.NotTranslated",
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "font": "Font",
+    "sep": "Decimal separator",
+    "sepInfo": "Sets the decimal separator used in number display. This does not affect the decimal separator used in exported files or results copied to the clipboard.",
+    "pre": "Decimal precision",
+    "preInfo1": "Normal: Displays up to 10 decimal places of precision, removing unnecessary trailing zeros.",
+    "preInfo2": "Fixed: Always displays the same fixed number of decimals, as configured.",
+    "preInfo3": "Scientific: Represents the number in scientific notation, using powers of 10.",
+    "preInfo4": "Engineering: Similar to scientific notation, but the exponent is always a multiple of 3, which makes reading easier in technical contexts.",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "langSpanish": "Spanish",
+    "langEnglish": "English",
+    "langFrench": "French",
+    "langGerman": "German",
+    "langChinese": "Chinese",
+    "langJapanese": "Japanese",
+    "fontVerySmall": "Very Small",
+    "fontSmall": "Small",
+    "fontNormal": "Normal",
+    "fontLarge": "Large",
+    "fontVeryLarge": "Very Large",
+    "sepDot": "Dot",
+    "sepComma": "Comma",
+    "preNormal": "Normal",
+    "preFix": "Fixed",
+    "preScientific": "Scientific",
+    "preEngineering": "Engineering",
     "resetAlert": {
-      "title": "title.NotTranslated",
-      "message": "message.NotTranslated",
-      "confirm": "confirm.NotTranslated"
+      "title": "Reset settings",
+      "message": "Are you sure you want to reset all settings to their default values?",
+      "confirm": "Reset"
+    },
+    "initialScreen": {
+      "title": "Start Screen",
+      "description": "Select which screen you want to see when opening the app",
+      "home": "Home Screen",
+      "fav": "Favorites"
     }
   },
   "search": {
-    "title": "title.NotTranslated",
-    "title2": "title2.NotTranslated",
-    "placeholder": "placeholder.NotTranslated",
-    "emptyPrefix": "emptyPrefix.NotTranslated",
+    "title": "Calculators",
+    "title2": "Search",
+    "placeholder": "Search...",
+    "emptyPrefix": "No calculators found for",
     "sort": {
-      "toastTitle": "toastTitle.NotTranslated",
-      "az": "az.NotTranslated",
-      "za": "za.NotTranslated",
-      "reset": "reset.NotTranslated"
+      "toastTitle": "Sorting applied",
+      "az": "Alphabetical A-Z",
+      "za": "Alphabetical Z-A",
+      "reset": "Original order restored"
     }
   },
   "profile": {
-    "title": "title.NotTranslated"
+    "title": "Profile"
   },
   "profileScreen": {
-    "oops": "oops.NotTranslated",
-    "desc": "desc.NotTranslated"
+    "oops": "Oops...",
+    "desc": "This valve is still closed, but we'll open it soon."
   },
   "common": {
-    "calculate": "calculate.NotTranslated",
-    "copy": "copy.NotTranslated",
-    "clear": "clear.NotTranslated",
-    "history": "history.NotTranslated",
-    "success": "success.NotTranslated",
-    "error": "error.NotTranslated",
-    "cancel": "cancel.NotTranslated",
-    "inputs": "inputs.NotTranslated"
+    "calculate": "Calculate",
+    "copy": "Copy",
+    "clear": "Clear",
+    "history": "History",
+    "success": "Success",
+    "error": "Error",
+    "cancel": "Cancel",
+    "inputs": "Inputs"
   },
   "continuidadCalc": {
-    "calculator": "calculator.NotTranslated",
-    "title": "title.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "flow": "flow.NotTranslated",
-    "section": "section.NotTranslated",
-    "section1": "section1.NotTranslated",
-    "section2": "section2.NotTranslated",
-    "fluidProps": "fluidProps.NotTranslated",
-    "fill": "fill.NotTranslated",
+    "infoText": "Enter 3 of the 4 parameters (A₁, v₁, A₂, v₂) to calculate the flow rate and the unknown variable.",
+    "calculator": "Calculator",
+    "title": "CONTINUITY EQUATION",
+    "titlehistory": "Continuity equation",
+    "saveToHistory": "Save to history",
+    "flow": "Flow rate",
+    "section": "SECTION",
+    "section1": "SECTION 1",
+    "section2": "SECTION 2",
+    "fluidProps": "FLUID PROPERTIES",
+    "fill": "Filling",
     "labels": {
-      "sectionType": "sectionType.NotTranslated",
-      "fillType": "fillType.NotTranslated",
-      "diameter": "diameter.NotTranslated",
-      "side": "side.NotTranslated",
-      "width": "width.NotTranslated",
-      "height": "height.NotTranslated",
-      "velocity": "velocity.NotTranslated",
-      "fillHeight": "fillHeight.NotTranslated",
-      "A1": "A1.NotTranslated",
-      "v1": "v1.NotTranslated",
-      "A2": "A2.NotTranslated",
-      "v2": "v2.NotTranslated",
-      "mode": "mode.NotTranslated"
+      "sectionType": "Section type",
+      "fillType": "Filling",
+      "diameter": "Diameter",
+      "side": "Side",
+      "width": "Width",
+      "height": "Height",
+      "velocity": "Velocity",
+      "fillHeight": "Flow depth",
+      "A1": "Section area (A₁)",
+      "v1": "Section velocity (v₁)",
+      "A2": "Section area (A₂)",
+      "v2": "Section velocity (v₂)",
+      "mode": "Mode"
     },
     "mode": {
-      "flow": "flow.NotTranslated",
-      "continuity": "continuity.NotTranslated"
+      "flow": "Flow rate",
+      "continuity": "Continuity"
     },
     "options": {
       "sectionType": {
-        "circular": "circular.NotTranslated",
-        "square": "square.NotTranslated",
-        "rectangular": "rectangular.NotTranslated"
+        "circular": "Circular",
+        "square": "Square",
+        "rectangular": "Rectangular"
       },
       "fillType": {
-        "total": "total.NotTranslated",
-        "partial": "partial.NotTranslated"
+        "total": "Full",
+        "partial": "Partial"
       }
     },
     "toasts": {
-      "noFlowToCopy": "noFlowToCopy.NotTranslated",
-      "noContinuityToCopy": "noContinuityToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "noFlowToCopy": "No calculated flow rate to copy.",
+      "noContinuityToCopy": "No calculated flow rate or continuity values to copy.",
+      "copied": "Calculation copied to clipboard.",
+      "nothingToSave": "No results to save.",
+      "saved": "Calculation saved to history.",
+      "saveError": "Could not save the calculation."
     }
   },
   "optionsScreen": {
     "titles": {
-      "length": "length.NotTranslated",
-      "area": "area.NotTranslated",
-      "pressure": "pressure.NotTranslated"
+      "flow": "Flow rate",
+      "length": "Length",
+      "area": "Area",
+      "pressure": "Pressure",
+      "velocity": "Velocity",
+      "acceleration": "Gravity",
+      "viscosity": "Kinematic viscosity",
+      "gravity": "Gravity",
+      "specificWeight": "Specific weight"
     },
     "subtitles": {
-      "selection": "selection.NotTranslated",
-      "units": "units.NotTranslated",
-      "generic": "generic.NotTranslated"
+      "selection": "Selection",
+      "units": "Units",
+      "generic": "Options"
     }
   },
   "history": {
-    "title": "title.NotTranslated",
-    "savedOn": "savedOn.NotTranslated",
-    "empty": "empty.NotTranslated",
+    "title": "CALCULATION HISTORY",
+    "savedOn": "Saved on",
+    "empty": "History is empty",
     "deleteAll": {
-      "title": "title.NotTranslated",
-      "message": "message.NotTranslated",
-      "confirm": "confirm.NotTranslated",
-      "cancel": "cancel.NotTranslated",
-      "successTitle": "successTitle.NotTranslated",
-      "successMsg": "successMsg.NotTranslated",
-      "noHistory": "noHistory.NotTranslated"
+      "title": "Delete history",
+      "message": "Do you want to delete the entire calculation history?",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "successTitle": "History deleted",
+      "successMsg": "The history has been successfully deleted",
+      "noHistory": "No calculations to delete"
     },
     "delete": {
-      "successTitle": "successTitle.NotTranslated",
-      "successMsg": "successMsg.NotTranslated"
+      "successTitle": "Calculation deleted",
+      "successMsg": "The calculation has been removed from history"
     },
     "export": {
-      "success": "success.NotTranslated",
-      "error": "error.NotTranslated",
-      "noHistory": "noHistory.NotTranslated"
+      "success": "History exported as Excel",
+      "error": "Could not export history",
+      "noHistory": "No history to export"
     }
   },
   "theoryContinuity": {
-    "subtitle": "subtitle.NotTranslated",
+    "subtitle": "What is it?",
     "titles": {
-      "mainTitle": "mainTitle.NotTranslated",
-      "title1": "title1.NotTranslated",
-      "title2": "title2.NotTranslated",
-      "title3": "title3.NotTranslated",
-      "title4": "title4.NotTranslated",
-      "references": "references.NotTranslated"
+      "mainTitle": "Continuity equation",
+      "title1": "Integral vs. Differential Formulations of the Equation",
+      "title2": "Incompressible Flows (Application to Water Hydraulics)",
+      "title3": "Compressible Flows and Mass Continuity",
+      "title4": "Relevance in Hydraulic Calculations and Civil Engineering",
+      "references": "References"
     },
     "paragraphs": {
-      "paragraph1": "paragraph1.NotTranslated",
-      "paragraph2": "paragraph2.NotTranslated",
-      "paragraph3": "paragraph3.NotTranslated",
-      "paragraph4": "paragraph4.NotTranslated",
-      "paragraph5": "paragraph5.NotTranslated",
-      "paragraph6": "paragraph6.NotTranslated",
-      "paragraph7": "paragraph7.NotTranslated",
-      "paragraph8": "paragraph8.NotTranslated",
-      "paragraph9": "paragraph9.NotTranslated",
-      "paragraph10": "paragraph10.NotTranslated",
-      "paragraph11": "paragraph11.NotTranslated",
-      "paragraph12": "paragraph12.NotTranslated",
-      "paragraph13": "paragraph13.NotTranslated"
+      "paragraph1": "The continuity equation is essentially the mathematical expression of the law of conservation of mass applied to a moving fluid. In simple terms, this law states that mass cannot be created or destroyed within a closed system. For a flowing fluid, this implies that (in the absence of sources or sinks) the mass entering a region must equal the mass leaving it in any given time interval. If we consider a fixed control volume in space (an imaginary portion of fluid bounded by a closed surface), the total mass inside that volume only changes if there is mass flow across its boundaries.",
+      "paragraph2": "Mathematically, the mass balance over a control volume V with a surface S is expressed by the integral form of the continuity equation:",
+      "paragraph3": "where ρ(x,t) is the fluid density and v(x,t) is the fluid velocity vector at each point in the volume. This integral equation indicates that the rate of mass accumulation within the volume (first term) plus the net mass flow across the surface (second term) is zero. In other words, any increase in mass within the volume must be due to incoming flow, and any decrease to outgoing flow, ensuring mass conservation.",
+      "paragraph4": "Applying the divergence theorem to the surface integral, the above equation can be reformulated in its differential (local) form:",
+      "paragraph5": "This compact expression means that the local rate of change of density at a given point plus the divergence of the mass flux (i.e., the net mass outflow per unit volume) sum to zero. It is equivalent to saying that mass is conserved at every point in the fluid continuously in space and time. The differential form is particularly useful because it describes the point-by-point behavior within the fluid, and was indeed the formulation presented by Euler in his equations for an ideal fluid. It should be noted that this continuity equation is one of Euler's three fundamental equations for fluids (along with conservation of momentum and – in compressible flows – energy). In Lagrangian form (following a moving fluid particle), the same condition can be expressed as",
+      "paragraph6": "which emphasizes that any change in the density of a fluid element is due to the divergence (expansion or compression) of the surrounding flow. If the fluid maintains a constant density throughout its motion, this last equation immediately implies ∇ · v=0, as we will see below.",
+      "paragraph7": "The integral form considers a macroscopic volume fixed in space and states that the mass in that volume only changes due to flow through its surfaces. The differential form, on the other hand, considers an infinitesimal volume and establishes mass conservation locally at every point in the flow field. If the integral equation holds for every imaginable control volume, the only way to satisfy it is for the integrand to be zero at every point, leading to the differential form:",
+      "paragraph8": "In many cases of interest in hydraulics, the fluid can be considered incompressible, meaning its density ρ remains practically constant. When this happens, the continuity equation simplifies:",
+      "paragraph9": "For steady one-dimensional flow of an incompressible fluid in a closed conduit, we obtain the relationship:",
+      "paragraph10": "where A is the cross-sectional area and v is the average fluid velocity in that section.",
+      "paragraph11": "When dealing with compressible flows, the fluid density ρ cannot be considered constant. In this case, the mass flow is conserved according to:",
+      "paragraph12": "This generalizes the case of incompressible fluids and is crucial in aerodynamics, nozzle design, gas turbines, and high-velocity ducts.",
+      "paragraph13": "In civil engineering, the continuity equation ensures that the flow rate entering a section equals the flow rate leaving it, allowing for balancing distribution networks, analyzing open channels, and calculating flow profiles. In hydraulic devices such as nozzles, diffusers, pumps, and turbines, it guarantees that the amount of fluid processed is conserved. Even in transients like water hammer, continuity remains valid and necessary for modeling."
     }
   },
-  "welcomeText": "welcomeText.NotTranslated",
+  "welcomeText": "The calculator that optimizes hydraulic calculations, with precision and simplicity",
   "favorites": {
-    "title": "title.NotTranslated",
-    "noFavorites": "noFavorites.NotTranslated",
-    "success": "success.NotTranslated",
-    "successDesc": "successDesc.NotTranslated",
-    "deleted": "deleted.NotTranslated",
-    "deletedDesc": "deletedDesc.NotTranslated"
+    "title": "Favorite calculators",
+    "noFavorites": "No calculators saved",
+    "success": "Saved",
+    "successDesc": "The calculator has been saved to favorites",
+    "deleted": "Deleted",
+    "deletedDesc": "The calculator has been removed from favorites"
   },
   "calc": {
-    "cardTitle1": "cardTitle1.NotTranslated",
-    "cardDesc1": "cardDesc1.NotTranslated",
-    "cardTitle2": "cardTitle2.NotTranslated",
-    "cardDesc2": "cardDesc2.NotTranslated",
-    "cardTitle3": "cardTitle3.NotTranslated",
-    "cardDesc3": "cardDesc3.NotTranslated",
-    "cardTitle4": "cardTitle4.NotTranslated",
-    "cardDesc4": "cardDesc4.NotTranslated"
+    "cardTitle1": "Continuity equation",
+    "cardDesc1": "Calculates the conservation of flow rate in a fluid through a section.",
+    "cardTitle2": "Bernoulli's principle",
+    "cardDesc2": "Balances pressure, kinetic energy, and potential energy along a streamline.",
+    "cardTitle3": "Reynolds number",
+    "cardDesc3": "Indicates the flow regime (laminar or turbulent).",
+    "cardTitle4": "Friction factor / Colebrook-White",
+    "cardDesc4": "Relates the turbulent flow regime in pipes to relative roughness."
   },
   "home": {
-    "calculatorsTitle": "calculatorsTitle.NotTranslated",
-    "pressureDuctsTitle": "pressureDuctsTitle.NotTranslated"
+    "calculatorsTitle": "Main Menu",
+    "pressureDuctsTitle": "Calculators",
+    "marquee": "This is a Beta version, some errors are to be expected",
+    "progressInfo": {
+      "title": "Progress indicator",
+      "level1": "Basic calculator without extra features",
+      "level2": "Basic calculator + unit conversion",
+      "level3": "Basic calculator with unit conversion + calculation history",
+      "level4": "Basic calculator with unit conversion, calculation history and theoretical content",
+      "level5": "All features, tested and verified"
+    }
   },
   "bernoulliCalc": {
-    "title": "title.NotTranslated",
-    "calculator": "calculator.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "energy": "energy.NotTranslated",
-    "totalEnergy": "totalEnergy.NotTranslated",
-    "fluidProperties": "fluidProperties.NotTranslated",
-    "position1": "position1.NotTranslated",
-    "position2": "position2.NotTranslated",
-    "flowSection": "flowSection.NotTranslated",
-    "flowParameters": "flowParameters.NotTranslated",
+    "title": "Bernoulli's principle",
+    "calculator": "Calculator",
+    "saveToHistory": "Save to history",
+    "energy": "Energy",
+    "totalEnergy": "Total Energy",
+    "fluidProperties": "Fluid Properties",
+    "position1": "Position 1 Parameters",
+    "position2": "Position 2 Parameters",
+    "flowSection": "Flow Rate",
+    "flowParameters": "Flow Parameters",
     "labels": {
-      "density": "density.NotTranslated",
-      "P1": "P1.NotTranslated",
-      "h1": "h1.NotTranslated",
-      "v1": "v1.NotTranslated",
-      "P2": "P2.NotTranslated",
-      "h2": "h2.NotTranslated",
-      "v2": "v2.NotTranslated",
-      "pressureChange": "pressureChange.NotTranslated",
-      "diameter1": "diameter1.NotTranslated",
-      "diameter2": "diameter2.NotTranslated",
-      "flowRate": "flowRate.NotTranslated"
+      "density": "Density",
+      "P1": "Pressure P₁",
+      "h1": "Height h₁",
+      "v1": "Velocity v₁",
+      "P2": "Pressure P₂",
+      "h2": "Height h₂",
+      "v2": "Velocity v₂",
+      "pressureChange": "Pressure Change",
+      "diameter1": "Diameter Position 1",
+      "diameter2": "Diameter Position 2",
+      "flowRate": "Volumetric Flow Rate"
     },
     "toasts": {
-      "densityRequired": "densityRequired.NotTranslated",
-      "noResultsToCopy": "noResultsToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "densityRequired": "You must enter the fluid density",
+      "noResultsToCopy": "No results to copy",
+      "copied": "Results copied to clipboard",
+      "nothingToSave": "No results to save",
+      "saved": "Calculation saved to history",
+      "saveError": "Error saving to history"
     }
   },
   "theoryBernoulli": {
-    "subtitle": "subtitle.NotTranslated",
+    "subtitle": "What is it?",
     "titles": {
-      "mainTitle": "mainTitle.NotTranslated",
-      "title1": "title1.NotTranslated",
-      "title2": "title2.NotTranslated",
-      "references": "references.NotTranslated"
+      "mainTitle": "Bernoulli's principle",
+      "title1": "Advanced Considerations",
+      "title2": "Applications in Civil Engineering",
+      "references": "References"
     },
     "paragraphs": {
-      "paragraph1": "paragraph1.NotTranslated",
-      "paragraph2": "paragraph2.NotTranslated",
-      "paragraph3": "paragraph3.NotTranslated",
-      "paragraph4": "paragraph4.NotTranslated",
-      "paragraph5": "paragraph5.NotTranslated",
-      "paragraph6": "paragraph6.NotTranslated",
-      "paragraph7": "paragraph7.NotTranslated",
-      "paragraph8": "paragraph8.NotTranslated",
-      "paragraph9": "paragraph9.NotTranslated",
-      "paragraph10": "paragraph10.NotTranslated",
-      "paragraph11": "paragraph11.NotTranslated",
-      "paragraph12": "paragraph12.NotTranslated",
-      "paragraph13": "paragraph13.NotTranslated",
-      "paragraph14": "paragraph14.NotTranslated",
-      "paragraph15": "paragraph15.NotTranslated",
-      "paragraph16": "paragraph16.NotTranslated",
-      "paragraph17": "paragraph17.NotTranslated",
-      "paragraph18": "paragraph18.NotTranslated"
+      "paragraph1": "Bernoulli's principle states that, for a steady, incompressible, inviscid flow, the sum of pressure, kinetic energy, and potential energy per unit volume is conserved along a streamline. In practical terms, an increase in fluid velocity implies a decrease in static pressure (and vice versa), so that the total mechanical energy remains constant. This principle is derived from the conservation of energy: the work done by pressure forces and gravity on a fluid element equals its change in kinetic energy.",
+      "paragraph2": "In equation form, for two points on the same streamline, Bernoulli's equation is expressed as:",
+      "paragraph3": "More generally:",
+      "paragraph4": "Here, static pressure, velocity, height above a reference level, density, and gravity are combined so that any increase in dynamic pressure must be offset by a decrease in static pressure or potential energy, for the sum to remain constant.",
+      "paragraph5": "Energy terms (heads): Each term in Bernoulli's equation can be interpreted as energy per unit weight. Pressure head corresponds to the height of a fluid column that generates the pressure. Velocity head represents kinetic energy. Elevation head represents gravitational potential energy. In engineering practice, these terms are called pressure head, velocity head, and elevation head. Thus, Bernoulli's equation establishes that the total head is constant:",
+      "paragraph6": "In other words, the mechanical energy of the fluid per unit weight is conserved along the flow.",
+      "paragraph7": "Energy balance: Bernoulli's equation can be interpreted as a balance between forms of energy in the fluid. If one form of energy, such as kinetic, increases, the others (pressure or potential energy) must decrease so that the sum remains constant. Mathematically, Bernoulli's equation is an expression of the conservation of mechanical energy for an ideal fluid.",
+      "paragraph8": "In a horizontal pipe, the equation simplifies and shows that when the velocity at one point is greater than at another, the pressure at that point will be lower. In the opposite case, in static fluids where velocity is zero, the equation reduces to the classic hydrostatic relationship expressing that pressure increases with depth.",
+      "paragraph9": "Head losses and energy additions: In real flows, friction and pumps exist. In practical hydraulics, Bernoulli's equation is extended to include energy losses (head loss) and added energy (pump head). The extended form of the equation is:",
+      "paragraph10": "In this expression, head loss represents the energy dissipated by friction, and pump head represents the energy added to the system. This generalized form still expresses the conservation of total energy, as losses are transformed into heat and pump work adds mechanical energy. With this extended version, Bernoulli's equation can be applied to complex pipe systems, both in series and parallel, always considering energy gains and losses.",
+      "paragraph11": "Validity conditions: Bernoulli's equation in its simple form assumes steady, incompressible, inviscid flow along a single streamline. It also assumes no mechanical shaft work or heat transfer within the fluid. Under these conditions, mechanical energy is conserved. In real fluids, turbulence and viscosity dissipate energy, and these effects must be included as head losses in the extended equation. Furthermore, Bernoulli's equation applies along streamlines; different streamlines may have different total heads unless the flow is irrotational.",
+      "paragraph12": "Compressible flow and generalized energy: For high-velocity or compressible flows, the internal energy or enthalpy of the fluid must be considered. In these cases, Bernoulli's equation takes a form involving specific enthalpy, instead of pressure head. For example, in steady, adiabatic, inviscid flow, the sum of enthalpy, kinetic energy, and gravitational potential energy remains constant:",
+      "paragraph13": "This generalization is derived from the first law of thermodynamics applied to a control volume. However, for most hydraulic flows in civil engineering, where the Mach number is low, the incompressible version is sufficient.",
+      "paragraph14": "Stream function and potential flow: Bernoulli's equation can also be derived from the Euler equations of fluid motion or from the momentum equation along a streamline. In potential flow theory, the equation is expressed as:",
+      "paragraph15": "where the velocity potential 𝜙 represents the flow field. In the case of steady flow, this form reduces to the classical Bernoulli equation.",
+      "paragraph16": "Bernoulli's principle is fundamental in many civil and hydraulic engineering analyses, although in practice it is modified to include losses. The design of pipelines and water distribution networks uses the energy equation to calculate pressure drops and pumping requirements. The piezometric line and the energy line in a pipe network are graphical representations of the heads defined by Bernoulli's equation.",
+      "paragraph17": "The analysis of pipe systems in series or parallel is based on equating the total head between points and summing the head losses in each section. Devices such as Venturi meters, orifice plates, and Pitot tubes, used to measure flow rates, are based on this relationship: they allow inferring velocity or flow rate from pressure differences.",
+      "paragraph18": "Bernoulli's principle is also applied in open channel hydraulics and pumping systems with siphons, where energy conservation governs flow behavior. In all these cases, the theoretical Bernoulli equation provides the energy balance that engineers use to size pipes, pumps, and channels."
     }
   },
   "reynoldsCalc": {
-    "title": "title.NotTranslated",
-    "calculator": "calculator.NotTranslated",
-    "reynolds": "reynolds.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "reynoldsNumber": "reynoldsNumber.NotTranslated",
-    "flowParameters": "flowParameters.NotTranslated",
-    "fluidProperties": "fluidProperties.NotTranslated",
+    "infoText": "Keep in mind that the ranges determining whether the flow is laminar (Re < 2300), transitional (2300 ≤ Re < 4000), or turbulent (Re ≥ 4000) may vary depending on the bibliographic reference consulted.",
+    "title": "REYNOLDS NUMBER",
+    "titleHistory": "Reynolds number",
+    "calculator": "Calculator",
+    "reynolds": "Reynolds",
+    "saveToHistory": "Save to history",
+    "reynoldsNumber": "Reynolds number",
+    "flowParameters": "FLOW PARAMETERS",
+    "fluidProperties": "FLUID PROPERTIES",
     "labels": {
-      "velocity": "velocity.NotTranslated",
-      "dimension": "dimension.NotTranslated",
-      "density": "density.NotTranslated",
-      "dynamicViscosity": "dynamicViscosity.NotTranslated",
-      "kinematicViscosity": "kinematicViscosity.NotTranslated",
-      "presetFluids": "presetFluids.NotTranslated"
+      "velocity": "Velocity",
+      "dimension": "Characteristic Dimension",
+      "density": "Density",
+      "dynamicViscosity": "Dynamic Viscosity",
+      "kinematicViscosity": "Kinematic Viscosity",
+      "presetFluids": "Preset fluids"
     },
     "toasts": {
-      "velocityDimensionRequired": "velocityDimensionRequired.NotTranslated",
-      "fluidPropsRequired": "fluidPropsRequired.NotTranslated",
-      "noResultsToCopy": "noResultsToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "velocityDimensionRequired": "Velocity and dimension are required",
+      "fluidPropsRequired": "At least 2 fluid properties are required",
+      "noResultsToCopy": "No results to copy",
+      "copied": "Results copied to clipboard",
+      "nothingToSave": "No results to save",
+      "saved": "Calculation saved to history",
+      "saveError": "Error saving to history"
     },
     "regime": {
-      "laminar": "laminar.NotTranslated",
-      "transitional": "transitional.NotTranslated",
-      "turbulent": "turbulent.NotTranslated"
+      "laminar": "Laminar",
+      "transitional": "Transitional",
+      "turbulent": "Turbulent"
     },
     "fluids": {
-      "custom": "custom.NotTranslated",
-      "water_0C": "water_0C.NotTranslated",
-      "water_4C": "water_4C.NotTranslated",
-      "water_5C": "water_5C.NotTranslated",
-      "water_10C": "water_10C.NotTranslated",
-      "water_15C": "water_15C.NotTranslated",
-      "water_20C": "water_20C.NotTranslated",
-      "water_25C": "water_25C.NotTranslated",
-      "water_30C": "water_30C.NotTranslated",
-      "water_35C": "water_35C.NotTranslated",
-      "water_40C": "water_40C.NotTranslated",
-      "water_50C": "water_50C.NotTranslated",
-      "water_60C": "water_60C.NotTranslated",
-      "water_70C": "water_70C.NotTranslated",
-      "water_80C": "water_80C.NotTranslated",
-      "water_90C": "water_90C.NotTranslated",
-      "air_0C": "air_0C.NotTranslated",
-      "air_20C": "air_20C.NotTranslated",
-      "acetone_20C": "acetone_20C.NotTranslated",
-      "ethanol_20C": "ethanol_20C.NotTranslated",
-      "glycerin_20C": "glycerin_20C.NotTranslated",
-      "mercury_20C": "mercury_20C.NotTranslated",
-      "sae10_20C": "sae10_20C.NotTranslated"
+      "custom": "Custom",
+      "water_0C": "Water (0 °C)",
+      "water_4C": "Water (4 °C)",
+      "water_5C": "Water (5 °C)",
+      "water_10C": "Water (10 °C)",
+      "water_15C": "Water (15 °C)",
+      "water_20C": "Water (20 °C)",
+      "water_25C": "Water (25 °C)",
+      "water_30C": "Water (30 °C)",
+      "water_35C": "Water (35 °C)",
+      "water_40C": "Water (40 °C)",
+      "water_50C": "Water (50 °C)",
+      "water_60C": "Water (60 °C)",
+      "water_70C": "Water (70 °C)",
+      "water_80C": "Water (80 °C)",
+      "water_90C": "Water (90 °C)",
+      "air_0C": "Air (0 °C)",
+      "air_20C": "Air (20 °C)",
+      "acetone_20C": "Acetone (20 °C)",
+      "ethanol_20C": "Ethanol (20 °C)",
+      "glycerin_20C": "Glycerin (20 °C)",
+      "mercury_20C": "Mercury (20 °C)",
+      "sae10_20C": "SAE 10 Oil (20 °C)"
     }
   },
   "colebrookCalc": {
-    "title": "title.NotTranslated",
-    "calculator": "calculator.NotTranslated",
-    "frictionFactor": "frictionFactor.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "pipeCharacteristics": "pipeCharacteristics.NotTranslated",
-    "fluidCharacteristics": "fluidCharacteristics.NotTranslated",
+    "title": "Colebrook Equation",
+    "calculator": "Calculator",
+    "frictionFactor": "Friction Factor",
+    "saveToHistory": "Save to history",
+    "pipeCharacteristics": "Pipe Characteristics",
+    "fluidCharacteristics": "Fluid Characteristics",
     "labels": {
-      "material": "material.NotTranslated",
-      "roughness": "roughness.NotTranslated",
-      "diameter": "diameter.NotTranslated",
-      "relativeRoughness": "relativeRoughness.NotTranslated",
-      "reynolds": "reynolds.NotTranslated",
-      "density": "density.NotTranslated",
-      "velocity": "velocity.NotTranslated",
-      "dynamicViscosity": "dynamicViscosity.NotTranslated",
-      "reynoldsCalculated": "reynoldsCalculated.NotTranslated"
+      "material": "Material",
+      "roughness": "Absolute Roughness (ε)",
+      "diameter": "Internal Diameter (D)",
+      "relativeRoughness": "Relative Roughness (ε/D)",
+      "reynolds": "Reynolds Number (Re)",
+      "density": "Density (ρ)",
+      "velocity": "Velocity (v)",
+      "dynamicViscosity": "Dynamic Viscosity (μ)",
+      "reynoldsCalculated": "Calculated Reynolds"
     },
     "mode": {
-      "label": "label.NotTranslated",
-      "simple": "simple.NotTranslated",
-      "advanced": "advanced.NotTranslated"
+      "label": "Mode",
+      "simple": "Simple",
+      "advanced": "Advanced"
     },
     "toasts": {
-      "reynoldsRequired": "reynoldsRequired.NotTranslated",
-      "roughnessRequired": "roughnessRequired.NotTranslated",
-      "calculationError": "calculationError.NotTranslated",
-      "noResultsToCopy": "noResultsToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "reynoldsRequired": "Reynolds number is required",
+      "roughnessRequired": "Roughness data is required",
+      "calculationError": "Calculation error",
+      "noResultsToCopy": "No results to copy",
+      "copied": "Results copied to clipboard",
+      "nothingToSave": "No results to save",
+      "saved": "Calculation saved to history",
+      "saveError": "Error saving to history"
     },
     "materials": {
-      "custom": "custom.NotTranslated",
-      "commercialSteel": "commercialSteel.NotTranslated",
-      "castIron": "castIron.NotTranslated",
-      "concrete": "concrete.NotTranslated",
-      "pvc": "pvc.NotTranslated",
-      "copper": "copper.NotTranslated",
-      "galvanizedSteel": "galvanizedSteel.NotTranslated"
+      "custom": "Custom",
+      "commercialSteel": "Commercial steel",
+      "castIron": "Cast iron",
+      "concrete": "Concrete",
+      "pvc": "PVC",
+      "copper": "Copper",
+      "galvanizedSteel": "Galvanized steel"
     }
   },
   "mainMenu": {
-    "subtitleEssential": "subtitleEssential.NotTranslated",
-    "subtitle1": "subtitle1.NotTranslated"
+    "subtitleEssential": "Essential",
+    "subtitle1": "Fluid mechanics",
+    "subtitle2": "Pipe flow (smooth/rough) and losses",
+    "subtitle3": "Pipe design",
+    "subtitle4": "Pipe design verification",
+    "subtitle5": "Power"
   },
   "theoryReynolds": {
-    "subtitle": "subtitle.NotTranslated",
+    "subtitle": "What is it?",
     "titles": {
-      "mainTitle": "mainTitle.NotTranslated",
-      "references": "references.NotTranslated",
-      "title2": "title2.NotTranslated",
-      "title3": "title3.NotTranslated",
-      "title4": "title4.NotTranslated",
-      "title5": "title5.NotTranslated"
+      "mainTitle": "Reynolds number",
+      "references": "References",
+      "title2": "Theoretical Foundation and Origin in the Equations of Fluid Dynamics",
+      "title3": "Applications and Practical Importance",
+      "title4": "Mathematical Extension: Generalized Reynolds Number",
+      "title5": "History and Origin"
     },
     "paragraphs": {
-      "paragraph1": "paragraph1.NotTranslated",
-      "paragraph2": "paragraph2.NotTranslated",
-      "paragraph3": "paragraph3.NotTranslated",
-      "paragraph4": "paragraph4.NotTranslated",
-      "paragraph5": "paragraph5.NotTranslated",
-      "paragraph6": "paragraph6.NotTranslated",
-      "paragraph7": "paragraph7.NotTranslated",
-      "paragraph8": "paragraph8.NotTranslated",
-      "paragraph9": "paragraph9.NotTranslated",
-      "paragraph10": "paragraph10.NotTranslated",
-      "paragraph11": "paragraph11.NotTranslated",
-      "paragraph12": "paragraph12.NotTranslated",
-      "paragraph13": "paragraph13.NotTranslated"
+      "paragraph1": "The Reynolds Number (Re) is a fundamental dimensionless number in fluid mechanics, used to characterize the flow regime within a conduit or around a submerged body. It represents the ratio of inertial forces to viscous forces acting on a moving fluid, being a key parameter for determining whether the flow is laminar, transitional, or turbulent. Mathematically, the Reynolds number is expressed as:",
+      "paragraph2": "or equivalently, in terms of kinematic viscosity:",
+      "paragraph3": "In this expression, ρ represents the fluid density, measured in kilograms per cubic meter (kg/m³). The term v corresponds to the average flow velocity, expressed in meters per second (m/s). The variable D indicates the hydraulic diameter or the linear characteristic of the system, measured in meters (m). The letter μ represents the dynamic viscosity of the fluid, whose units are pascal-second or newton-second per square meter (Pa·s or N·s/m²). Finally, ν is the kinematic viscosity of the fluid, defined as the ratio of dynamic viscosity to density, i.e., ν = μ / ρ, and is measured in square meters per second (m²/s). The Reynolds number does not depend on the units used, as it is a dimensionless quantity. Its value determines the flow behavior: when Re is less than 2000, the flow is considered laminar; if the Re value is between 2000 and 4000, the flow is in a transitional regime; and when Re is greater than 4000, the flow is turbulent.",
+      "paragraph4": "The Reynolds number is derived from the Navier–Stokes equation, which describes the motion of a Newtonian fluid in terms of momentum conservation:",
+      "paragraph5": "In this formulation, v represents the fluid velocity vector, p corresponds to pressure, ρ denotes density, μ is dynamic viscosity, and g represents the gravitational acceleration vector. To obtain the Reynolds number, this equation is non-dimensionalized by introducing characteristic variables:",
+      "paragraph6": "Substituting them into the Navier–Stokes equation yields the dimensionless form:",
+      "paragraph7": "where the term appears naturally:",
+      "paragraph8": "This parameter controls the balance between inertial forces, represented by the acceleration term, and viscous forces, represented by the viscosity gradient term. When the Reynolds number is large, inertial forces predominate over viscous forces, favoring the development of turbulent flow characterized by chaotic movements and intense mixing within the fluid. Conversely, when the Reynolds number is small, viscosity has a dominant effect that dampens motion disturbances, allowing the flow to remain orderly, stable, and with well-defined trajectories, typical of a laminar regime.",
+      "paragraph9": "The Reynolds number plays an essential role in various fields of engineering and applied science. In the design of hydraulic systems, it allows determining the flow regime that develops inside pipes, channels, valves, and pumps, being fundamental for ensuring the correct sizing and operation of these systems. In the field of aerodynamic and hydrodynamic analysis, the Reynolds number facilitates establishing dynamic similarities between reduced models and real systems, which is especially useful in tests carried out in wind tunnels or test channels to study flow behavior around bodies or structures. In civil and environmental engineering, this parameter is used to assess head losses in conduits, calculate the appropriate size of ducts, and estimate friction coefficients, often using tools such as the Moody diagram. Likewise, in the study of particle transport and sedimentology, the Reynolds number is indispensable for predicting deposition or suspension processes of solids within a liquid flow, allowing accurate modeling of natural phenomena and sediment transport systems. In practice, calculating the Reynolds number is the starting point prior to applying empirical equations such as Darcy–Weisbach, Colebrook–White, or Hazen–Williams, as they all depend directly on the flow regime identified from this dimensionless number.",
+      "paragraph10": "In non-circular systems or complex geometries, the hydraulic diameter 𝐷ℎ is used:",
+      "paragraph11": "where 𝐴 is the cross-sectional area and 𝑃 is the wetted perimeter. Thus, the generalized Reynolds number is:",
+      "paragraph12": "Likewise, in external flows (e.g., around a sphere or an airfoil) a specific characteristic length is used (such as the diameter or the chord of the profile).",
+      "paragraph13": "The concept of the Reynolds number was introduced by the engineer and physicist Osborne Reynolds (1842–1912), a professor at the University of Manchester. In 1883, he performed a classic experiment in which he injected a dye filament into a transparent pipe with flowing water, observing the transition from laminar to turbulent flow as velocity increased. From these experiments, he established a dimensionless parameter—later named in his honor—that related inertial forces to viscous forces. This discovery unified the study of fluid dynamics and is considered one of the most important experimental and theoretical foundations of modern engineering."
     }
   },
   "froude": {
-    "title": "title.NotTranslated",
-    "desc": "desc.NotTranslated"
+    "title": "Froude Number",
+    "desc": "Calculator that determines the Froude number to analyze flow regimes in hydraulics."
   },
   "froudeCalc": {
-    "calculator": "calculator.NotTranslated",
-    "title": "title.NotTranslated",
-    "froudeNumber": "froudeNumber.NotTranslated",
-    "froude": "froude.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "flowParameters": "flowParameters.NotTranslated",
-    "geometryParameters": "geometryParameters.NotTranslated",
+    "infoText": "Enter at least 2 geometric parameters along with velocity and gravity to calculate the Froude number",
+    "calculator": "Calculator",
+    "title": "FROUDE NUMBER",
+    "titlehistory": "Froude Number",
+    "froudeNumber": "Froude Number",
+    "froude": "Froude",
+    "saveToHistory": "Save to history",
+    "flowParameters": "FLOW PARAMETERS",
+    "geometryParameters": "GEOMETRIC PARAMETERS",
     "regime": {
-      "subcritical": "subcritical.NotTranslated",
-      "critical": "critical.NotTranslated",
-      "supercritical": "supercritical.NotTranslated"
+      "subcritical": "Subcritical",
+      "critical": "Critical",
+      "supercritical": "Supercritical"
     },
     "labels": {
-      "area": "area.NotTranslated",
-      "width": "width.NotTranslated",
-      "hydraulicDepth": "hydraulicDepth.NotTranslated",
-      "velocity": "velocity.NotTranslated",
-      "gravity": "gravity.NotTranslated"
+      "area": "Cross-Sectional Area",
+      "width": "Channel Width",
+      "hydraulicDepth": "Mean Hydraulic Depth",
+      "velocity": "Flow Velocity",
+      "gravity": "Acceleration due to Gravity"
     },
     "toasts": {
-      "velocityGravityRequired": "velocityGravityRequired.NotTranslated",
-      "geometryRequired": "geometryRequired.NotTranslated",
-      "noResultsToCopy": "noResultsToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "velocityGravityRequired": "Velocity and gravity are required",
+      "geometryRequired": "At least 2 geometric parameters are required",
+      "noResultsToCopy": "No results to copy",
+      "copied": "Results copied to clipboard",
+      "nothingToSave": "No results to save",
+      "saved": "Calculation saved to history",
+      "saveError": "Error saving to history"
+    }
+  },
+  "EnergiaBernoulliCalc": {
+    "cardTitle1": "Energy and Bernoulli",
+    "cardDesc1": "Solves the general energy equation, including head losses and cavitation."
+  },
+  "energiaBernoulliCalc": {
+    "infoText": "Enter all parameters except one to calculate the unknown variable and the energy difference",
+    "safe": "Safe",
+    "noCavitation": "No risk",
+    "lowMargin": "Low margin",
+    "cavitationRisk": "RISK",
+    "systemType": "System type",
+    "closed": "Closed",
+    "open": "Open",
+    "closedSystem": "CLOSED SYSTEM",
+    "openSystem": "Open System",
+    "vaporPressure": "VAPOR PRESSURE",
+    "cavitationStatus": "Cavitation status",
+    "useRhoForGamma": "Use density (ρ)",
+    "useTempForPv": "Calculate Pv from temperature",
+    "title": "ENERGY / BERNOULLI",
+    "titlehistory": "Energy / Bernoulli",
+    "calculator": "Calculator",
+    "modec": "Mode",
+    "mode": {
+      "ideal": "Bernoulli",
+      "losses": "W/ losses",
+      "cavitation": "Cavitation"
+    },
+    "section1": "SECTION 1",
+    "section2": "SECTION 2",
+    "suctionSection": "Suction Section",
+    "fluidProps": "FLUID PROPERTIES",
+    "pumpTurbine": "PUMP/TURBINE",
+    "losses": "LOSSES",
+    "cavitationParams": "Cavitation Parameters",
+    "energyDifference": "Energy Difference",
+    "cavitationMargin": "Cavitation Margin",
+    "npsha": "NPSH available",
+    "pabs": "Absolute Pressure",
+    "result": "Result",
+    "saveToHistory": "Save to history",
+    "lossInputType": "Loss type",
+    "direct": "Direct loss (hL)",
+    "darcy": "Darcy equation",
+    "labels": {
+      "P1": "Pressure (P₁)",
+      "P2": "Pressure (P₂)",
+      "P1_suction": "Suction pressure (P₁)",
+      "z1": "Elevation (z₁)",
+      "z2": "Elevation (z₂)",
+      "z_suction": "Suction elevation (z₁)",
+      "V1": "Velocity (V₁)",
+      "V2": "Velocity (V₂)",
+      "V_suction": "Suction velocity (V₁)",
+      "gamma": "Specific weight (γ)",
+      "g": "Gravity (g)",
+      "alpha1": "Coriolis coefficient (α₁)",
+      "alpha2": "Coriolis coefficient (α₂)",
+      "hb": "Pump head (hB)",
+      "ht": "Turbine head (hT)",
+      "hL": "Head loss (hL)",
+      "hL_suction": "Suction loss (hL)",
+      "L": "Pipe length (L)",
+      "D1": "Diameter (D₁)",
+      "f": "Friction factor (f)",
+      "K": "Loss coefficient (K)",
+      "temperatura": "Temperature (T)",
+      "Velocity": "Velocity",
+      "Pressure": "Pressure",
+      "Density": "Density",
+      "Acceleration": "Acceleration",
+      "Temperature": "Temperature",
+      "SpecificWeight": "Specific weight",
+      "Ps": "Suction pressure",
+      "Vs": "Suction velocity",
+      "Patm": "Atmospheric pressure",
+      "z0": "Liquid level",
+      "zs": "Suction elevation",
+      "hfs": "Suction loss",
+      "rho": "Density",
+      "Pv": "Vapor pressure"
+    },
+    "results": {
+      "npsha": "NPSH available",
+      "cavitationMargin": "Cavitation margin",
+      "pabs": "Absolute pressure",
+      "gammaCalculated": "γ calculated",
+      "pvCalculated": "Pv calculated"
+    },
+    "cavitationStatus": {
+      "safe": "Safe",
+      "lowMargin": "Low margin",
+      "risk": "Cavitation risk"
+    },
+    "includeBomba": "Include pump",
+    "includeTurbina": "Include turbine",
+    "toasts": {
+      "copied": "Results copied to clipboard",
+      "nothingToSave": "No results to save",
+      "saved": "Calculation saved to history",
+      "saveError": "Error saving to history",
+      "calculationError": "Error in cavitation calculation",
+      "cavitationSafe": "System safe - No risk of cavitation",
+      "cavitationWarning": "Low cavitation margin",
+      "cavitationDanger": "CAVITATION RISK!",
+      "negativeNPSHa": "Negative NPSHa - check data"
+    }
+  },
+  "geometriaSeccionesCalc": {
+    "calculator": "Calculator",
+    "cardTitle1":"Section Geometry",
+    "cardDesc1":"Calculates area, perimeter, and hydraulic radius for different types of sections.",
+    "title": "SECTION GEOMETRY",
+    "titlehistory": "Section Geometry",
+    "y2": "Depth (y₂)",
+    "area": "Area",
+    "perimeter": "Perimeter",
+    "hydraulicRadius": "Hydraulic radius",
+    "topWidth": "Top width",
+    "shearStress": "Shear stress",
+    "shearVelocity": "Shear velocity",
+    "sectionProps": "Section properties",
+    "section1": "Geometry 1",
+    "section2": "Geometry 2",
+    "flowProps": "Flow properties",
+    "dimensions": "Dimensions",
+    "material": "Material",
+    "selected": "Selected",
+    "custom": "Custom",
+    "result": "Hydraulic radius",
+    "labels": {
+      "sectionType": "Section type",
+      "A1": "A₁",
+      "Rh1": "Rh₁",
+      "B1": "B₁",
+      "A2": "A₂",
+      "Rh2": "Rh₂",
+      "B2": "B₂",
+      "n": "n",
+      "S0": "S₀",
+      "Q": "Q",
+      "b": "b",
+      "y": "y",
+      "z": "z",
+      "materialType": "Material type",
+      "material": "Material",
+      "diametro": "Diameter",
+      "tirante": "Depth",
+      "base": "Base",
+      "talud": "Side slope",
+      "K": "K",
+      "A": "Area",
+      "P": "Perimeter",
+      "R": "Hydraulic radius",
+      "T": "Top width",
+      "Dh": "Hydraulic depth"
+    },
+    "options": {
+      "sectionType": {
+        "circular-llena": "Circular pipe (full)",
+        "circular-parcial": "Circular pipe (partially full)",
+        "rectangular": "Rectangular channel",
+        "trapezoidal": "Trapezoidal channel",
+        "triangular": "Triangular channel",
+        "parabolico": "Parabolic channel"
+      }
+    },
+    "paramsSection": "GEOMETRIC PARAMETERS",
+    "resultsSection": "GEOMETRIC RESULTS",
+    "toasts": {
+      "copied": "Results copied to clipboard",
+      "nothingToSave": "No results to save",
+      "saved": "Calculation saved to history",
+      "saveError": "Error saving to history"
+    }
+  },
+  "reynoldsTheory": {
+    "titles": {
+      "references": "References"
+    },
+    "subtitle": "Reynolds number",
+    "title": "What is it?",
+    "selectTermPlaceholder": "Select a term from the equation to see its description.",
+    "expandedMode": "Expanded mode: {term} →",
+    "terms": {
+      "R": {
+        "title": "Reynolds number (R)",
+        "description": "The Reynolds number is a dimensionless parameter used in fluid mechanics to describe the ratio of inertial forces to viscous forces within a flow. It characterizes the behavior of a fluid moving inside pipes, around solid bodies, or in open channels. Physically, it compares the fluid's tendency to maintain its motion due to inertia with the internal resistance offered by viscosity. Its mathematical form is expressed as Re = ρVL/μ, where ρ is the fluid density, V is the characteristic velocity, L is a representative length, and μ is the dynamic viscosity. This number is fundamental for classifying flow regimes based on their stability and internal structure. When its value is low, the flow tends to be orderly and predictable, while high values indicate a greater propensity for instability and the formation of complex fluctuations. The transition between these behaviors depends on the system's geometry and specific flow conditions, but the Reynolds number constitutes the main criterion for anticipating that change. When the Reynolds number is less than approximately two thousand in the case of internal pipe flow, the regime is usually laminar, implying that fluid particles move in parallel layers with minimal transverse mixing and predominance of viscous dissipation. In an intermediate range, a transition zone appears where small disturbances can be amplified. When the value exceeds approximately four thousand, the flow usually becomes turbulent, implying chaotic motion, intense mixing, greater energy losses, and a more uniform velocity distribution across the cross-section. The concept was developed in the 19th century by the Irish physicist and engineer Osborne Reynolds, who performed classic experiments in transparent pipes to observe the transition between laminar and turbulent flow. His studies demonstrated that this transition did not depend solely on velocity, but on a specific combination of fluid properties and geometric dimensions, leading to the formulation of the dimensionless number that bears his name and that today is essential in engineering, aerodynamics, and hydraulics."
+      },
+      "ρ": {
+        "title": "Fluid density (ρ)",
+        "description": "Density is the mass per unit volume of the fluid, expressed in kg/m³. In the context of the Reynolds number, a higher density increases the inertial forces of the fluid, which tends to increase the Re value and therefore the probability that the flow becomes turbulent. Density depends on factors such as temperature, pressure, and fluid composition. For example, in liquids it usually varies little with temperature, while in gases it can change significantly."
+      },
+      "V": {
+        "title": "Fluid velocity (V)",
+        "description": "Fluid velocity corresponds to the average speed at which it moves through a pipe or conduit, expressed in m/s. It is one of the most influential factors in the Reynolds number, since Re is directly proportional to V. An increase in velocity increases inertial forces, favoring the transition towards turbulent flow. In real applications, velocity can vary depending on the flow profile, pipe roughness, and inlet conditions."
+      },
+      "D": {
+        "title": "Hydraulic diameter (D)",
+        "description": "The hydraulic diameter is a characteristic measure of the conduit geometry through which the fluid circulates. In circular pipes it coincides with the internal diameter, but in non-circular conduits it is calculated as D = 4·Area/Wetted perimeter. A larger diameter increases the Reynolds number, as it increases the characteristic scale of the flow and therefore the inertial forces. This implies that larger conduits tend to develop turbulent flow more easily. The hydraulic diameter is especially important in ventilation systems, open channels, and complex geometries."
+      },
+      "μ": {
+        "title": "Dynamic viscosity (μ)",
+        "description": "Dynamic viscosity represents the internal resistance of the fluid to deformation or flow, expressed in Pa·s. It is a key parameter in the Reynolds number, as it appears in the denominator of the equation. A more viscous fluid (higher μ) has greater dissipative forces, which reduces Re and favors laminar flow. Viscosity depends strongly on temperature: in liquids it decreases as temperature increases, while in gases it usually increases. This implies that the flow regime can change significantly with thermal variations."
+      },
+      "m": {
+        "title": "Mass (m)",
+        "description": "Mass is a measure of the amount of matter in an object or fluid. In the context of density, mass is the property that, together with volume, determines how dense a fluid is. It is commonly expressed in kilograms (kg)."
+      },
+      "v": {
+        "title": "Volume (v)",
+        "description": "Volume is the amount of three-dimensional space that a fluid occupies. In the density equation, it is the denominator that, together with mass, defines how concentrated the matter is. It is commonly expressed in cubic meters (m³)."
+      },
+      "τ": {
+        "title": "Shear Stress (τ)",
+        "description": "Shear stress (tau) is the force per unit area required to maintain fluid motion. In Newton's law of viscosity, it is directly proportional to the velocity gradient (du/dy). A more viscous fluid will require greater shear stress to deform at the same rate. It is expressed in pascals (Pa)."
+      },
+      "du": {
+        "title": "Velocity Differential (du)",
+        "description": "Represents an infinitesimal change in fluid velocity. In the context of the velocity gradient (du/dy), 'du' is the small velocity difference between two very close fluid layers. A larger velocity difference for the same distance increases the gradient and therefore the shear stress."
+      },
+      "dy": {
+        "title": "Distance Differential (dy)",
+        "description": "Represents an infinitesimal change in distance, measured perpendicularly to the flow direction. It is the separation between two adjacent fluid layers. In the velocity gradient (du/dy), a smaller distance 'dy', for the same velocity difference, results in a steeper gradient and greater shear stress."
+      }
+    }
+  },
+  "froudeTheory": {
+    "subtitle": "Froude number",
+    "title": "What is it?",
+    "selectTermPlaceholder": "Tap a term to see its description",
+    "titles": {
+      "references": "References"
+    },
+    "terms": {
+      "Fr": {
+        "title": "Froude number (Fr)",
+        "description": "The Froude number is a dimensionless parameter used in fluid mechanics to describe the ratio between the inertia of a flow and the effect of gravity. It helps determine how a fluid behaves when there is a free surface, such as in rivers, channels, waves, or the movement of vessels. Physically, it compares the characteristic flow velocity with the speed at which gravity waves propagate in that same medium. Its mathematical form is expressed as Fr = V / √(gL), where V is the characteristic velocity, g is the acceleration due to gravity, and L is a representative length of the system. This number is fundamental for classifying flow regimes. When its value is less than one, the flow is called subcritical and disturbances can propagate upstream. When it equals one, it is in a critical condition, implying a balance between inertia and gravity. When it is greater than one, the flow is supercritical and disturbances cannot travel upstream. This classification is essential in the design of channels, weirs, dams, and in analyzing the behavior of ships and hydraulic structures. When the Froude number is less than one, gravity dominates over inertia, implying a relatively slow and deep flow, stable against small disturbances, and sensitive to downstream conditions. If it equals one, the system reaches a critical state where the flow velocity coincides with the propagation speed of surface waves, generating a highly sensitive transition condition. When it is greater than one, inertia predominates over gravity, the flow is fast and shallow, and any alteration is confined downstream, favoring phenomena such as hydraulic jumps. The concept was introduced in the 19th century by the British engineer and naval architect William Froude, who investigated the resistance to the advance of ships. His work established dynamic similarity laws still used today in scale model testing in naval and hydraulic engineering. By recognizing that similarity in the Froude number ensured adequate correspondence between model and prototype in gravity-dominated phenomena, he laid a solid experimental foundation for the modern design of vessels and hydraulic works."
+      },
+      "V": {
+        "title": "Average Velocity (v)",
+        "description": "Represents the average speed with which fluid particles pass through a specific cross-section (m/s). In the context of the Froude number, velocity is the driver of inertia. A high velocity increases the numerator of the equation, indicating that the kinetic energy of the system dominates over gravitational potential energy. In practical terms, it is the factor that determines whether an obstacle in the channel will generate a shock wave (hydraulic jump) or just a smooth ripple on the surface."
+      },
+      "g": {
+        "title": "Acceleration due to Gravity (g)",
+        "description": "It is the constant force that attracts the fluid mass towards the center of the Earth (standard 9.81 m/s²). In channel hydraulics, gravity is the 'restoring force' that tries to keep the water surface flat and stable. Its role in the Froude number is fundamental: it acts as the denominator that limits motion. Without gravity, there would be no surface waves nor distinction between flow regimes, as it is responsible for generating the hydrostatic pressure that drives movement in the absence of external pumping."
+      },
+      "L": {
+        "title": "Characteristic Length (L)",
+        "description": "In open channels, this length is usually represented as the hydraulic depth (D = Area / Top width). It is the dimension that scales the effect of gravity in the system. The relationship between velocity and the square root of this length multiplied by gravity ($V / \\sqrt{gL}$) defines the celerity of small-amplitude gravity waves. Therefore, L is not just a geometric measurement, but the factor that determines how 'deep' or 'shallow' a fluid behaves when faced with forces attempting to move it."
+      },
+      "F": {
+        "title": "Gravitational Force (F)",
+        "description": "It is the vector magnitude resulting from the interaction between the fluid mass and the Earth's gravitational field. In Froude analysis, this force generates the weight that stabilizes the flow. It is calculated using Newton's second law ($F = m \\cdot g$). In the design of hydraulic structures such as weirs or dams, understanding this force is crucial, as the Froude number helps predict whether the weight of the water will be sufficient to keep the flow attached to the structure or if inertia will cause separation and severe turbulence."
+      },
+      "m": {
+        "title": "Fluid Mass (m)",
+        "description": "It is the quantitative measure of the inertia of a portion of fluid, i.e., its resistance to changing its state of motion. It is expressed in kilograms (kg). Although mass cancels out in the final derivation of the Froude number (leaving only the relationship of velocities and lengths), conceptually it remains the pillar of inertial forces. It is the property that allows water to maintain its linear momentum and 'hit' structures with force when the Froude number indicates a supercritical regime."
+      }
+    }
+  },
+  "continuidadTheory": {
+    "subtitle": "Continuity equation",
+    "title": "What is it?",
+    "selectTermPlaceholder": "Tap a term in the equation to see its description",
+    "titles": {
+      "references": "References"
+    },
+    "terms": {
+      "A": {
+        "title": "Cross-sectional area (A)",
+        "description": "Represents the surface of the geometric section cut perpendicularly to the direction of fluid motion. In the context of fluid mechanics, the area acts as the 'funnel' that restricts or allows the passage of flow. Its importance lies in the inverse relationship it maintains with velocity: under constant flow rate, a reduction in cross-sectional area forces fluid particles to accelerate to allow the same mass of liquid to pass through the section in the same time interval."
+      },
+      "V": {
+        "title": "Fluid velocity (V)",
+        "description": "Defines the average speed at which fluid particles move through a given section. It is not just a measure of speed, but a critical component of the system's kinetic energy. According to the continuity principle for incompressible fluids, velocity is a variable dependent on the conduit geometry; therefore, any narrowing in the pipe immediately translates into a proportional increase in velocity, ensuring that the mass balance remains unchanged."
+      },
+      "1": {
+        "title": "Section 1 (inlet)",
+        "description": "Subscript identifying the fluid conditions at the inlet point or upstream section. The values A₁ and V₁ describe the initial state of the flow."
+      },
+      "2": {
+        "title": "Section 2 (outlet)",
+        "description": "Subscript identifying the fluid conditions at the outlet point or downstream section. The values A₂ and V₂ describe the final state of the flow."
+      },
+      "π": {
+        "title": "Pi (π)",
+        "description": "It is the fundamental constant that relates the circumference of a circle to its diameter. Its presence in the continuity equation is indispensable when working with cylindrical conduits or commercial pipes, as it allows deriving the flow area from a single linear measurement of the diameter. It is the factor linking Euclidean geometry with the calculation of transport capacities in hydraulic and pneumatic systems."
+      },
+      "D": {
+        "title": "Diameter (D)",
+        "description": "Refers to the measurement of the internal width of the circular conduit through which the fluid circulates. It is the most influential design parameter in pipe engineering, as the cross-sectional area is extremely sensitive to its variations (growing quadratically with respect to diameter). A small change in internal diameter can cause drastic variations in flow velocity and energy loss due to friction because of the alteration of the hydraulic regime."
+      },
+      "Q": {
+        "title": "Volumetric flow rate (Q)",
+        "description": "Represents the flow rate or the volume of fluid passing through a specific section per unit time. Flow rate is the practical manifestation of the law of conservation of mass. Under ideal conditions (steady, incompressible flow), the value of the flow rate remains invariant throughout the entire system. This means that the amount of fluid entering one end is exactly equal to that leaving the other, regardless of changes in shape, size, or direction that the pipe undergoes along its path."
+      },
+      "𝒱": {
+        "title": "Volume (𝒱)",
+        "description": "Defined as the physical quantity that quantifies the three-dimensional space occupied by a portion of fluid. In the study of flow, volume is the entity that 'moves'. When analyzing continuity, we are interested in the control volume that crosses an imaginary boundary; it is the accumulation of fluid particles that, when divided by the transit time, allows us to understand the transport capacity of a hydraulic system and the efficiency of its design."
+      },
+      "t": {
+        "title": "Time (t)",
+        "description": "It is the temporal dimension necessary to measure the rate of fluid transfer through a control section. Time acts as the denominator of efficiency in the continuity equation. Without this parameter, flow would be a static measure; thanks to time, we can transform a fixed quantity of volume into a dynamic concept of flow or current, allowing us to calculate, for example, how long it would take to fill a tank or for fluid to circulate through a closed loop."
+      }
+    }
+  },
+  "energiaBernoulliTheory": {
+    "subtitle": "Bernoulli equation",
+    "title": "What is it?",
+    "selectTermPlaceholder": "Select a term to see its description",
+    "titles": {
+      "references": "References"
+    },
+    "terms": {
+      "P": {
+        "title": "Pressure (P)",
+        "description": "Static pressure represents the intensity of the normal force that the fluid exerts on the pipe walls or on any imaginary surface within the flow. In the context of the Bernoulli equation, this term is interpreted as the 'flow energy' or the work needed to move a mass of fluid against the surrounding pressure without changing its velocity or height. From a molecular perspective, it is the result of the constant bombardment of fluid particles against the boundaries containing it. Unlike dynamic pressure, static pressure is what we would measure with a manometer moving along with the current, capturing the internal energy state of the system at a specific point. In hydraulic systems, a drop in static pressure does not always imply a loss of total energy; it often indicates that the fluid has accelerated (Venturi effect). It is essential to distinguish between gauge pressure and absolute pressure, although in most civil and mechanical engineering calculations, relative pressure with respect to the atmosphere is used."
+      },
+      "γ": {
+        "title": "Specific weight (γ)",
+        "description": "Specific weight is an intensive property that defines the relationship between the weight of a substance and the volume it occupies. It is a critical parameter in hydrostatics and fluid dynamics because it allows converting pressure (a force over area) into an equivalent fluid column height, facilitating the summation of different forms of energy in units of length. Physically, this value depends on both the density of the substance and the local gravitational acceleration. For example, the specific weight of water decreases slightly with increasing temperature due to thermal expansion, which affects the accuracy of calculations in hot water or steam transport systems. In the Bernoulli equation, dividing pressure by specific weight (P/γ) yields the 'pressure head'. This concept is the cornerstone of distribution network design, as it allows engineers to visualize available pressure in terms of meters of water column, simplifying the analysis of pressures in terrains with variable topographies."
+      },
+      "V": {
+        "title": "Velocity (V)",
+        "description": "Average velocity represents the average speed at which fluid particles pass through a given cross-section. In the Bernoulli equation, velocity is the main component of the system's kinetic energy, reflecting the macroscopic movement of the fluid driven by pressure or gravity gradients. Due to viscosity, velocity is not uniform across an entire pipe section; it is zero at the walls and maximum at the center. Therefore, engineering uses a corrected average velocity that assumes simplified one-dimensional flow, which is sufficient for most practical fluid transport applications. The 'velocity head' term shows a quadratic relationship: if velocity doubles, the associated kinetic energy quadruples. This principle is vital for understanding why high velocities in small pipes cause such drastic pressure drops and risks of erosion or excessive noise in installations."
+      },
+      "g": {
+        "title": "Gravity (g)",
+        "description": "Gravitational acceleration is the physical constant that links the fluid mass to its weight. Its role in fluid dynamics is to act as the universal conversion factor that allows normalizing kinetic and potential energy into units of hydraulic head. Although usually approximated as a constant value of 9.81 m/s², small variations in altitude or latitude can influence extremely precise systems. In the Bernoulli study, gravity is the reason the fluid possesses potential energy simply by being at a high elevation relative to a reference plane. Without the presence of gravity, the concepts of specific weight and elevation head would lose their traditional physical meaning. In this model, gravity ensures that the exchange between kinetic energy (velocity) and potential energy (height) remains balanced according to the laws of thermodynamics."
+      },
+      "z": {
+        "title": "Elevation head (z)",
+        "description": "Elevation head represents the vertical position of a fluid section relative to an arbitrary reference level or 'datum'. This term quantifies the gravitational potential energy per unit weight, which is the fluid's capacity to do work solely due to its elevation. It is a purely geometric concept but with massive energy implications. In the design of gravity aqueducts, the difference in elevation between the reservoir and the city is the primary energy source that allows flow without the need for external mechanical pumps. When analyzing pipes, the variation in elevation z allows identifying whether the fluid is gaining or losing potential energy. If a pipe ascends, the elevation increases, and to maintain energy conservation, pressure or velocity must decrease proportionally, assuming no external energy input."
+      },
+      "h_f": {
+        "title": "Head loss (hf)",
+        "description": "Head loss represents the mechanical energy that is irreversibly transformed into thermal energy (heat) due to internal fluid friction and friction with the conduit walls. Unlike pressure or velocity terms, this energy cannot be recovered and is considered an 'output' from the system. This phenomenon occurs due to fluid viscosity. In laminar regimes, fluid layers slide over each other generating heat by shear; in turbulent regimes, the formation of eddies and molecular chaos drastically increase energy dissipation. Accurate calculation of head loss is the biggest challenge in pipe hydraulics. Ignoring this term would lead to serious errors in pump selection, as pumps must supply enough energy not only to lift the fluid but also to overcome the invisible resistance offered by the path."
+      },
+      "f": {
+        "title": "Friction factor (f)",
+        "description": "The friction factor is a dimensionless coefficient that describes the resistance to flow inside a pipe. Its value is not constant but depends on the nature of the flow (determined by the Reynolds number) and the condition of the pipe's internal surface, known as relative roughness. In turbulent flows, which are the most common in engineering, this factor captures how the irregularities of the pipe wall perturb the fluid motion. A rusty steel pipe will have a much higher friction factor than a smooth PVC one, translating into higher long-term pumping costs. To obtain this value, graphical tools such as the Moody Diagram or complex equations are used, considering that at high speeds, pipe roughness is the dominant factor, while at low speeds, fluid viscosity takes control of the friction process."
+      },
+      "L": {
+        "title": "Length (L)",
+        "description": "Length is the total distance traveled by the fluid between two points of interest. In energy loss analysis, length is directly proportional to heat dissipation; each additional meter of pipe represents an accumulated contact surface that opposes movement. In large-scale projects, such as oil pipelines or water transport networks, length is the factor that determines the need for intermediate pumping stations. As the fluid advances, its total energy decays linearly due to this physical extension. It is important to consider that, in the real world, 'equivalent length' can also include the effect of fittings such as elbows and valves, which although occupying little physical space, generate flow resistance comparable to several meters of straight pipe."
+      },
+      "D": {
+        "title": "Diameter (D)",
+        "description": "The internal diameter of the conduit is perhaps the most influential design variable in the behavior of a hydraulic system. It determines the cross-sectional area available for flow and has an inverse and disproportionate impact on energy loss. According to flow physics, energy loss is inversely proportional to the fifth power of the diameter in constant flow rate conditions. This means that halving the diameter can increase friction losses up to 32 times, underscoring the importance of choosing appropriate pipe sizes for energy efficiency. Furthermore, diameter conditions fluid velocity: a small diameter forces the fluid to accelerate to maintain the same flow rate, increasing both kinetic energy and turbulence, and consequently, the wear of system materials."
+      },
+      "ρ": {
+        "title": "Density (ρ)",
+        "description": "Density is the measure of the amount of mass contained in a given volume of fluid. It is the fundamental property that defines the system's inertia: a denser fluid requires more force to be accelerated and possesses more kinetic energy at the same velocity. In the Bernoulli equation, density acts as the bridge between mass and pressure forces. In incompressible fluids like water, it is assumed constant to simplify calculations, but in applications involving large changes in temperature or pressure, its variation must be considered to avoid invalidating the results. Its relationship with gravity gives rise to specific weight. By understanding density, engineers can predict how the fluid will behave under elevation changes and how much static load it will exert on containment structures or high-pressure pipe walls."
+      }
+    }
+  },
+  "factorFriccionCalc": {
+    "infoText": "The friction factor calculation is performed using iterative methods (up to 200 iterations) for equations like Colebrook-White, with a tolerance of 1e-20. For explicit equations, the calculation is direct. It may take a few seconds to converge depending on the selected equation.",
+    "title": "FRICTION FACTOR",
+    "calculator": "Calculator",
+    "saveToHistory": "Save to history",
+    "frictionFactor": "Friction factor (f)",
+    "equation": "Equation",
+    "roughnessSection": "RELATIVE ROUGHNESS",
+    "moodyDiagramHint": "Opening Moody diagram…",
+    "mode": {
+      "numeric": "Numeric",
+      "graphic": "Graphic"
+    },
+    "labels": {
+      "equation": "Equation",
+      "Re": "Reynolds number Re",
+      "epsilon": "Absolute roughness ε",
+      "diameter": "Diameter D",
+      "epsilonOverD": "Relative roughness ε/D"
+    },
+    "equations": {
+      "colebrook-white": "Colebrook-White (Iterative numeric)",
+      "haaland": "Haaland (Closed-form numeric)",
+      "swamee-jain": "Swamee-Jain (Closed-form numeric)",
+      "churchill": "Churchill (Closed-form numeric)",
+      "serghides": "Serghides (Closed-form numeric)",
+      "blasius": "Blasius (Closed-form numeric)",
+      "von-karman": "von Kármán (Iterative numeric)"
+    },
+    "toasts": {
+      "copied": "Data copied to clipboard",
+      "saved": "Calculation saved to history",
+      "saveError": "Error saving to history",
+      "nothingToSave": "No results to save",
+      "calculationError": "Calculation error. Check the entered data",
+      "validityWarning": "Range warning",
+      "swameeJainRange": "Swamee-Jain is valid for 10⁻⁶ ≤ ε/D ≤ 10⁻² and 5 000 ≤ Re ≤ 10⁸",
+      "blasiusRange": "Blasius is valid for smooth pipes with 4 000 ≤ Re ≤ 10⁵"
+    }
+  },
+  "moodyDiagramScreen": {
+    "subtitle": "Graphical method",
+    "title": "Moody Diagram",
+    "xAxisLabel": "Reynolds number (Re)",
+    "yAxisLabel": "Friction factor (f)",
+    "transitionLabel": "Trans.",
+    "selectedLegend": "selected",
+    "roughnessSliderLabel": "Relative roughness  ε/D",
+    "reynoldsSliderLabel": "Reynolds number  Re",
+    "laminarBadge": "Laminar  ·  f = 64/Re",
+    "turbulentBadge": "Turbulent  ·  Colebrook-White",
+    "transitionBadge": "Transition  ·  Uncertain region",
+    "frictionFactorLabel": "Friction factor",
+    "frictionFactorSubLabel": "f  (Darcy-Weisbach)",
+    "variablesTitle": "INTERACTIVE VARIABLE CONTROL",
+    "ffactorresult": "FRICTION FACTOR (F)"
+  },
+  "factorFriccion": {
+    "title": "Friction factor",
+    "desc": "Calculate the friction factor with different equations and an interactive Moody diagram."
+  },
+  "perdidasLocalizadasCalc": {
+    "title": "MINOR LOSSES",
+    "calculator": "Calculator",
+    "modec": "Mode",
+    "mode": {
+      "normal": "Normal",
+      "equivalent": "Eq. Length",
+      "advanced": "Advanced"
+    },
+    "globalParams": "Global Parameters",
+    "accessories": "FITTINGS",
+    "accessoryTitle": "Fitting",
+    "addAccessory": "Add fitting",
+    "tableTitle": "RESULTS TABLE",
+    "totalLoss": "Total hL (m)",
+    "fittingType": "Fitting type",
+    "selectFitting": "Select fitting...",
+    "labels": {
+      "K": "Loss coefficient K",
+      "V": "Velocity V",
+      "g": "Gravity g",
+      "D": "Diameter D",
+      "f": "Friction factor f"
+    },
+    "table": {
+      "name": "Fitting",
+      "total": "Total",
+      "totalLeq": "Total equivalent length"
+    },
+    "toasts": {
+      "copied": "Copied to clipboard",
+      "saved": "Saved to history",
+      "saveError": "Error saving",
+      "nothingToSave": "Perform a calculation first"
+    }
+  },
+  "perdidasLocalizadasFittings": {
+    "screenTitle": "Fittings",
+    "groups": {
+      "valves": "Valves",
+      "elbows": "Elbows and Bends",
+      "tees": "Tees",
+      "entriesExits": "Entries and Exits",
+      "contractions": "Contractions",
+      "expansions": "Expansions",
+      "meters": "Meters",
+      "otherFittings": "Other"
+    },
+    "items": {
+      "gateValveFullyOpen": "Gate (fully open)",
+      "gateValveThreeQuarterOpen": "Gate (¾ open)",
+      "gateValveHalfOpen": "Gate (½ open)",
+      "gateValveQuarterOpen": "Gate (¼ open)",
+      "gateValveFullyOpenScrewed": "Gate (fully open, screwed)",
+      "gateValveFullyOpenFlanged": "Gate (fully open, flanged)",
+      "globeValvePlugDiskFullyOpen": "Globe (plug disk, fully open)",
+      "globeValvePlugDiskThreeQuarterOpen": "Globe (plug disk, ¾ open)",
+      "globeValvePlugDiskHalfOpen": "Globe (plug disk, ½ open)",
+      "globeValvePlugDiskQuarterOpen": "Globe (plug disk, ¼ open)",
+      "angleValveFullyOpen": "Angle (fully open)",
+      "ballValveFullyOpen": "Ball (fully open)",
+      "ballValveClosed5deg": "Ball (closed 5°)",
+      "ballValveClosed10deg": "Ball (closed 10°)",
+      "ballValveClosed20deg": "Ball (closed 20°)",
+      "ballValveClosed40deg": "Ball (closed 40°)",
+      "ballValveClosed60deg": "Ball (closed 60°)",
+      "butterflyValveFullyOpen": "Butterfly (fully open)",
+      "butterflyValveClosed5deg": "Butterfly (closed 5°)",
+      "butterflyValveClosed10deg": "Butterfly (closed 10°)",
+      "butterflyValveClosed20deg": "Butterfly (closed 20°)",
+      "butterflyValveClosed40deg": "Butterfly (closed 40°)",
+      "butterflyValveClosed60deg": "Butterfly (closed 60°)",
+      "diaphragmValveFullyOpen": "Diaphragm (fully open)",
+      "diaphragmValveThreeQuarterOpen": "Diaphragm (¾ open)",
+      "diaphragmValveHalfOpen": "Diaphragm (½ open)",
+      "diaphragmValveQuarterOpen": "Diaphragm (¼ open)",
+      "swingCheckValveForwardFlow": "Swing check (forward flow)",
+      "liftCheckValve": "Lift check valve",
+      "waterMeterValve": "Water meter",
+      
+      "elbow90StandardThreaded": "90° standard (threaded)",
+      "elbow90StandardFlanged": "90° standard (flanged)",
+      "elbow90LongRadiusThreaded": "90° long radius (threaded)",
+      "elbow90LongRadiusFlanged": "90° long radius (flanged)",
+      "elbow90SmoothBendR1": "90° smooth bend (r/D=1)",
+      "elbow90SmoothBendR2": "90° smooth bend (r/D=2)",
+      "elbow90SmoothBendR4": "90° smooth bend (r/D=4)",
+      "elbow90Mitered90deg": "90° mitered (θ=90°)",
+      "elbow90Mitered60deg": "90° mitered (θ=60°)",
+      "elbow90Mitered45deg": "90° mitered (θ=45°)",
+      "elbow90Mitered30deg": "90° mitered (θ=30°)",
+      "elbow90Mitered15deg": "90° mitered (θ=15°)",
+      "elbow45StandardThreaded": "45° standard (threaded)",
+      "elbow45StandardFlanged": "45° standard (flanged)",
+      "elbow45Smooth": "45° smooth bend",
+      "returnBend180Threaded": "Return bend 180° (threaded)",
+      "returnBend180Flanged": "Return bend 180° (flanged)",
+      "ubend180": "U 180°",
+      
+      "teeFlangedDividingLineFlow": "Line flow (flanged)",
+      "teeThreadedDividingLineFlow": "Line flow (threaded)",
+      "teeFlangedDividingBranchFlow": "Branch flow (flanged)",
+      "teeThreadedDividingBranchFlow": "Branch flow (threaded)",
+      "teeStraightWay": "Straight-through",
+      "teeBranch": "Branch",
+      "teeCounterCurrent": "Counter-current",
+      "teeLineFlow": "Line flow",
+      "teeBranchFlow": "Branch flow",
+      "crossLineFlow": "Cross - line flow",
+      "crossBranchFlow": "Cross - branch flow",
+      "wye45LineFlow": "Wye 45° - line flow",
+      "wye45BranchFlow": "Wye 45° - branch flow",
+      
+      "entranceSharpEdged": "Sharp-edged",
+      "entranceProjecting": "Projecting",
+      "entranceRounded": "Rounded",
+      "entranceBellmouth": "Bellmouth",
+      "exitDischargeToTank": "Discharge to tank",
+      "exitRoundedAgainstBaffle": "Rounded against baffle",
+      
+      "suddenContractionD2D1_080": "Sudden (D₂/D₁=0.80)",
+      "suddenContractionD2D1_050": "Sudden (D₂/D₁=0.50)",
+      "suddenContractionD2D1_020": "Sudden (D₂/D₁=0.20)",
+      "conicalContractionD2D1_080": "Conical (D₂/D₁=0.80)",
+      "conicalContractionD2D1_050": "Conical (D₂/D₁=0.50)",
+      "conicalContractionD2D1_020": "Conical (D₂/D₁=0.20)",
+      "suddenContractionGeneral": "Sudden (sharp inlet)",
+      
+      "suddenExpansionD2D1_080": "Sudden (D₂/D₁=0.80)",
+      "suddenExpansionD2D1_050": "Sudden (D₂/D₁=0.50)",
+      "suddenExpansionD2D1_020": "Sudden (D₂/D₁=0.20)",
+      "conicalExpansionD2D1_080": "Conical (D₂/D₁=0.80)",
+      "conicalExpansionD2D1_050": "Conical (D₂/D₁=0.50)",
+      "conicalExpansionD2D1_020": "Conical (D₂/D₁=0.20)",
+      
+      "waterMeter": "Water",
+      "orificeMeterSharpEdged": "Orifice (sharp-edged)",
+      "venturiMeter": "Venturi",
+      
+      "couplingUnionThreaded": "Coupling/Union (threaded)",
+      "reducerEnlargerSudden": "Reducer/Enlarger sudden",
+      "radiator": "Radiator",
+      "boiler": "Boiler",
+      "abruptVelocityChange": "Abrupt velocity change",
+      "crossover": "Crossover",
+      "screenPerforatedPlateRounded": "Screen/Perforated plate",
+      "ybranchSymmetrical": "Y-branch symmetrical"
+    }
+  },
+  "perdidasLocalizadas": {
+    "title": "Minor Losses",
+    "desc": "Calculate minor losses in systems using fitting coefficients."
+  },
+  "diseñoCalc": {
+    "title": "SINGLE PIPE VERIFICATION",
+    "calculator": "Calculator",
+    "paramsSection": "DESIGN PARAMETERS",
+    "energySection": "ENERGY CONDITIONS",
+    "resultLabel": "Q",
+    "labels": {
+      "L": "Length",
+      "D": "Diameter",
+      "ks": "Roughness",
+      "nu": "Kinematic viscosity",
+      "Km": "Minor losses",
+      "z1": "z1 (upstream)",
+      "z2": "z2 (downstream)",
+      "g": "g (gravity)"
+    },
+    "table": {
+      "title": "ITERATION TABLE",
+      "header": {
+        "iter": "Iter",
+        "lambda": "λ",
+        "hf": "hf [m]",
+        "v": "V [m/s]",
+        "q": "Q [m³/s]",
+        "re": "Re [-]",
+        "regimen": "Regime"
+      },
+      "viewFull": "View"
+    },
+    "toasts": {
+      "missingFields": "Missing required fields",
+      "calcError": "Calculation error",
+      "copied": "Copied to clipboard",
+      "nothingToSave": "Nothing to save",
+      "saved": "Saved to history",
+      "saveError": "Error saving"
+    },
+    "infoText": "The flow rate calculation is performed using an iterative process (up to 100 iterations) that solves the energy and friction equations. It may take a few seconds to converge. Defined tolerances are: absolute for hf = 1e-8 and relative for Q = 1e-8."
+  },
+  "tuberiaSimple": {
+    "title": "Verification - Single pipe",
+    "desc": "Calculates the flow rate in pipes through head loss and flow regime iterations."
+  },
+  "tuberiaSimple2": {
+    "title": "Design - Single pipe",
+    "desc": "Iterative calculation of the optimal commercial diameter based on flow rate, losses, and energy."
+  },
+  "diseñoCalc2": {
+    "calculator": "Calculator",
+    "title": "SINGLE PIPE DESIGN",
+    "paramsSection": "DESIGN PARAMETERS",
+    "energySection": "ENERGY CONDITIONS",
+    "resultLabel": "Design diameter",
+  
+    "labels": {
+      "L": "Length",
+      "Ks": "Absolute roughness",
+      "Qd": "Design flow rate",
+      "mu": "Kinematic viscosity",
+      "H": "Available head",
+      "Km": "Minor losses",
+      "g": "Gravity"
+    },
+  
+    "table": {
+      "title": "ITERATION TABLE",
+      "viewFull": "View",
+      "si": "YES",
+      "no": "NO",
+      "header": {
+        "iter": "Iter",
+        "H": "H [m]",
+        "hf": "hf [m]",
+        "D_in": "D [in]",
+        "D_mm": "D [mm]",
+        "V": "V [m/s]",
+        "Qc": "Q [m³/s]",
+        "qgeq": "Qc≥Qd",
+        "hm": "hm [m]",
+        "hf_next": "hfi+1 [m]",
+        "Vp": "Vp [m/s]"
+      }
+    },
+  
+    "toasts": {
+      "missingFields": "Missing required fields",
+      "noSolution": "No suitable diameter found in the commercial list",
+      "calcError": "Calculation error",
+      "copied": "Copied to clipboard",
+      "saved": "Saved to history",
+      "saveError": "Error saving",
+      "nothingToSave": "Perform a calculation first"
+    },
+    "infoText": "Note that this iterative process may take a few seconds, as it evaluates multiple commercial diameters until convergence is achieved. These tolerance criteria are defined in the code as (head tolerance = 1e-5, velocity tolerance = 1e-3)."
+  },
+  "potenciaCalcHm": {
+    "title": "Power - Single pipe",
+    "desc": "Calculate total head and pumping power considering friction and minor losses."
+  },
+  "seriePotencia":{
+    "title": "Power - Series pipes",
+    "desc": "Calculates the power required by a pump in a series pipe system."
+  },
+  "potenciaCalc": {
+    "calculator": "Calculator",
+    "title": "SINGLE PIPE POWER",
+    "saveToHistory": "Save to history",
+    "resultLabel": "P",
+    "includePresiones": "Include pressures at points",
+    "infoText": "Complete all parameters and press Calculate to get results. The friction factor is solved using the Newton-Raphson method applied to the implicit Colebrook-White equation, with a convergence tolerance of 1e-20, so please note that it may take time to converge.",
+    "resultsTitle": "RESULTS",
+
+    "sections": {
+      "pipe": "PIPE PARAMETERS",
+      "fluid": "FLUID AND SYSTEM",
+      "heights": "ELEVATIONS",
+      "pressures": "PRESSURES"
+    },
+
+    "labels": {
+      "D": "Internal diameter D",
+      "Q": "Volumetric flow rate Q",
+      "ks": "Equivalent roughness ks",
+      "nu": "Kinematic viscosity ν",
+      "L": "Total system length L",
+      "km": "Minor loss coefficient km",
+      "gamma": "Fluid specific weight γ",
+      "eta": "Pump efficiency η (0 – 1)",
+      "z1": "Lower water surface elevation z₁",
+      "z2": "Upper water surface elevation z₂",
+      "p1": "Pressure at lower point p₁",
+      "p2": "Pressure at upper point p₂"
+    },
+
+    "table": {
+      "parameter": "Parameter",
+      "value": "Value"
+    },
+
+    "results": {
+      "A": "Cross-sectional area A",
+      "V": "Average velocity V",
+      "Re": "Reynolds number Re",
+      "regimen": "Flow regime",
+      "f": "Friction factor f",
+      "hf": "Major loss (Darcy) hf",
+      "hm": "Minor loss hm",
+      "deltaZ": "Elevation difference ΔZ",
+      "deltaPGamma": "ΔP/γ = (p₂ − p₁) / γ",
+      "Ht": "Total head Ht",
+      "Ph": "Hydraulic power Ph",
+      "P": "Pump power P"
+    },
+
+    "regimen": {
+      "laminar": "LAMINAR",
+      "transicion": "TRANSITION",
+      "turbulento": "TURBULENT"
+    },
+
+    "toasts": {
+      "missingFields": "Complete all required fields.",
+      "invalidValues": "Verify that the values are physically valid.",
+      "copied": "Results copied to clipboard.",
+      "nothingToCopy": "No results to copy.",
+      "saved": "Calculation saved to history.",
+      "nothingToSave": "No results to save.",
+      "saveError": "Error saving. Try again."
+    }
+  },
+  "compDiseñoSerie": {
+    "titlecard": "Verification - Series pipes",
+    "desccard": "Calculates the flow rate in series pipes through head loss and flow regime iterations.",
+    "infoText": "Note that this iterative process may take a few seconds depending on the number of sections. The algorithm proportionally adjusts friction losses in each iteration until the sum of total losses converges with the available head (ΔH = H1 − H2). Convergence parameters are defined in the code as tolerance = 1e-6 m and maximum of 200 iterations.",
+    "calculator": "Calculator",
+    "title": "SERIES PIPES VERIFICATION",
+    "resultLabel": "Q inlet (m³/s)",
+    "globalParams": "Global parameters",
+    "convergenceParams": "Convergence parameters",
+    "tramosSection": "Sections",
+    "tramoTitle": "Section",
+    "converged": "Converged in",
+    "iterations": "iterations",
+    "notConverged": "Did not converge",
+    "labels": {
+      "nu": "Kinematic viscosity ν",
+      "H1": "Upstream piezometric head H1",
+      "H2": "Downstream piezometric head H2",
+      "TOL": "Tolerance [m]",
+      "MAX_ITER": "Max. iterations",
+      "D": "Diameter D",
+      "L": "Length L",
+      "Km": "Minor loss coeff. Km",
+      "ks": "Absolute roughness ks",
+      "q_lat": "Lateral withdrawal q_lat",
+      "Q_entrada": "Q inlet (section 1)"
+    },
+    "table": {
+      "summaryTitle": "Final summary",
+      "iterTitle": "Iteration table",
+      "viewFull": "View",
+      "tramo": "Section",
+      "D": "D [m]",
+      "L": "L [m]",
+      "Q": "Q [m³/s]",
+      "V": "V [m/s]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [m]",
+      "hm": "hm [m]",
+      "htotal": "h_tot [m]",
+      "qlat": "q_lat [m³/s]",
+      "total": "Σ",
+      "iter": "Iter",
+      "Hcalc": "H_calc [m]",
+      "error": "Error [m]"
+    },
+    "balance": {
+      "entrada": "Q inlet (section 1)",
+      "extraido": "Q withdrawn (Σ q_lat)",
+      "salida": "Q outlet (node B)"
+    },
+    "toasts": {
+      "missingFields": "Missing required fields",
+      "notConverged": "Convergence not achieved",
+      "calcError": "Calculation error",
+      "nothingToSave": "Nothing to save",
+      "saved": "Saved to history",
+      "saveError": "Error saving",
+      "copied": "Copied to clipboard"
+    }
+  },
+  "compParaleloCalc": {
+    "calculator": "Calculator",
+    "title": "PARALLEL PIPES VERIFICATION",
+    "resultLabel": "Q total [m³/s]",
+    "globalParams": "Global parameters",
+    "ramalesSection": "Branches",
+    "ramalTitle": "Branch",
+    "labels": {
+      "nu": "Kinematic viscosity ν",
+      "H1": "Upstream piezometric head H1",
+      "H2": "Downstream piezometric head H2",
+      "D": "Diameter D",
+      "L": "Length L",
+      "Km": "Minor loss coeff. Km",
+      "ks": "Absolute roughness ks",
+      "Q_total": "Q total (system)"
+    },
+    "table": {
+      "summaryTitle": "Final summary",
+      "iterTitle": "Iteration table",
+      "viewFull": "View",
+      "ramal": "Branch",
+      "D": "D [m]",
+      "L": "L [m]",
+      "Q": "Q [m³/s]",
+      "V": "V [m/s]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [m]",
+      "hm": "hm [m]",
+      "Hramal": "H [m]",
+      "total": "Σ",
+      "iter": "Iter",
+      "Qtotal": "Q_tot [m³/s]"
+    },
+    "balance": {
+      "Qtotal": "Q total (system)"
+    },
+    "toasts": {
+      "missingFields": "Missing required fields",
+      "notConverged": "Convergence not achieved",
+      "calcError": "Calculation error",
+      "nothingToSave": "Nothing to save",
+      "saved": "Saved to history",
+      "saveError": "Error saving",
+      "copied": "Copied to clipboard"
+    },
+    "infoText": "Enter the global parameters and data for each branch, then press Calculate. The algorithm solves each branch independently using the secant method, finding the flow rate that produces a head loss equal to ΔH = H1 − H2. The total flow rate is the sum of the individual flow rates. Convergence parameters defined in the code: tolerance = 1e-8 m, maximum 300 iterations."
+  },
+  "compDiseñoParalelo": {
+    "titlecard": "Verification - Parallel pipes",
+    "desccard": "Calculates the flow rate in parallel pipes through head loss and flow regime iterations."
+  },
+  "seriePotenciaCalc": {
+    "title": "SERIES PIPES POWER",
+    "calculator": "Calculator",
+    "globalParams": "Global parameters",
+    "tramosSection": "Sections",
+    "tramoTitle": "Section",
+    "resultLabel": "Required power [kW]",
+    "infoText": "Enter the global parameters and data for each section to calculate the required head and pump power in a series pipe system.",
+    "labels": {
+      "eficiencia": "Efficiency η [%]",
+      "densidad": "Density ρ",
+      "viscosidad": "Dynamic viscosity μ",
+      "cabeza": "Total head H",
+      "D": "Diameter D",
+      "L": "Length L",
+      "ks": "Absolute roughness ks",
+      "Km": "Minor loss coeff. Km",
+      "Q": "Flow rate Q"
+    },
+    "balance": {
+      "Qentrada": "Inlet flow rate Q:",
+      "Htotal": "Required head H_total:",
+      "P": "Required power P:"
+    },
+    "table": {
+      "summaryTitle": "Final summary",
+      "viewFull": "View full",
+      "tramo": "Section",
+      "D": "D [m]",
+      "L": "L [m]",
+      "Q": "Q [m³/s]",
+      "V": "V [m/s]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [m]",
+      "hm": "hm [m]",
+      "htotal": "h_tot [m]",
+      "total": "Σ"
+    },
+    "toasts": {
+      "missingFields": "Missing required fields or they contain invalid values",
+      "calcError": "Calculation error",
+      "copied": "Copied to clipboard",
+      "saved": "Saved to history",
+      "saveError": "Error saving",
+      "nothingToSave": "Perform a calculation first"
+    }
+  },
+  "paraleloPotencia": {
+    "title": "Power - Parallel pipes",
+    "desc": "Calculates the required power in parallel pipe systems with Darcy-Weisbach."
+  },
+  "paraleloPotenciaCalc": {
+    "title": "PARALLEL PIPES POWER",
+    "calculator": "Calculator",
+    "globalParams": "Global parameters",
+    "tramosSection": "Pipes",
+    "tramoTitle": "Pipe",
+    "resultLabel": "Required power [kW]",
+    "infoText": "Enter the global parameters and data for each pipe to calculate the flow distribution and power in a parallel pipe system.",
+    "labels": {
+      "H_presion": "Total head H",
+      "rho": "Density ρ",
+      "nu": "Kinematic viscosity ν",
+      "Q_total": "Total flow rate Q",
+      "D": "Diameter D",
+      "L": "Length L",
+      "ks": "Absolute roughness ks",
+      "Km": "Minor loss coeff. Km"
+    },
+    "balance": {
+      "Hmetros": "Hydraulic head H:",
+      "Qtotal": "Total flow rate Q:",
+      "P": "Required power P:",
+      "iteraciones": "Convergence in iterations:"
+    },
+    "table": {
+      "summaryTitle": "Summary per pipe",
+      "viewFull": "View full",
+      "tramo": "Pipe",
+      "D": "D [m]",
+      "L": "L [m]",
+      "Q": "Q [m³/s]",
+      "V": "V [m/s]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [m]",
+      "total": "Σ"
+    },
+    "toasts": {
+      "missingFields": "Missing required fields or they contain invalid values",
+      "calcError": "Calculation error",
+      "copied": "Copied to clipboard",
+      "saved": "Saved to history",
+      "saveError": "Error saving",
+      "nothingToSave": "Perform a calculation first"
+    }
+  },
+  "orbit": {
+    "title": "ORBIT",
+    "subtitle": "Hydraulic simulator"
+  },
+  "axis": {
+    "field": {
+      "nodeType": "Element type",
+      "id": "ID",
+      "x": "X",
+      "y": "Y",
+      "ht": "Ht",
+      "elevation": "Elevation",
+      "demanda": "Base Demand",
+      "nivelIni": "Initial Level",
+      "diametro": "Diameter",
+      "volumen": "Volume",
+      "desde": "From",
+      "hasta": "To",
+      "longitud": "Length (m)",
+      "rugosidad": "Roughness"
+    },
+    "nodeType": {
+      "nodo": "Node",
+      "tanque": "Tank",
+      "reservorio": "Reservoir"
+    },
+    "pipe": "Pipe",
+    "tab": {
+      "elementos": "Elements",
+      "conexiones": "Connections"
+    },
+    "section": {
+      "elementos": "Network elements",
+      "tuberias": "Pipes",
+      "nodos": "Nodes",
+      "resultados": "Results"
+    },
+    "modoNodo": {
+      "presion": "Pressure (m)",
+      "cabeza": "Head (m)",
+      "ninguno": "None"
+    },
+    "modoTub": {
+      "caudal": "Flow (l/s)",
+      "velocidad": "Velocity (m/s)",
+      "friccion": "Friction (f)",
+      "ninguno": "None"
+    },
+    "table": {
+      "id": "ID",
+      "hm": "H (m)",
+      "zm": "z (m)",
+      "pm": "P (m)",
+      "desde": "From",
+      "hasta": "To",
+      "qls": "Q (l/s)",
+      "vms": "V (m/s)",
+      "f": "f"
+    },
+    "action": {
+      "verMas": "View more"
+    },
+    "options": {
+      "selectOption": "Select an option",
+      "selectNode": "Select node",
+      "title": {
+        "length": "Length",
+        "flow": "Flow",
+        "volume": "Volume",
+        "modoNodo": "Show on nodes",
+        "modoTuberia": "Show on pipes"
+      }
     }
   }
 }

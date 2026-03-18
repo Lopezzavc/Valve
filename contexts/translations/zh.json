@@ -1,430 +1,1497 @@
 {
   "infoScreen": {
-    "creadoPor": "creadoPor.NotTranslated"
+    "creadoPor": "创建者"
   },
   "settings": {
-    "title": "title.NotTranslated",
-    "language": "language.NotTranslated",
-    "theme": "theme.NotTranslated",
-    "font": "font.NotTranslated",
-    "sep": "sep.NotTranslated",
-    "sepInfo": "sepInfo.NotTranslated",
-    "pre": "pre.NotTranslated",
-    "preInfo1": "preInfo1.NotTranslated",
-    "preInfo2": "preInfo2.NotTranslated",
-    "preInfo3": "preInfo3.NotTranslated",
-    "preInfo4": "preInfo4.NotTranslated",
-    "themeSystem": "themeSystem.NotTranslated",
-    "themeLight": "themeLight.NotTranslated",
-    "themeDark": "themeDark.NotTranslated",
-    "langSpanish": "langSpanish.NotTranslated",
-    "langEnglish": "langEnglish.NotTranslated",
-    "langFrench": "langFrench.NotTranslated",
-    "langGerman": "langGerman.NotTranslated",
-    "langChinese": "langChinese.NotTranslated",
-    "langJapanese": "langJapanese.NotTranslated",
-    "fontVerySmall": "fontVerySmall.NotTranslated",
-    "fontSmall": "fontSmall.NotTranslated",
-    "fontNormal": "fontNormal.NotTranslated",
-    "fontLarge": "fontLarge.NotTranslated",
-    "fontVeryLarge": "fontVeryLarge.NotTranslated",
-    "sepDot": "sepDot.NotTranslated",
-    "sepComma": "sepComma.NotTranslated",
-    "preNormal": "preNormal.NotTranslated",
-    "preFix": "preFix.NotTranslated",
-    "preScientific": "preScientific.NotTranslated",
-    "preEngineering": "preEngineering.NotTranslated",
+    "title": "设置",
+    "language": "语言",
+    "theme": "主题",
+    "font": "字体大小",
+    "sep": "小数点分隔符",
+    "sepInfo": "设置数字显示中使用的小数点分隔符。这不会影响导出文件或复制到剪贴板的结果中使用的小数点分隔符。",
+    "pre": "小数精度",
+    "preInfo1": "常规：最多显示10位小数，并去除末尾不必要的零。",
+    "preInfo2": "固定：始终显示相同数量的固定小数位，根据设置而定。",
+    "preInfo3": "科学计数法：使用10的幂次方表示数字。",
+    "preInfo4": "工程计数法：类似于科学计数法，但指数始终是3的倍数，便于在技术背景下阅读。",
+    "themeSystem": "跟随系统",
+    "themeLight": "浅色",
+    "themeDark": "深色",
+    "langSpanish": "西班牙语",
+    "langEnglish": "英语",
+    "langFrench": "法语",
+    "langGerman": "德语",
+    "langChinese": "中文",
+    "langJapanese": "日语",
+    "fontVerySmall": "极小",
+    "fontSmall": "小",
+    "fontNormal": "标准",
+    "fontLarge": "大",
+    "fontVeryLarge": "极大",
+    "sepDot": "点",
+    "sepComma": "逗号",
+    "preNormal": "常规",
+    "preFix": "固定",
+    "preScientific": "科学计数法",
+    "preEngineering": "工程计数法",
     "resetAlert": {
-      "title": "title.NotTranslated",
-      "message": "message.NotTranslated",
-      "confirm": "confirm.NotTranslated"
+      "title": "重置设置",
+      "message": "您确定要将所有设置重置为默认值吗？",
+      "confirm": "重置"
+    },
+    "initialScreen": {
+      "title": "启动屏幕",
+      "description": "选择打开应用程序时显示的屏幕",
+      "home": "主屏幕",
+      "fav": "收藏夹"
     }
   },
   "search": {
-    "title": "title.NotTranslated",
-    "title2": "title2.NotTranslated",
-    "placeholder": "placeholder.NotTranslated",
-    "emptyPrefix": "emptyPrefix.NotTranslated",
+    "title": "计算器",
+    "title2": "搜索",
+    "placeholder": "搜索...",
+    "emptyPrefix": "未找到适用于",
     "sort": {
-      "toastTitle": "toastTitle.NotTranslated",
-      "az": "az.NotTranslated",
-      "za": "za.NotTranslated",
-      "reset": "reset.NotTranslated"
+      "toastTitle": "已应用排序",
+      "az": "字母顺序 A-Z",
+      "za": "字母顺序 Z-A",
+      "reset": "已恢复原始顺序"
     }
   },
   "profile": {
-    "title": "title.NotTranslated"
+    "title": "个人资料"
   },
   "profileScreen": {
-    "oops": "oops.NotTranslated",
-    "desc": "desc.NotTranslated"
+    "oops": "哎呀...",
+    "desc": "这个阀门还没打开，但我们很快会打开的。"
   },
   "common": {
-    "calculate": "calculate.NotTranslated",
-    "copy": "copy.NotTranslated",
-    "clear": "clear.NotTranslated",
-    "history": "history.NotTranslated",
-    "success": "success.NotTranslated",
-    "error": "error.NotTranslated",
-    "cancel": "cancel.NotTranslated",
-    "inputs": "inputs.NotTranslated"
+    "calculate": "计算",
+    "copy": "复制",
+    "clear": "清除",
+    "history": "历史记录",
+    "success": "成功",
+    "error": "错误",
+    "cancel": "取消",
+    "inputs": "输入"
   },
   "continuidadCalc": {
-    "calculator": "calculator.NotTranslated",
-    "title": "title.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "flow": "flow.NotTranslated",
-    "section": "section.NotTranslated",
-    "section1": "section1.NotTranslated",
-    "section2": "section2.NotTranslated",
-    "fluidProps": "fluidProps.NotTranslated",
-    "fill": "fill.NotTranslated",
+    "infoText": "输入4个参数（A₁, v₁, A₂, v₂）中的3个来计算流量和未知变量。",
+    "calculator": "计算器",
+    "title": "连续性方程",
+    "titlehistory": "连续性方程",
+    "saveToHistory": "保存到历史记录",
+    "flow": "流量",
+    "section": "截面",
+    "section1": "截面 1",
+    "section2": "截面 2",
+    "fluidProps": "流体属性",
+    "fill": "充满度",
     "labels": {
-      "sectionType": "sectionType.NotTranslated",
-      "fillType": "fillType.NotTranslated",
-      "diameter": "diameter.NotTranslated",
-      "side": "side.NotTranslated",
-      "width": "width.NotTranslated",
-      "height": "height.NotTranslated",
-      "velocity": "velocity.NotTranslated",
-      "fillHeight": "fillHeight.NotTranslated",
-      "A1": "A1.NotTranslated",
-      "v1": "v1.NotTranslated",
-      "A2": "A2.NotTranslated",
-      "v2": "v2.NotTranslated",
-      "mode": "mode.NotTranslated"
+      "sectionType": "截面类型",
+      "fillType": "充满度",
+      "diameter": "直径",
+      "side": "边长",
+      "width": "宽度",
+      "height": "高度",
+      "velocity": "流速",
+      "fillHeight": "充满高度",
+      "A1": "截面面积 (A₁)",
+      "v1": "截面流速 (v₁)",
+      "A2": "截面面积 (A₂)",
+      "v2": "截面流速 (v₂)",
+      "mode": "模式"
     },
     "mode": {
-      "flow": "flow.NotTranslated",
-      "continuity": "continuity.NotTranslated"
+      "flow": "流量",
+      "continuity": "连续性"
     },
     "options": {
       "sectionType": {
-        "circular": "circular.NotTranslated",
-        "square": "square.NotTranslated",
-        "rectangular": "rectangular.NotTranslated"
+        "circular": "圆形",
+        "square": "方形",
+        "rectangular": "矩形"
       },
       "fillType": {
-        "total": "total.NotTranslated",
-        "partial": "partial.NotTranslated"
+        "total": "满流",
+        "partial": "部分充满"
       }
     },
     "toasts": {
-      "noFlowToCopy": "noFlowToCopy.NotTranslated",
-      "noContinuityToCopy": "noContinuityToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "noFlowToCopy": "没有计算出的流量可复制。",
+      "noContinuityToCopy": "没有计算出的流量或连续性值可复制。",
+      "copied": "计算结果已复制到剪贴板。",
+      "nothingToSave": "没有结果可保存。",
+      "saved": "计算结果已保存到历史记录。",
+      "saveError": "无法保存计算结果。"
     }
   },
   "optionsScreen": {
     "titles": {
-      "length": "length.NotTranslated",
-      "area": "area.NotTranslated",
-      "pressure": "pressure.NotTranslated"
+      "flow": "流量",
+      "length": "长度",
+      "area": "面积",
+      "pressure": "压力",
+      "velocity": "速度",
+      "acceleration": "重力加速度",
+      "viscosity": "运动粘度",
+      "gravity": "重力加速度",
+      "specificWeight": "重度"
     },
     "subtitles": {
-      "selection": "selection.NotTranslated",
-      "units": "units.NotTranslated",
-      "generic": "generic.NotTranslated"
+      "selection": "选择",
+      "units": "单位",
+      "generic": "选项"
     }
   },
   "history": {
-    "title": "title.NotTranslated",
-    "savedOn": "savedOn.NotTranslated",
-    "empty": "empty.NotTranslated",
+    "title": "计算历史记录",
+    "savedOn": "保存于",
+    "empty": "历史记录为空",
     "deleteAll": {
-      "title": "title.NotTranslated",
-      "message": "message.NotTranslated",
-      "confirm": "confirm.NotTranslated",
-      "cancel": "cancel.NotTranslated",
-      "successTitle": "successTitle.NotTranslated",
-      "successMsg": "successMsg.NotTranslated",
-      "noHistory": "noHistory.NotTranslated"
+      "title": "删除历史记录",
+      "message": "是否要删除所有计算历史记录？",
+      "confirm": "确认",
+      "cancel": "取消",
+      "successTitle": "历史记录已删除",
+      "successMsg": "历史记录已成功删除",
+      "noHistory": "没有可删除的计算记录"
     },
     "delete": {
-      "successTitle": "successTitle.NotTranslated",
-      "successMsg": "successMsg.NotTranslated"
+      "successTitle": "计算记录已删除",
+      "successMsg": "该计算记录已从历史记录中删除"
     },
     "export": {
-      "success": "success.NotTranslated",
-      "error": "error.NotTranslated",
-      "noHistory": "noHistory.NotTranslated"
-    }
+      "success": "历史记录已导出为 Excel",
+      "error": "无法导出历史记录",
+      "noHistory": "没有可导出的历史记录"
+  }
   },
   "theoryContinuity": {
-    "subtitle": "subtitle.NotTranslated",
+    "subtitle": "什么是连续性方程？",
     "titles": {
-      "mainTitle": "mainTitle.NotTranslated",
-      "title1": "title1.NotTranslated",
-      "title2": "title2.NotTranslated",
-      "title3": "title3.NotTranslated",
-      "title4": "title4.NotTranslated",
-      "references": "references.NotTranslated"
+      "mainTitle": "连续性方程",
+      "title1": "方程的积分形式与微分形式",
+      "title2": "不可压缩流动（在水力学中的应用）",
+      "title3": "可压缩流动与质量连续性",
+      "title4": "在水力计算和土木工程中的重要性",
+      "references": "参考文献"
     },
     "paragraphs": {
-      "paragraph1": "paragraph1.NotTranslated",
-      "paragraph2": "paragraph2.NotTranslated",
-      "paragraph3": "paragraph3.NotTranslated",
-      "paragraph4": "paragraph4.NotTranslated",
-      "paragraph5": "paragraph5.NotTranslated",
-      "paragraph6": "paragraph6.NotTranslated",
-      "paragraph7": "paragraph7.NotTranslated",
-      "paragraph8": "paragraph8.NotTranslated",
-      "paragraph9": "paragraph9.NotTranslated",
-      "paragraph10": "paragraph10.NotTranslated",
-      "paragraph11": "paragraph11.NotTranslated",
-      "paragraph12": "paragraph12.NotTranslated",
-      "paragraph13": "paragraph13.NotTranslated"
+      "paragraph1": "连续性方程本质上是质量守恒定律应用于运动流体的数学表达。简而言之，该定律指出在一个封闭系统内，质量既不能产生也不会消失。对于流动的流体，这意味着（在没有源或汇的情况下）在任意给定的时间间隔内，进入某一区域的流体质量必须等于离开该区域的流体质量。如果我们考虑一个固定在空间中的控制体积（一个由封闭曲面界定的假想流体部分），则该体积内的总质量仅在有质量流过其边界时才会发生变化。",
+      "paragraph2": "在数学上，对一个具有体积V和表面积S的控制体积进行的质量平衡可用连续性方程的积分形式表示：",
+      "paragraph3": "其中ρ(x,t)是流体的密度，v(x,t)是体积内每一点的流体速度矢量。这个积分方程表明，体积内质量的累积率（第一项）加上通过表面的质量净通量（第二项）为零。换句话说，体积内任何质量的增加都必须由流入的质量引起，任何减少都必须由流出的质量引起，从而保证了质量守恒。",
+      "paragraph4": "将散度定理应用于表面积分，上述方程可以重新表述为其微分形式（局部形式）：",
+      "paragraph5": "这个紧凑的表达式意味着在给定点，密度的局部变化率加上质量通量的散度（即每单位体积的质量净流出量）为零。这等价于说，在流体中的每一点，质量在空间和时间上都是连续守恒的。微分形式特别有用，因为它描述了流体内部逐点的行为，事实上，这是欧拉在其理想流体方程中提出的公式。值得注意的是，这个连续性方程是欧拉流体力学的三个基本方程之一（与动量守恒方程和能量方程并列——后者用于可压缩流动）。在拉格朗日形式（跟随运动的流体微团）下，相同的条件可以表示为：",
+      "paragraph6": "这强调了流体微团密度的任何变化都是由于周围流动的散度（膨胀或压缩）造成的。如果流体在运动过程中保持密度恒定，则最后一个方程立即得出∇ · v = 0，我们将在下面看到。",
+      "paragraph7": "积分形式考虑的是空间中一个固定的宏观体积，并规定该体积内的质量仅由通过其表面的流量决定。而微分形式则考虑一个无穷小的体积，并在流场中的每一点局部地建立质量守恒。如果对于任何可以想象的控制体积，积分方程都成立，那么满足该方程的唯一方法就是使被积函数在每个点上都为零，从而得出微分形式：",
+      "paragraph8": "在水力学的许多实际情况下，流体可以被认为是不可压缩的，这意味着其密度ρ保持恒定。当这种情况发生时，连续性方程简化为：",
+      "paragraph9": "对于不可压缩流体在密闭管道中的一维定常流动，我们得到以下关系：",
+      "paragraph10": "其中A是横截面积，v是该截面上的流体平均流速。",
+      "paragraph11": "当我们处理可压缩流动时，流体的密度ρ不能视为常数。在这种情况下，质量流量守恒由下式给出：",
+      "paragraph12": "这推广了不可压缩流体的情况，并在空气动力学、喷嘴设计、燃气轮机以及高速管道流动中至关重要。",
+      "paragraph13": "在土木工程中，连续性方程确保了流入某管段的流量等于流出该管段的流量，从而能够平衡配水管网、分析明渠水流以及计算水面线。在喷嘴、扩散器、水泵和水轮机等水力设备中，连续性方程保证了所处理的流体量是守恒的。即使在诸如水锤这样的瞬变流中，连续性方程仍然有效并且对于建模是必需的。"
     }
   },
-  "welcomeText": "welcomeText.NotTranslated",
+  "welcomeText": "精确、简洁，优化水力计算的理想工具",
   "favorites": {
-    "title": "title.NotTranslated",
-    "noFavorites": "noFavorites.NotTranslated",
-    "success": "success.NotTranslated",
-    "successDesc": "successDesc.NotTranslated",
-    "deleted": "deleted.NotTranslated",
-    "deletedDesc": "deletedDesc.NotTranslated"
+    "title": "收藏的计算器",
+    "noFavorites": "暂无收藏的计算器",
+    "success": "已收藏",
+    "successDesc": "该计算器已添加到收藏夹",
+    "deleted": "已移除",
+    "deletedDesc": "该计算器已从收藏夹中移除"
   },
   "calc": {
-    "cardTitle1": "cardTitle1.NotTranslated",
-    "cardDesc1": "cardDesc1.NotTranslated",
-    "cardTitle2": "cardTitle2.NotTranslated",
-    "cardDesc2": "cardDesc2.NotTranslated",
-    "cardTitle3": "cardTitle3.NotTranslated",
-    "cardDesc3": "cardDesc3.NotTranslated",
-    "cardTitle4": "cardTitle4.NotTranslated",
-    "cardDesc4": "cardDesc4.NotTranslated"
+    "cardTitle1": "连续性方程",
+    "cardDesc1": "计算流体通过截面时的流量守恒。",
+    "cardTitle2": "伯努利原理",
+    "cardDesc2": "平衡沿流线的压力、动能和势能。",
+    "cardTitle3": "雷诺数",
+    "cardDesc3": "指示流动状态（层流或湍流）。",
+    "cardTitle4": "摩擦系数 / Colebrook-White 公式",
+    "cardDesc4": "将管道中湍流状态与相对粗糙度联系起来。"
   },
   "home": {
-    "calculatorsTitle": "calculatorsTitle.NotTranslated",
-    "pressureDuctsTitle": "pressureDuctsTitle.NotTranslated"
+    "calculatorsTitle": "主菜单",
+    "pressureDuctsTitle": "计算器",
+    "marquee": "这是Beta版本，存在错误是正常的",
+    "progressInfo": {
+      "title": "进度指示",
+      "level1": "基础计算器，无额外功能",
+      "level2": "基础计算器 + 单位转换",
+      "level3": "基础计算器 + 单位转换 + 计算历史",
+      "level4": "基础计算器 + 单位转换 + 计算历史 + 理论内容",
+      "level5": "所有功能，已测试并验证"
+    }
   },
   "bernoulliCalc": {
-    "title": "title.NotTranslated",
-    "calculator": "calculator.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "energy": "energy.NotTranslated",
-    "totalEnergy": "totalEnergy.NotTranslated",
-    "fluidProperties": "fluidProperties.NotTranslated",
-    "position1": "position1.NotTranslated",
-    "position2": "position2.NotTranslated",
-    "flowSection": "flowSection.NotTranslated",
-    "flowParameters": "flowParameters.NotTranslated",
+    "title": "伯努利原理",
+    "calculator": "计算器",
+    "saveToHistory": "保存到历史记录",
+    "energy": "能量",
+    "totalEnergy": "总能量",
+    "fluidProperties": "流体属性",
+    "position1": "位置1参数",
+    "position2": "位置2参数",
+    "flowSection": "流量",
+    "flowParameters": "流量参数",
     "labels": {
-      "density": "density.NotTranslated",
-      "P1": "P1.NotTranslated",
-      "h1": "h1.NotTranslated",
-      "v1": "v1.NotTranslated",
-      "P2": "P2.NotTranslated",
-      "h2": "h2.NotTranslated",
-      "v2": "v2.NotTranslated",
-      "pressureChange": "pressureChange.NotTranslated",
-      "diameter1": "diameter1.NotTranslated",
-      "diameter2": "diameter2.NotTranslated",
-      "flowRate": "flowRate.NotTranslated"
+      "density": "密度",
+      "P1": "压力 P₁",
+      "h1": "高度 h₁",
+      "v1": "速度 v₁",
+      "P2": "压力 P₂",
+      "h2": "高度 h₂",
+      "v2": "速度 v₂",
+      "pressureChange": "压力变化",
+      "diameter1": "位置1直径",
+      "diameter2": "位置2直径",
+      "flowRate": "体积流量"
     },
     "toasts": {
-      "densityRequired": "densityRequired.NotTranslated",
-      "noResultsToCopy": "noResultsToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "densityRequired": "必须输入流体的密度",
+      "noResultsToCopy": "没有结果可复制",
+      "copied": "结果已复制到剪贴板",
+      "nothingToSave": "没有结果可保存",
+      "saved": "计算结果已保存到历史记录",
+      "saveError": "保存到历史记录时出错"
     }
   },
   "theoryBernoulli": {
-    "subtitle": "subtitle.NotTranslated",
+    "subtitle": "什么是伯努利原理？",
     "titles": {
-      "mainTitle": "mainTitle.NotTranslated",
-      "title1": "title1.NotTranslated",
-      "title2": "title2.NotTranslated",
-      "references": "references.NotTranslated"
+      "mainTitle": "伯努利原理",
+      "title1": "进阶考虑",
+      "title2": "在土木工程中的应用",
+      "references": "参考文献"
     },
     "paragraphs": {
-      "paragraph1": "paragraph1.NotTranslated",
-      "paragraph2": "paragraph2.NotTranslated",
-      "paragraph3": "paragraph3.NotTranslated",
-      "paragraph4": "paragraph4.NotTranslated",
-      "paragraph5": "paragraph5.NotTranslated",
-      "paragraph6": "paragraph6.NotTranslated",
-      "paragraph7": "paragraph7.NotTranslated",
-      "paragraph8": "paragraph8.NotTranslated",
-      "paragraph9": "paragraph9.NotTranslated",
-      "paragraph10": "paragraph10.NotTranslated",
-      "paragraph11": "paragraph11.NotTranslated",
-      "paragraph12": "paragraph12.NotTranslated",
-      "paragraph13": "paragraph13.NotTranslated",
-      "paragraph14": "paragraph14.NotTranslated",
-      "paragraph15": "paragraph15.NotTranslated",
-      "paragraph16": "paragraph16.NotTranslated",
-      "paragraph17": "paragraph17.NotTranslated",
-      "paragraph18": "paragraph18.NotTranslated"
+      "paragraph1": "伯努利原理指出，对于稳定、不可压缩、无粘性的流动，压力能、动能和势能（每单位体积）之和沿流线保持不变。实际应用中，这意味着流体速度的增加将伴随着静态压力的降低（反之亦然），使得总的机械能保持恒定。该原理源于能量守恒：压力和重力对流体微元所做的功等于其动能的变化。",
+      "paragraph2": "用方程表示，对于同一条流线上的两点，伯努利方程表达为：",
+      "paragraph3": "更一般的形式为：",
+      "paragraph4": "在这里，静压、速度、相对于参考面的高度、密度和重力结合在一起，使得动压的任何增加都必须由静压或势能的减少来补偿，以保持总和不变。",
+      "paragraph5": "能量项（水头）：伯努利方程中的每一项都可以理解为每单位重量流体的能量。压力水头对应于产生该压力的流体柱的高度。速度水头代表动能。位置水头代表重力势能。在工程实践中，这些项被称为压力水头、速度水头和位置水头。\n因此，伯努利方程确立了总水头是恒定的：",
+      "paragraph6": "换句话说，流体每单位重量的机械能沿着流线是守恒的。",
+      "paragraph7": "能量平衡：伯努利方程可以理解为流体中不同形式能量之间的平衡。如果一种形式的能量（如动能）增加，那么其他形式的能量（压力或势能）必须减少以保持总和不变。从数学上讲，伯努利方程是理想流体机械能守恒的表达式。",
+      "paragraph8": "在水平管道中，该方程简化并表明，如果某一点的流速高于另一点，那么该点的压力就会较低。相反的情况，在速度为零的静态流体中，该方程简化为经典的流体静力学关系，即压力随深度增加。",
+      "paragraph9": "水头损失和能量输入：在实际流动中存在摩擦和水泵。在实际水力学中，伯努利方程被扩展，以包括能量损失（水头损失）和添加的能量（水泵水头）。该方程的扩展形式为：",
+      "paragraph10": "在这个表达式中，水头损失代表因摩擦而耗散的能量，水泵水头代表添加给系统的能量。这种广义形式仍然表达了总能量守恒，因为损失转化为热量，而水泵的功增加了机械能。利用这个扩展版本，伯努利方程可以应用于复杂的串联或并联管道系统，始终考虑能量的增益和损失。",
+      "paragraph11": "适用条件：简单形式的伯努利方程假设流动是稳定的、不可压缩的、无粘性的，并且沿着一条流线。它还假设流体中没有轴功或热传递。在这些条件下，机械能是守恒的。在真实流体中，湍流和粘性会耗散能量，这些效应必须在扩展方程中作为水头损失包含进去。此外，伯努利方程适用于流线；除非流动是无旋的，否则不同的流线可能具有不同的总水头。",
+      "paragraph12": "可压缩流动与广义能量：对于高速或可压缩流动，必须考虑流体的内能或焓。在这些情况下，伯努利方程采用了一种形式，其中涉及的是比焓，而不是压力水头。例如，在稳定、绝热、无粘性的流动中，焓、动能和重力势能之和保持不变：",
+      "paragraph13": "这个推广形式源自应用于控制体积的热力学第一定律。然而，对于土木工程中的大多数水力流动，马赫数较低，不可压缩版本就足够了。",
+      "paragraph14": "流函数与势流：伯努利方程也可以从流体运动的欧拉方程或沿流线的动量方程推导出来。在势流理论中，该方程表示为：",
+      "paragraph15": "其中速度势𝜙代表流场。在稳定流动的情况下，这种形式简化为经典的伯努利方程。",
+      "paragraph16": "伯努利原理是许多土木工程和水利分析的基础，尽管在实践中会对其进行修改以包含损失。管道和配水管网的设计利用能量方程来计算压降和泵送需求。管网中的测压管水头线和总水头线是伯努利方程定义的水头的图形表示。",
+      "paragraph17": "对串联或并联管道系统的分析基于使各点之间的总水头相等，并累加每个管段的水头损失。用于测量流量的装置，如文丘里流量计、孔板流量计和皮托管，都基于这种关系：它们允许从压力差推断速度或流量。",
+      "paragraph18": "伯努利原理也应用于明渠水力学和带有虹吸管的泵送系统中，其中能量守恒支配着流动行为。在所有这些情况下，理论上的伯努利方程提供了工程师们用于确定管道、水泵和渠道尺寸的能量平衡。"
     }
   },
   "reynoldsCalc": {
-    "title": "title.NotTranslated",
-    "calculator": "calculator.NotTranslated",
-    "reynolds": "reynolds.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "reynoldsNumber": "reynoldsNumber.NotTranslated",
-    "flowParameters": "flowParameters.NotTranslated",
-    "fluidProperties": "fluidProperties.NotTranslated",
+    "infoText": "请注意，确定流动是层流 (Re < 2300)、过渡流 (2300 ≤ Re < 4000) 还是湍流 (Re ≥ 4000) 的范围可能因参考文献而异。",
+    "title": "雷诺数",
+    "titleHistory": "雷诺数",
+    "calculator": "计算器",
+    "reynolds": "雷诺数",
+    "saveToHistory": "保存到历史记录",
+    "reynoldsNumber": "雷诺数",
+    "flowParameters": "流动参数",
+    "fluidProperties": "流体属性",
     "labels": {
-      "velocity": "velocity.NotTranslated",
-      "dimension": "dimension.NotTranslated",
-      "density": "density.NotTranslated",
-      "dynamicViscosity": "dynamicViscosity.NotTranslated",
-      "kinematicViscosity": "kinematicViscosity.NotTranslated",
-      "presetFluids": "presetFluids.NotTranslated"
+      "velocity": "速度",
+      "dimension": "特征尺寸",
+      "density": "密度",
+      "dynamicViscosity": "动力粘度",
+      "kinematicViscosity": "运动粘度",
+      "presetFluids": "预设流体"
     },
     "toasts": {
-      "velocityDimensionRequired": "velocityDimensionRequired.NotTranslated",
-      "fluidPropsRequired": "fluidPropsRequired.NotTranslated",
-      "noResultsToCopy": "noResultsToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "velocityDimensionRequired": "需要速度和特征尺寸",
+      "fluidPropsRequired": "至少需要2个流体属性",
+      "noResultsToCopy": "没有结果可复制",
+      "copied": "结果已复制到剪贴板",
+      "nothingToSave": "没有结果可保存",
+      "saved": "计算结果已保存到历史记录",
+      "saveError": "保存到历史记录时出错"
     },
     "regime": {
-      "laminar": "laminar.NotTranslated",
-      "transitional": "transitional.NotTranslated",
-      "turbulent": "turbulent.NotTranslated"
+      "laminar": "层流",
+      "transitional": "过渡流",
+      "turbulent": "湍流"
     },
     "fluids": {
-      "custom": "custom.NotTranslated",
-      "water_0C": "water_0C.NotTranslated",
-      "water_4C": "water_4C.NotTranslated",
-      "water_5C": "water_5C.NotTranslated",
-      "water_10C": "water_10C.NotTranslated",
-      "water_15C": "water_15C.NotTranslated",
-      "water_20C": "water_20C.NotTranslated",
-      "water_25C": "water_25C.NotTranslated",
-      "water_30C": "water_30C.NotTranslated",
-      "water_35C": "water_35C.NotTranslated",
-      "water_40C": "water_40C.NotTranslated",
-      "water_50C": "water_50C.NotTranslated",
-      "water_60C": "water_60C.NotTranslated",
-      "water_70C": "water_70C.NotTranslated",
-      "water_80C": "water_80C.NotTranslated",
-      "water_90C": "water_90C.NotTranslated",
-      "air_0C": "air_0C.NotTranslated",
-      "air_20C": "air_20C.NotTranslated",
-      "acetone_20C": "acetone_20C.NotTranslated",
-      "ethanol_20C": "ethanol_20C.NotTranslated",
-      "glycerin_20C": "glycerin_20C.NotTranslated",
-      "mercury_20C": "mercury_20C.NotTranslated",
-      "sae10_20C": "sae10_20C.NotTranslated"
+      "custom": "自定义",
+      "water_0C": "水 (0 °C)",
+      "water_4C": "水 (4 °C)",
+      "water_5C": "水 (5 °C)",
+      "water_10C": "水 (10 °C)",
+      "water_15C": "水 (15 °C)",
+      "water_20C": "水 (20 °C)",
+      "water_25C": "水 (25 °C)",
+      "water_30C": "水 (30 °C)",
+      "water_35C": "水 (35 °C)",
+      "water_40C": "水 (40 °C)",
+      "water_50C": "水 (50 °C)",
+      "water_60C": "水 (60 °C)",
+      "water_70C": "水 (70 °C)",
+      "water_80C": "水 (80 °C)",
+      "water_90C": "水 (90 °C)",
+      "air_0C": "空气 (0 °C)",
+      "air_20C": "空气 (20 °C)",
+      "acetone_20C": "丙酮 (20 °C)",
+      "ethanol_20C": "乙醇 (20 °C)",
+      "glycerin_20C": "甘油 (20 °C)",
+      "mercury_20C": "汞 (20 °C)",
+      "sae10_20C": "SAE 10 油 (20 °C)"
     }
   },
   "colebrookCalc": {
-    "title": "title.NotTranslated",
-    "calculator": "calculator.NotTranslated",
-    "frictionFactor": "frictionFactor.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "pipeCharacteristics": "pipeCharacteristics.NotTranslated",
-    "fluidCharacteristics": "fluidCharacteristics.NotTranslated",
+    "title": "Colebrook 公式",
+    "calculator": "计算器",
+    "frictionFactor": "摩擦系数",
+    "saveToHistory": "保存到历史记录",
+    "pipeCharacteristics": "管道特性",
+    "fluidCharacteristics": "流体特性",
     "labels": {
-      "material": "material.NotTranslated",
-      "roughness": "roughness.NotTranslated",
-      "diameter": "diameter.NotTranslated",
-      "relativeRoughness": "relativeRoughness.NotTranslated",
-      "reynolds": "reynolds.NotTranslated",
-      "density": "density.NotTranslated",
-      "velocity": "velocity.NotTranslated",
-      "dynamicViscosity": "dynamicViscosity.NotTranslated",
-      "reynoldsCalculated": "reynoldsCalculated.NotTranslated"
+      "material": "材料",
+      "roughness": "绝对粗糙度 (ε)",
+      "diameter": "内径 (D)",
+      "relativeRoughness": "相对粗糙度 (ε/D)",
+      "reynolds": "雷诺数 (Re)",
+      "density": "密度 (ρ)",
+      "velocity": "速度 (v)",
+      "dynamicViscosity": "动力粘度 (μ)",
+      "reynoldsCalculated": "计算出的雷诺数"
     },
     "mode": {
-      "label": "label.NotTranslated",
-      "simple": "simple.NotTranslated",
-      "advanced": "advanced.NotTranslated"
+      "label": "模式",
+      "simple": "简单",
+      "advanced": "高级"
     },
     "toasts": {
-      "reynoldsRequired": "reynoldsRequired.NotTranslated",
-      "roughnessRequired": "roughnessRequired.NotTranslated",
-      "calculationError": "calculationError.NotTranslated",
-      "noResultsToCopy": "noResultsToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "reynoldsRequired": "需要雷诺数",
+      "roughnessRequired": "需要粗糙度数据",
+      "calculationError": "计算错误",
+      "noResultsToCopy": "没有结果可复制",
+      "copied": "结果已复制到剪贴板",
+      "nothingToSave": "没有结果可保存",
+      "saved": "计算结果已保存到历史记录",
+      "saveError": "保存到历史记录时出错"
     },
     "materials": {
-      "custom": "custom.NotTranslated",
-      "commercialSteel": "commercialSteel.NotTranslated",
-      "castIron": "castIron.NotTranslated",
-      "concrete": "concrete.NotTranslated",
-      "pvc": "pvc.NotTranslated",
-      "copper": "copper.NotTranslated",
-      "galvanizedSteel": "galvanizedSteel.NotTranslated"
+      "custom": "自定义",
+      "commercialSteel": "商用钢材",
+      "castIron": "铸铁",
+      "concrete": "混凝土",
+      "pvc": "PVC",
+      "copper": "铜",
+      "galvanizedSteel": "镀锌钢材"
     }
   },
   "mainMenu": {
-    "subtitleEssential": "subtitleEssential.NotTranslated",
-    "subtitle1": "subtitle1.NotTranslated"
+    "subtitleEssential": "基础",
+    "subtitle1": "流体力学",
+    "subtitle2": "管道流动（光滑/粗糙）与损失",
+    "subtitle3": "管道设计",
+    "subtitle4": "管道设计校核",
+    "subtitle5": "功率"
   },
   "theoryReynolds": {
-    "subtitle": "subtitle.NotTranslated",
+    "subtitle": "什么是雷诺数？",
     "titles": {
-      "mainTitle": "mainTitle.NotTranslated",
-      "references": "references.NotTranslated",
-      "title2": "title2.NotTranslated",
-      "title3": "title3.NotTranslated",
-      "title4": "title4.NotTranslated",
-      "title5": "title5.NotTranslated"
+      "mainTitle": "雷诺数",
+      "references": "参考文献",
+      "title2": "理论基础及在流体动力学方程中的起源",
+      "title3": "应用与实际重要性",
+      "title4": "数学扩展：广义雷诺数",
+      "title5": "历史与起源"
     },
     "paragraphs": {
-      "paragraph1": "paragraph1.NotTranslated",
-      "paragraph2": "paragraph2.NotTranslated",
-      "paragraph3": "paragraph3.NotTranslated",
-      "paragraph4": "paragraph4.NotTranslated",
-      "paragraph5": "paragraph5.NotTranslated",
-      "paragraph6": "paragraph6.NotTranslated",
-      "paragraph7": "paragraph7.NotTranslated",
-      "paragraph8": "paragraph8.NotTranslated",
-      "paragraph9": "paragraph9.NotTranslated",
-      "paragraph10": "paragraph10.NotTranslated",
-      "paragraph11": "paragraph11.NotTranslated",
-      "paragraph12": "paragraph12.NotTranslated",
-      "paragraph13": "paragraph13.NotTranslated"
+      "paragraph1": "雷诺数（Re）是流体力学中一个基本的无量纲数，用于表征管道内或浸没物体周围的流动状态。它代表了作用于运动流体上的惯性力与粘性力之比，是判断流动是层流、过渡流还是湍流的关键参数。\n在数学上，雷诺数表示为：",
+      "paragraph2": "或者用运动粘度等效表示为：",
+      "paragraph3": "在此表达式中，ρ代表流体的密度，单位为千克每立方米（kg/m³）。v表示平均流速，单位为米每秒（m/s）。D表示水力直径或系统的线性特征尺度，单位为米（m）。μ代表流体的动力粘度，单位为帕斯卡秒或牛顿秒每平方米（Pa·s 或 N·s/m²）。最后，ν是流体的运动粘度，定义为动力粘度与密度之比，即ν = μ / ρ，单位为平方米每秒（m²/s）。\n雷诺数不依赖于使用的单位，因为它是一个无量纲量。其数值可用于确定流动行为：当Re小于2000时，流动被认为是层流；当Re值在2000到4000之间时，流动处于过渡状态；而当Re大于4000时，流动是湍流。",
+      "paragraph4": "雷诺数源自描述牛顿流体运动（动量守恒）的纳维-斯托克斯方程：",
+      "paragraph5": "在此公式中，v代表流体的速度矢量，p对应压力，ρ表示密度，μ是动力粘度，g代表重力加速度矢量。\n为了得到雷诺数，我们引入特征变量对该方程进行无量纲化：",
+      "paragraph6": "将它们代入纳维-斯托克斯方程，得到无量纲形式：",
+      "paragraph7": "其中自然地出现了项：",
+      "paragraph8": "这个参数控制着惯性力（由加速度项表示）和粘性力（由粘度梯度项表示）之间的平衡。当雷诺数很大时，惯性力占主导地位，这有利于发展成湍流，其特点是流动混乱，流体内部混合强烈。相反，当雷诺数很小时，粘性力起主导作用，抑制了运动的扰动，使得流动保持有序、稳定，具有明确的轨迹，这是层流状态的典型特征。",
+      "paragraph9": "雷诺数在工程和应用的各个领域都扮演着重要角色。在液压系统设计中，它用于确定管道、渠道、阀门和水泵内部的流动状态，这对于确保这些系统的正确尺寸和功能至关重要。在空气动力学和流体动力学分析领域，雷诺数有助于在缩尺模型和实际系统之间建立动力相似性，这在风洞或试验水槽中进行测试，以研究绕物体或结构的流动行为时特别有用。\n在土木和环境工程中，该参数用于评估管道中的水头损失、计算合适的管道尺寸以及估算摩擦系数，通常借助穆迪图等工具。同样，在颗粒输送和沉积学研究中，雷诺数对于预测液体流中固体的沉积或悬浮过程必不可少，能够精确模拟自然现象和泥沙输送系统。\n在实践中，计算雷诺数是应用诸如达西-魏斯巴赫、柯尔布鲁克-怀特或海曾-威廉姆斯等经验方程之前的起点，因为所有这些方程都直接依赖于由这个无量纲数确定的流动状态。",
+      "paragraph10": "在非圆形或具有复杂几何形状的系统中，使用水力直径𝐷ℎ：",
+      "paragraph11": "其中𝐴是横截面积，𝑃是湿周。\n这样，广义雷诺数为：",
+      "paragraph12": "同样，在外流（例如，绕球体或翼型的流动）中，使用特定的特征长度（如直径或翼弦）。",
+      "paragraph13": "雷诺数的概念是由工程师和物理学家奥斯本·雷诺（Osborne Reynolds，1842-1912）提出的，他是曼彻斯特大学的教授。1883年，他进行了一个经典实验，在一个装有流动水的透明管道中注入一条细小的染色流线，观察到随着速度增加，流动从层流转变为湍流。\n通过这些实验，他确立了一个无量纲参数——后来以他的名字命名——该参数将惯性力与粘性力联系起来。这一发现使得流体动力学的研究得以统一，并被公认为现代工程学最重要的实验和理论基础之一。"
     }
   },
   "froude": {
-    "title": "title.NotTranslated",
-    "desc": "desc.NotTranslated"
+    "title": "弗劳德数",
+    "desc": "用于分析水力学中流动状态的计算器。"
   },
   "froudeCalc": {
-    "calculator": "calculator.NotTranslated",
-    "title": "title.NotTranslated",
-    "froudeNumber": "froudeNumber.NotTranslated",
-    "froude": "froude.NotTranslated",
-    "saveToHistory": "saveToHistory.NotTranslated",
-    "flowParameters": "flowParameters.NotTranslated",
-    "geometryParameters": "geometryParameters.NotTranslated",
+    "infoText": "请输入至少2个几何参数以及速度和重力加速度来计算弗劳德数。",
+    "calculator": "计算器",
+    "title": "弗劳德数",
+    "titlehistory": "弗劳德数",
+    "froudeNumber": "弗劳德数",
+    "froude": "弗劳德数",
+    "saveToHistory": "保存到历史记录",
+    "flowParameters": "流动参数",
+    "geometryParameters": "几何参数",
     "regime": {
-      "subcritical": "subcritical.NotTranslated",
-      "critical": "critical.NotTranslated",
-      "supercritical": "supercritical.NotTranslated"
+      "subcritical": "亚临界",
+      "critical": "临界",
+      "supercritical": "超临界"
     },
     "labels": {
-      "area": "area.NotTranslated",
-      "width": "width.NotTranslated",
-      "hydraulicDepth": "hydraulicDepth.NotTranslated",
-      "velocity": "velocity.NotTranslated",
-      "gravity": "gravity.NotTranslated"
+      "area": "横截面积",
+      "width": "渠道宽度",
+      "hydraulicDepth": "平均水力深度",
+      "velocity": "流速",
+      "gravity": "重力加速度"
     },
     "toasts": {
-      "velocityGravityRequired": "velocityGravityRequired.NotTranslated",
-      "geometryRequired": "geometryRequired.NotTranslated",
-      "noResultsToCopy": "noResultsToCopy.NotTranslated",
-      "copied": "copied.NotTranslated",
-      "nothingToSave": "nothingToSave.NotTranslated",
-      "saved": "saved.NotTranslated",
-      "saveError": "saveError.NotTranslated"
+      "velocityGravityRequired": "需要速度和重力加速度",
+      "geometryRequired": "至少需要2个几何参数",
+      "noResultsToCopy": "没有结果可复制",
+      "copied": "结果已复制到剪贴板",
+      "nothingToSave": "没有结果可保存",
+      "saved": "计算结果已保存到历史记录",
+      "saveError": "保存到历史记录时出错"
+    }
+  },
+  "EnergiaBernoulliCalc": {
+    "cardTitle1": "能量与伯努利",
+    "cardDesc1": "求解包含水头损失和汽蚀的广义能量方程。"
+  },
+  "energiaBernoulliCalc": {
+    "infoText": "输入除一个未知数外的所有参数，以计算该未知变量和能量差。",
+    "safe": "安全",
+    "noCavitation": "无风险",
+    "lowMargin": "裕度低",
+    "cavitationRisk": "风险",
+    "systemType": "系统类型",
+    "closed": "封闭",
+    "open": "开放",
+    "closedSystem": "封闭系统",
+    "openSystem": "开放系统",
+    "vaporPressure": "蒸汽压力",
+    "cavitationStatus": "汽蚀状态",
+    "useRhoForGamma": "使用密度 (ρ)",
+    "useTempForPv": "从温度计算 Pv",
+    "title": "能量 / 伯努利",
+    "titlehistory": "能量 / 伯努利",
+    "calculator": "计算器",
+    "modec": "模式",
+    "mode": {
+      "ideal": "伯努利",
+      "losses": "带损失",
+      "cavitation": "汽蚀"
+    },
+    "section1": "截面 1",
+    "section2": "截面 2",
+    "suctionSection": "吸入截面",
+    "fluidProps": "流体属性",
+    "pumpTurbine": "泵/涡轮",
+    "losses": "损失",
+    "cavitationParams": "汽蚀参数",
+    "energyDifference": "能量差",
+    "cavitationMargin": "汽蚀裕度",
+    "npsha": "可用净正吸上水头 (NPSHₐ)",
+    "pabs": "绝对压力",
+    "result": "结果",
+    "saveToHistory": "保存到历史记录",
+    "lossInputType": "损失类型",
+    "direct": "直接损失 (hL)",
+    "darcy": "达西公式",
+    "labels": {
+      "P1": "压力 (P₁)",
+      "P2": "压力 (P₂)",
+      "P1_suction": "吸入压力 (P₁)",
+      "z1": "高程 (z₁)",
+      "z2": "高程 (z₂)",
+      "z_suction": "吸入高程 (z₁)",
+      "V1": "速度 (V₁)",
+      "V2": "速度 (V₂)",
+      "V_suction": "吸入速度 (V₁)",
+      "gamma": "重度 (γ)",
+      "g": "重力加速度 (g)",
+      "alpha1": "科里奥利系数 (α₁)",
+      "alpha2": "科里奥利系数 (α₂)",
+      "hb": "泵扬程 (hB)",
+      "ht": "涡轮水头 (hT)",
+      "hL": "水头损失 (hL)",
+      "hL_suction": "吸入损失 (hL)",
+      "L": "管道长度 (L)",
+      "D1": "直径 (D₁)",
+      "f": "摩擦系数 (f)",
+      "K": "损失系数 (K)",
+      "temperatura": "温度 (T)",
+      "Velocity": "速度",
+      "Pressure": "压力",
+      "Density": "密度",
+      "Acceleration": "加速度",
+      "Temperature": "温度",
+      "SpecificWeight": "重度",
+      "Ps": "吸入压力",
+      "Vs": "吸入速度",
+      "Patm": "大气压力",
+      "z0": "液位",
+      "zs": "吸入高程",
+      "hfs": "吸入损失",
+      "rho": "密度",
+      "Pv": "蒸汽压力"
+    },
+    "results": {
+      "npsha": "可用净正吸上水头 (NPSHₐ)",
+      "cavitationMargin": "汽蚀裕度",
+      "pabs": "绝对压力",
+      "gammaCalculated": "计算出的γ",
+      "pvCalculated": "计算出的Pv"
+    },
+    "cavitationStatus": {
+      "safe": "安全",
+      "lowMargin": "裕度低",
+      "risk": "存在汽蚀风险"
+    },
+    "includeBomba": "包含泵",
+    "includeTurbina": "包含涡轮",
+    "toasts": {
+      "copied": "结果已复制到剪贴板",
+      "nothingToSave": "没有结果可保存",
+      "saved": "计算结果已保存到历史记录",
+      "saveError": "保存到历史记录时出错",
+      "calculationError": "汽蚀计算错误",
+      "cavitationSafe": "系统安全 - 无汽蚀风险",
+      "cavitationWarning": "汽蚀裕度低",
+      "cavitationDanger": "存在汽蚀风险！",
+      "negativeNPSHa": "NPSHa 为负值 - 请检查数据"
+    }
+  },
+  "geometriaSeccionesCalc": {
+    "calculator": "计算器",
+    "cardTitle1":"截面几何特性",
+    "cardDesc1":"计算不同类型截面的面积、湿周和水力半径。",
+    "title": "截面几何特性",
+    "titlehistory": "截面几何特性",
+    "y2": "水深 (y₂)",
+    "area": "面积",
+    "perimeter": "湿周",
+    "hydraulicRadius": "水力半径",
+    "topWidth": "水面宽度",
+    "shearStress": "切应力",
+    "shearVelocity": "剪切流速",
+    "sectionProps": "截面特性",
+    "section1": "几何体 1",
+    "section2": "几何体 2",
+    "flowProps": "流动特性",
+    "dimensions": "尺寸",
+    "material": "材料",
+    "selected": "已选",
+    "custom": "自定义",
+    "result": "水力半径",
+    "labels": {
+      "sectionType": "截面类型",
+      "A1": "A₁",
+      "Rh1": "Rh₁",
+      "B1": "B₁",
+      "A2": "A₂",
+      "Rh2": "Rh₂",
+      "B2": "B₂",
+      "n": "n",
+      "S0": "S₀",
+      "Q": "Q",
+      "b": "b",
+      "y": "y",
+      "z": "z",
+      "materialType": "材料类型",
+      "material": "材料",
+      "diametro": "直径",
+      "tirante": "水深",
+      "base": "底宽",
+      "talud": "边坡系数",
+      "K": "K",
+      "A": "面积",
+      "P": "湿周",
+      "R": "水力半径",
+      "T": "水面宽度",
+      "Dh": "水力深度"
+    },
+    "options": {
+      "sectionType": {
+        "circular-llena": "圆形管道 (满流)",
+        "circular-parcial": "圆形管道 (部分充满)",
+        "rectangular": "矩形渠道",
+        "trapezoidal": "梯形渠道",
+        "triangular": "三角形渠道",
+        "parabolico": "抛物线形渠道"
+      }
+    },
+    "paramsSection": "几何参数",
+    "resultsSection": "几何结果",
+    "toasts": {
+      "copied": "结果已复制到剪贴板",
+      "nothingToSave": "没有结果可保存",
+      "saved": "计算结果已保存到历史记录",
+      "saveError": "保存到历史记录时出错"
+    }
+  },
+  "reynoldsTheory": {
+    "titles": {
+      "references": "参考文献"
+    },
+    "subtitle": "雷诺数",
+    "title": "什么是雷诺数？",
+    "selectTermPlaceholder": "选择一个方程项以查看其描述。",
+    "expandedMode": "展开模式: {term} →",
+    "terms": {
+      "R": {
+        "title": "雷诺数 (R)",
+        "description": "雷诺数是流体力学中使用的无量纲参数，用于描述流动中惯性力与粘性力之间的关系。它可以表征流体在管道内、固体周围或明渠中运动时的行为。从物理上讲，它比较了流体由于其惯性而保持运动的趋势与粘度提供的内部阻力之间的关系。其数学形式表示为 Re = ρVL/μ，其中 ρ 是流体密度，V 是特征速度，L 是代表长度，μ 是动力粘度。\n\n这个数字对于根据流动的稳定性和内部结构对流动状态进行分类至关重要。当其值较低时，流动往往是有序且可预测的，而高值则表示更容易发生不稳定和形成复杂的波动。这些行为之间的转变取决于系统的几何形状和特定的流动条件，但雷诺数是预测这种变化的主要标准。\n\n对于管道内部流动，当雷诺数小于约两千时，通常为层流状态，这意味着流体质点以平行的层状移动，横向混合极小，粘性耗散占主导地位。在中间区间内存在一个过渡区，其中微小的扰动可能被放大。当数值超过约四千时，流动通常会变为湍流，这意味着运动混乱、混合强烈、能量损失更大，并且横截面上的速度分布更加均匀。\n\n这个概念是由爱尔兰物理学家和工程师奥斯本·雷诺在19世纪提出的，他在透明管道中进行了经典实验，以观察层流和湍流之间的转变。他的研究表明，这种转变不仅仅取决于速度，而是取决于流体特性和几何尺寸的特定组合，从而推导出了以他的名字命名的无量纲数，该数至今在工程、空气动力学和水力学中都至关重要。"
+      },
+      "ρ": {
+        "title": "流体密度 (ρ)",
+        "description": "密度是流体单位体积的质量，单位为 kg/m³。\n\n在雷诺数的上下文中，更高的密度会增加流体的惯性力，从而倾向于增加 Re 值，因此增加了流动变为湍流的可能性。\n\n密度取决于温度、压力和流体组成等因素。例如，液体的密度随温度变化很小，而气体的密度可能会有显著变化。"
+      },
+      "V": {
+        "title": "流体速度 (V)",
+        "description": "流体速度对应于流体通过管道或导管时移动的平均速度，单位为 m/s。\n\n它是雷诺数中影响最大的因素之一，因为 Re 与 V 成正比。速度的增加会增大惯性力，有利于向湍流状态的转变。\n\n在实际应用中，速度可能因流动剖面、管道粗糙度和入口条件而异。"
+      },
+      "D": {
+        "title": "水力直径 (D)",
+        "description": "水力直径是流体流动的管道几何形状的特征度量。在圆形管道中，它等于内径，但在非圆形管道中，其计算公式为 D = 4·面积/湿周。\n\n较大的直径会增加雷诺数，因为它增大了流动的特征尺度，从而增加了惯性力。这意味着较大的管道更容易出现湍流。\n\n水力直径在通风系统、明渠和复杂几何形状中尤为重要。"
+      },
+      "μ": {
+        "title": "动力粘度 (μ)",
+        "description": "动力粘度代表流体抵抗变形或流动的内部阻力，单位为 Pa·s。\n\n它是雷诺数中的一个关键参数，出现在方程的分母中。粘度更高的流体（更大的 μ）具有更大的耗散力，从而降低 Re 并有利于层流。\n\n粘度强烈依赖于温度：在液体中，粘度随温度升高而降低，而在气体中，粘度通常会升高。这意味着流动状态可能随热变化而显著改变。"
+      },
+      "m": {
+        "title": "质量 (m)",
+        "description": "质量是物体或流体中物质数量的度量。在密度的上下文中，质量是与体积一起决定流体密度的属性。通常以千克 (kg) 表示。"
+      },
+      "v": {
+        "title": "体积 (v)",
+        "description": "体积是流体占据的三维空间量。在密度方程中，它是分母，与分子质量一起定义了物质的集中程度。通常以立方米 (m³) 表示。"
+      },
+      "τ": {
+        "title": "切应力 (τ)",
+        "description": "切应力（tau）是维持流体运动所需的每单位面积的力。根据牛顿粘度定律，它与速度梯度 (du/dy) 成正比。粘度越高的流体，在相同的变形速率下需要越大的切应力。单位为帕斯卡 (Pa)。"
+      },
+      "du": {
+        "title": "速度微分 (du)",
+        "description": "代表流体速度的无穷小变化。在速度梯度 (du/dy) 的上下文中，'du' 是两个非常接近的流体层之间的微小速度差。对于相同的距离，更大的速度差会增加梯度，从而增加切应力。"
+      },
+      "dy": {
+        "title": "距离微分 (dy)",
+        "description": "代表距离的无穷小变化，垂直于流动方向测量。它是两个相邻流体层之间的间距。在速度梯度 (du/dy) 中，对于相同的速度差，较小的距离 'dy' 会导致更陡的梯度和更大的切应力。"
+      }
+    }
+  },
+  "froudeTheory": {
+    "subtitle": "弗劳德数",
+    "title": "什么是弗劳德数？",
+    "selectTermPlaceholder": "点击一个项以查看其描述",
+    "titles": {
+      "references": "参考文献"
+    },
+    "terms": {
+      "Fr": {
+        "title": "弗劳德数 (Fr)",
+        "description": "弗劳德数是流体力学中使用的无量纲参数，用于描述流动的惯性力与重力效应之间的关系。它用于确定存在自由表面的流体行为，例如在河流、渠道、波浪或船舶运动中。从物理上讲，它比较了流动的特征速度与重力波在同一介质中的传播速度。其数学形式表示为 Fr = V / √(gL)，其中 V 是特征速度，g 是重力加速度，L 是系统的代表长度。\n\n这个数字对于对流动状态进行分类至关重要。当其值小于1时，流动称为亚临界，扰动可以向上游传播。当等于1时，处于临界状态，表示惯性与重力之间的平衡。当大于1时，流动是超临界的，扰动不能逆流传播。这种分类在渠道、溢洪道、水坝的设计以及船舶和水利结构的行为分析中至关重要。\n\n当弗劳德数小于1时，重力主导惯性，这意味着流动相对缓慢且深沉，对小扰动稳定，并对下游条件敏感。如果等于1，系统达到临界状态，流速与表面波的传播速度一致，产生一个高度敏感的过渡条件。当大于1时，惯性主导重力，流动快速且浅，任何改变都被限制在下游，有利于水跃等现象的发生。\n\n这个概念是由19世纪的英国海军建筑师和工程师威廉·弗劳德提出的，他研究了船舶的阻力。他的工作确立了至今仍在船舶和水利工程缩尺模型试验中使用的动力相似定律。通过认识到弗劳德数的相似性可以确保在重力主导的现象中，模型和原型之间存在适当的对应关系，他为现代船舶和水工结构的设计奠定了坚实的实验基础。"
+      },
+      "V": {
+        "title": "平均速度 (v)",
+        "description": "表示流体质点通过特定横截面的平均速率 (m/s)。在弗劳德数的上下文中，速度是惯性的驱动力。\n\n较高的速度会增加方程的分子，表明系统的动能主导了重力势能。实际上，它是决定渠道中的障碍物将产生冲击波（水跃）还是仅在表面产生轻微波纹的因素。"
+      },
+      "g": {
+        "title": "重力加速度 (g)",
+        "description": "是将流体质量拉向地心的恒定力（标准值为 9.81 m/s²）。在明渠水力学中，重力是试图保持水面平坦和稳定的“恢复力”。\n\n它在弗劳德数中的作用是基础性的：它作为分母限制运动。没有重力，就不会有表面波，也不会有流动状态的区别，因为重力是产生静水压力的原因，静水压力在没有外部泵送的情况下驱动运动。"
+      },
+      "L": {
+        "title": "特征长度 (L)",
+        "description": "在明渠中，这个长度通常表示为水力深度 (D = 面积 / 水面宽度)。它是系统中重力效应的缩放尺寸。\n\n速度与乘以重力加速度的这个长度的平方根之间的关系（$V / \\sqrt{gL}$）定义了小幅重力波的波速。因此，L 不仅是一个几何测量值，而且是决定流体在面对试图移动它的力时表现得多“深”或多“浅”的因素。"
+      },
+      "F": {
+        "title": "重力 (F)",
+        "description": "是流体质量与地球引力场相互作用的矢量结果。在弗劳德分析中，这个力是产生稳定流动的重量。\n\n它根据牛顿第二定律 ($F = m \\cdot g$) 计算。在设计溢洪道或水坝等水工结构时，理解这个力至关重要，因为弗劳德数有助于预测水的重量是否足以使流动附着在结构上，或者惯性是否会导致流动分离和严重的湍流。"
+      },
+      "m": {
+        "title": "流体质量 (m)",
+        "description": "是一部分流体惯性的定量度量，即其抵抗运动状态变化的能力。以千克 (kg) 表示。\n\n尽管在弗劳德数的最终推导中质量被抵消了（只留下速度和长度的关系），但从概念上讲，它仍然是惯性力的基础。正是这种属性使得水能够保持其动量，并在弗劳德数指示超临界状态时，以强大的力量“冲击”结构。"
+      }
+    }
+  },
+  "continuidadTheory": {
+    "subtitle": "连续性方程",
+    "title": "什么是连续性方程？",
+    "selectTermPlaceholder": "点击方程中的一个项以查看其描述",
+    "titles": {
+      "references": "参考文献"
+    },
+    "terms": {
+      "A": {
+        "title": "横截面积 (A)",
+        "description": "表示垂直于流体运动方向切割的几何截面的表面积。\n\n在流体力学的背景下，面积充当“漏斗”，限制或允许流动通过。其重要性在于它与速度成反比关系：在恒定流量下，横截面积的减小迫使流体质点加速，以便在相同的时间间隔内，相同质量的液体能够通过该截面。"
+      },
+      "V": {
+        "title": "流体速度 (V)",
+        "description": "定义了流体质点通过特定截面的平均速率。\n\n这不仅仅是速率的度量，而是系统动能的关键组成部分。根据不可压缩流体的连续性原理，速度是依赖于管道几何形状的变量；因此，管道中的任何收缩都会立即导致速度成比例增加，确保质量平衡保持不变。"
+      },
+      "1": {
+        "title": "截面 1 (入口)",
+        "description": "标识入口点或上游截面处流体条件的下标。值 A₁ 和 V₁ 描述了流动的初始状态。"
+      },
+      "2": {
+        "title": "截面 2 (出口)",
+        "description": "标识出口点或下游截面处流体条件的下标。值 A₂ 和 V₂ 描述了流动的最终状态。"
+      },
+      "π": {
+        "title": "圆周率 (π)",
+        "description": "是连接圆的周长与其直径的基本常数。\n\n当我们使用圆柱形管道或商用管道时，它在连续性方程中的存在是必不可少的，因为它允许仅通过一次直径的线性测量来推导流通面积。它是连接欧几里得几何与液压和气动系统中运输能力计算的因素。"
+      },
+      "D": {
+        "title": "直径 (D)",
+        "description": "指流体流动的圆形管道内部宽度的度量。\n\n它是管道工程中影响最大的设计参数，因为横截面积对其变化极为敏感（相对于直径呈二次方增长）。内径的微小变化可能导致流速和由于水力状态改变引起的摩擦能量损失的剧烈变化。"
+      },
+      "Q": {
+        "title": "体积流量 (Q)",
+        "description": "表示单位时间内通过特定截面的流体体积。\n\n流量是质量守恒定律的实际表现。在理想条件下（稳定、不可压缩流动），流量的值在整个系统中保持不变。这意味着无论管道在其路径上的形状、大小或方向如何变化，从一端进入的流体量完全等于从另一端流出的量。"
+      },
+      "𝒱": {
+        "title": "体积 (𝒱)",
+        "description": "定义为量化一部分流体所占据的三维空间的物理量。\n\n在流动研究中，体积是被“移动”的实体。在分析连续性时，我们对穿过假想边界的控制体积感兴趣；它是流体质点的累积，当除以通过时间时，使我们能够理解水力系统的输送能力和其设计的效率。"
+      },
+      "t": {
+        "title": "时间 (t)",
+        "description": "是测量流体通过控制截面的传递速率所需的时间维度。\n\n时间在连续性方程中充当效率的分母。没有这个参数，流量将是一个静态的度量；有了时间，我们可以将固定的体积量转化为动态的流量或流的概念，从而能够计算出，例如，填充一个储罐或流体通过一个闭合回路需要多长时间。"
+      }
+    }
+  },
+  "energiaBernoulliTheory": {
+    "subtitle": "伯努利方程",
+    "title": "什么是伯努利方程？",
+    "selectTermPlaceholder": "选择一个项以查看其描述",
+    "titles": {
+      "references": "参考文献"
+    },
+    "terms": {
+      "P": {
+        "title": "压力 (P)",
+        "description": "静压代表了流体施加在管壁上或流动内部任何假想表面上的法向力的强度。在伯努利方程的上下文中，该项被理解为“流动能”或在不改变其速度或高度的情况下，将一定质量的流体移动到周围压力中所需要的功。\n\n从分子角度看，它是流体粒子不断撞击其边界的结果。与动压不同，静压是我们用随流一起移动的压力计所测量到的压力，捕捉系统在特定点处的内部能量状态。\n\n在水力系统中，静压的下降并不总是意味着总能量的损失；它通常表明流体已经加速（文丘里效应）。区分表压和绝对压力至关重要，尽管在大多数土木和机械工程计算中使用的是相对于大气压的压力。"
+      },
+      "γ": {
+        "title": "重度 (γ)",
+        "description": "重度是一种强度属性，定义了物质的重量与其所占体积之间的关系。它是流体静力学和流体动力学中的一个关键参数，因为它允许将压力（单位面积的力）转换为等效的流体柱高度，从而便于将不同形式的能量以长度单位相加。\n\n从物理上讲，该值既取决于物质的密度，也取决于当地的重力加速度。例如，由于热膨胀，水的重度随温度升高而略微降低，这会影响热水或蒸汽输送系统计算的精度。\n\n在伯努利方程中，将压力除以重度 (P/γ)，我们得到“压力水头”。这个概念是配水管网设计的基石，因为它允许工程师以米水柱为单位来可视化可用压力，简化了具有变化地形的地形上压力分析。"
+      },
+      "V": {
+        "title": "速度 (V)",
+        "description": "平均速度代表了流体质点通过特定横截面的平均速率。在伯努利方程中，速度是系统动能的主要组成部分，反映了由压力或重力梯度驱动的流体宏观运动。\n\n由于粘性，速度在整个管道截面上并不均匀；在管壁处为零，在中心处最大。因此，在工程中，我们使用一个假设简化的一维流动的修正平均速度，这对于大多数实际流体输送应用来说已经足够。\n\n“速度水头”项显示了二次关系：如果速度加倍，相关的动能将增加四倍。这个原理对于理解为什么小管道中的高速度会导致如此剧烈的压降以及在设施中产生侵蚀或过度噪音的风险至关重要。"
+      },
+      "g": {
+        "title": "重力加速度 (g)",
+        "description": "重力加速度是将流体质量与其重量联系起来的物理常数。它在流体动力学中的作用是作为一个通用的转换因子，允许将动能和势能归一化为水力水头或“压头”的单位。\n\n尽管通常近似为常数 9.81 m/s²，但在极高精度系统中，海拔或纬度的微小变化可能会产生影响。在伯努利研究中，重力是流体仅仅因为相对于参考平面的高度而具有势能的原因。\n\n没有重力的存在，重度和海拔高程的概念将失去其传统的物理意义。在这个模型中，重力确保了动能（速度）和势能（高度）之间的交换根据热力学定律保持平衡。"
+      },
+      "z": {
+        "title": "海拔高程 (z)",
+        "description": "海拔高程代表流体截面相对于任意参考水平面或“基准面”的垂直位置。该项量化了每单位重量的重力势能，即流体仅因其高程而做功的能力。\n\n这是一个纯粹几何的概念，但却具有巨大的能量意义。在重力式输水渠道的设计中，水库和城市之间的高程差是允许流体在没有外部机械泵的情况下流动的主要能源。\n\n在分析管道时，高程 z 的变化可以识别流体是获得还是失去势能。如果管道上升，高程增加，为了保持能量守恒，压力或速度必须按比例减小，假设没有外部能量输入。"
+      },
+      "h_f": {
+        "title": "水头损失 (hf)",
+        "description": "水头损失代表由于流体内部摩擦以及与管道壁的摩擦而不可逆地转化为热能（热量）的机械能。与压力或速度项不同，这种能量无法回收，被视为系统的“输出”。\n\n这种现象是由于流体的粘度而发生的。在层流状态下，流体层相互滑动，通过剪切产生热量；在湍流状态下，涡流的形成和分子混沌极大地增加了能量耗散。\n\n精确计算水头损失是管道水力学中最大的挑战。忽略此项将导致泵选择上的严重错误，因为泵必须提供足够的能量，不仅用于提升流体，还要克服管道沿线提供的无形阻力。"
+      },
+      "f": {
+        "title": "摩擦系数 (f)",
+        "description": "摩擦系数是一个无量纲系数，描述了管道内的流动阻力。其值不是恒定的，而是取决于流动的性质（由雷诺数决定）和管道内表面的状况，即相对粗糙度。\n\n在工程中最常见的湍流中，该系数捕捉了管道壁的不规则性如何扰动流体运动。生锈的钢管将具有比光滑的 PVC 管大得多的摩擦系数，这意味着长期来看更高的泵送成本。\n\n为了获得这个值，我们使用像穆迪图这样的图形工具或复杂的方程，这些方程考虑到，在高速下，管道粗糙度是主导因素，而在低速下，流体的粘度控制着摩擦过程。"
+      },
+      "L": {
+        "title": "长度 (L)",
+        "description": "长度是流体在两个感兴趣点之间行进的总距离。在能量损失分析中，长度与热量耗散成正比；每增加一米管道，就代表累积的接触表面积增加，从而阻碍运动。\n\n在大型项目中，如石油管道或输水管网，长度是决定中间增压站需求的因素。随着流体前进，其总能量由于这种物理延伸而线性衰减。\n\n重要的是要考虑，在现实世界中，“等效长度”也可能包括弯头和阀门等配件的影响，这些配件虽然占用很小的物理空间，但产生的流动阻力可与数米直管相比。"
+      },
+      "D": {
+        "title": "直径 (D)",
+        "description": "管道的内径可能是水力系统行为中影响最大的设计变量。它决定了可用于流动的横截面积，并对能量损失产生反向且不成比例的影响。\n\n根据流动物理学，在流量恒定的情况下，能量损失与直径的五次方成反比。这意味着将直径减半可能会使摩擦损失增加高达 32 倍，这凸显了为能源效率选择合适的管道尺寸的重要性。\n\n此外，直径决定了流体的速度：小直径迫使流体加速以维持相同的流量，从而增加动能和湍流，进而增加系统材料的磨损。"
+      },
+      "ρ": {
+        "title": "密度 (ρ)",
+        "description": "密度是一定体积流体中包含的质量的量度。它是定义系统惯性的基本属性：密度越大的流体需要更大的力来加速，并且在相同速度下具有更多的动能。\n\n在伯努利方程中，密度充当质量和压力之间的桥梁。在像水这样的不可压缩流体中，假设密度恒定以简化计算，但在涉及大的温度或压力变化的应用中，必须考虑其变化，以免使结果无效。\n\n它与重力的关系是产生重度的原因。通过了解密度，工程师可以预测流体在面对高程变化时的行为，以及它对挡土结构或高压管壁施加的静载荷大小。"
+      }
+    }
+  },
+  "factorFriccionCalc": {
+    "infoText": "摩擦系数的计算通过迭代方法（最多200次迭代）进行，适用于 Colebrook-White 等方程，容差为 1e-20。对于显式方程，计算是直接的。根据所选方程，可能需要几秒钟才能收敛。",
+    "title": "摩擦系数",
+    "calculator": "计算器",
+    "saveToHistory": "保存到历史记录",
+    "frictionFactor": "摩擦系数 (f)",
+    "equation": "方程",
+    "roughnessSection": "相对粗糙度",
+    "moodyDiagramHint": "正在打开穆迪图……",
+    "mode": {
+      "numeric": "数值",
+      "graphic": "图形"
+    },
+    "labels": {
+      "equation": "方程",
+      "Re": "雷诺数 Re",
+      "epsilon": "绝对粗糙度 ε",
+      "diameter": "直径 D",
+      "epsilonOverD": "相对粗糙度 ε/D"
+    },
+    "equations": {
+      "colebrook-white": "Colebrook-White (迭代数值法)",
+      "haaland": "Haaland (封闭数值法)",
+      "swamee-jain": "Swamee-Jain (封闭数值法)",
+      "churchill": "Churchill (封闭数值法)",
+      "serghides": "Serghides (封闭数值法)",
+      "blasius": "Blasius (封闭数值法)",
+      "von-karman": "von Kármán (迭代数值法)"
+    },
+    "toasts": {
+      "copied": "数据已复制到剪贴板",
+      "saved": "计算结果已保存到历史记录",
+      "saveError": "保存到历史记录时出错",
+      "nothingToSave": "没有结果可保存",
+      "calculationError": "计算错误。请检查输入的数据",
+      "validityWarning": "范围警告",
+      "swameeJainRange": "Swamee-Jain 公式适用于 10⁻⁶ ≤ ε/D ≤ 10⁻² 且 5 000 ≤ Re ≤ 10⁸ 的范围",
+      "blasiusRange": "Blasius 公式适用于光滑管道，且 4 000 ≤ Re ≤ 10⁵ 的范围"
+    }
+  },
+  "moodyDiagramScreen": {
+    "subtitle": "图形方法",
+    "title": "穆迪图",
+    "xAxisLabel": "雷诺数 (Re)",
+    "yAxisLabel": "摩擦系数 (f)",
+    "transitionLabel": "过渡区",
+    "selectedLegend": "已选",
+    "roughnessSliderLabel": "相对粗糙度  ε/D",
+    "reynoldsSliderLabel": "雷诺数  Re",
+    "laminarBadge": "层流  ·  f = 64/Re",
+    "turbulentBadge": "湍流  ·  Colebrook-White 公式",
+    "transitionBadge": "过渡区  ·  不确定区域",
+    "frictionFactorLabel": "摩擦系数",
+    "frictionFactorSubLabel": "f  (达西-魏斯巴赫公式)",
+    "variablesTitle": "变量交互控制",
+    "ffactorresult": "摩擦系数 (F)"
+  },
+  "factorFriccion": {
+    "title": "摩擦系数",
+    "desc": "使用不同方程和交互式穆迪图计算摩擦系数。"
+  },
+  "perdidasLocalizadasCalc": {
+    "title": "局部损失",
+    "calculator": "计算器",
+    "modec": "模式",
+
+    "mode": {
+      "normal": "标准",
+      "equivalent": "等效长度",
+      "advanced": "高级"
+    },
+
+    "globalParams": "全局参数",
+    "accessories": "配件",
+    "accessoryTitle": "配件",
+    "addAccessory": "添加配件",
+    "tableTitle": "结果表",
+    "totalLoss": "总 hL (米)",
+
+    "fittingType": "配件类型",
+    "selectFitting": "选择配件...",
+
+    "labels": {
+      "K": "损失系数 K",
+      "V": "速度 V",
+      "g": "重力加速度 g",
+      "D": "直径 D",
+      "f": "摩擦系数 f"
+    },
+
+    "table": {
+      "name": "配件",
+      "total": "总计",
+      "totalLeq": "总等效长度"
+    },
+
+    "toasts": {
+      "copied": "已复制到剪贴板",
+      "saved": "已保存到历史记录",
+      "saveError": "保存时出错",
+      "nothingToSave": "请先进行计算"
+    }
+  },
+  "perdidasLocalizadasFittings": {
+    "screenTitle": "配件",
+    "groups": {
+      "valves": "阀门",
+      "elbows": "弯头",
+      "tees": "三通",
+      "entriesExits": "入口和出口",
+      "contractions": "收缩",
+      "expansions": "扩张",
+      "meters": "测量仪表",
+      "otherFittings": "其他"
+    },
+    "items": {
+      "gateValveFullyOpen": "闸阀 (全开)",
+      "gateValveThreeQuarterOpen": "闸阀 (3/4开)",
+      "gateValveHalfOpen": "闸阀 (1/2开)",
+      "gateValveQuarterOpen": "闸阀 (1/4开)",
+      "gateValveFullyOpenScrewed": "闸阀 (全开, 螺纹)",
+      "gateValveFullyOpenFlanged": "闸阀 (全开, 法兰)",
+      "globeValvePlugDiskFullyOpen": "截止阀 (盘式, 全开)",
+      "globeValvePlugDiskThreeQuarterOpen": "截止阀 (盘式, 3/4开)",
+      "globeValvePlugDiskHalfOpen": "截止阀 (盘式, 1/2开)",
+      "globeValvePlugDiskQuarterOpen": "截止阀 (盘式, 1/4开)",
+      "angleValveFullyOpen": "角阀 (全开)",
+      "ballValveFullyOpen": "球阀 (全开)",
+      "ballValveClosed5deg": "球阀 (关闭5°)",
+      "ballValveClosed10deg": "球阀 (关闭10°)",
+      "ballValveClosed20deg": "球阀 (关闭20°)",
+      "ballValveClosed40deg": "球阀 (关闭40°)",
+      "ballValveClosed60deg": "球阀 (关闭60°)",
+      "butterflyValveFullyOpen": "蝶阀 (全开)",
+      "butterflyValveClosed5deg": "蝶阀 (关闭5°)",
+      "butterflyValveClosed10deg": "蝶阀 (关闭10°)",
+      "butterflyValveClosed20deg": "蝶阀 (关闭20°)",
+      "butterflyValveClosed40deg": "蝶阀 (关闭40°)",
+      "butterflyValveClosed60deg": "蝶阀 (关闭60°)",
+      "diaphragmValveFullyOpen": "隔膜阀 (全开)",
+      "diaphragmValveThreeQuarterOpen": "隔膜阀 (3/4开)",
+      "diaphragmValveHalfOpen": "隔膜阀 (1/2开)",
+      "diaphragmValveQuarterOpen": "隔膜阀 (1/4开)",
+      "swingCheckValveForwardFlow": "旋启式止回阀 (正向流)",
+      "liftCheckValve": "升降式止回阀",
+      "waterMeterValve": "水表",
+      
+      "elbow90StandardThreaded": "90° 标准弯头 (螺纹)",
+      "elbow90StandardFlanged": "90° 标准弯头 (法兰)",
+      "elbow90LongRadiusThreaded": "90° 长半径弯头 (螺纹)",
+      "elbow90LongRadiusFlanged": "90° 长半径弯头 (法兰)",
+      "elbow90SmoothBendR1": "90° 平滑弯管 (r/D=1)",
+      "elbow90SmoothBendR2": "90° 平滑弯管 (r/D=2)",
+      "elbow90SmoothBendR4": "90° 平滑弯管 (r/D=4)",
+      "elbow90Mitered90deg": "90° 斜接弯头 (θ=90°)",
+      "elbow90Mitered60deg": "90° 斜接弯头 (θ=60°)",
+      "elbow90Mitered45deg": "90° 斜接弯头 (θ=45°)",
+      "elbow90Mitered30deg": "90° 斜接弯头 (θ=30°)",
+      "elbow90Mitered15deg": "90° 斜接弯头 (θ=15°)",
+      "elbow45StandardThreaded": "45° 标准弯头 (螺纹)",
+      "elbow45StandardFlanged": "45° 标准弯头 (法兰)",
+      "elbow45Smooth": "45° 平滑弯管",
+      "returnBend180Threaded": "180° 回弯头 (螺纹)",
+      "returnBend180Flanged": "180° 回弯头 (法兰)",
+      "ubend180": "180° U型弯",
+      
+      "teeFlangedDividingLineFlow": "三通 (分支流, 法兰, 直流)",
+      "teeThreadedDividingLineFlow": "三通 (分支流, 螺纹, 直流)",
+      "teeFlangedDividingBranchFlow": "三通 (分支流, 法兰, 支流)",
+      "teeThreadedDividingBranchFlow": "三通 (分支流, 螺纹, 支流)",
+      "teeStraightWay": "三通 (直通)",
+      "teeBranch": "三通 (支流)",
+      "teeCounterCurrent": "三通 (逆流)",
+      "teeLineFlow": "三通 (直流)",
+      "teeBranchFlow": "三通 (支流)",
+      "crossLineFlow": "四通 (直流)",
+      "crossBranchFlow": "四通 (支流)",
+      "wye45LineFlow": "45° Y型三通 (直流)",
+      "wye45BranchFlow": "45° Y型三通 (支流)",
+      
+      "entranceSharpEdged": "入口 (锐缘)",
+      "entranceProjecting": "入口 (伸出)",
+      "entranceRounded": "入口 (圆角)",
+      "entranceBellmouth": "入口 (喇叭口)",
+      "exitDischargeToTank": "出口 (排放至水箱)",
+      "exitRoundedAgainstBaffle": "出口 (圆角, 朝向挡板)",
+      
+      "suddenContractionD2D1_080": "突然收缩 (D₂/D₁=0.80)",
+      "suddenContractionD2D1_050": "突然收缩 (D₂/D₁=0.50)",
+      "suddenContractionD2D1_020": "突然收缩 (D₂/D₁=0.20)",
+      "conicalContractionD2D1_080": "锥形收缩 (D₂/D₁=0.80)",
+      "conicalContractionD2D1_050": "锥形收缩 (D₂/D₁=0.50)",
+      "conicalContractionD2D1_020": "锥形收缩 (D₂/D₁=0.20)",
+      "suddenContractionGeneral": "突然收缩 (锐缘入口)",
+      
+      "suddenExpansionD2D1_080": "突然扩张 (D₂/D₁=0.80)",
+      "suddenExpansionD2D1_050": "突然扩张 (D₂/D₁=0.50)",
+      "suddenExpansionD2D1_020": "突然扩张 (D₂/D₁=0.20)",
+      "conicalExpansionD2D1_080": "锥形扩张 (D₂/D₁=0.80)",
+      "conicalExpansionD2D1_050": "锥形扩张 (D₂/D₁=0.50)",
+      "conicalExpansionD2D1_020": "锥形扩张 (D₂/D₁=0.20)",
+      
+      "waterMeter": "水表",
+      "orificeMeterSharpEdged": "孔板流量计 (锐缘)",
+      "venturiMeter": "文丘里流量计",
+      
+      "couplingUnionThreaded": "联轴器/管接头 (螺纹)",
+      "reducerEnlargerSudden": "异径管/扩径管 (突然)",
+      "radiator": "散热器",
+      "boiler": "锅炉",
+      "abruptVelocityChange": "速度突变",
+      "crossover": "交叉",
+      "screenPerforatedPlateRounded": "滤网/多孔板",
+      "ybranchSymmetrical": "Y型对称分支"
+    }
+  },
+  "perdidasLocalizadas": {
+    "title": "局部损失",
+    "desc": "使用配件系数计算系统中的局部损失。"
+  },
+  "diseñoCalc": {
+    "title": "简单管道校核",
+    "calculator": "计算器",
+    "paramsSection": "设计参数",
+    "energySection": "能量条件",
+    "resultLabel": "Q",
+    "labels": {
+      "L": "长度",
+      "D": "直径",
+      "ks": "粗糙度",
+      "nu": "运动粘度",
+      "Km": "局部损失系数",
+      "z1": "z1 (上游)",
+      "z2": "z2 (下游)",
+      "g": "g (重力加速度)"
+    },
+    "table": {
+      "title": "迭代表",
+      "header": {
+        "iter": "迭代次数",
+        "lambda": "λ",
+        "hf": "hf [米]",
+        "v": "V [米/秒]",
+        "q": "Q [立方米/秒]",
+        "re": "Re [-]",
+        "regimen": "状态"
+      },
+      "viewFull": "查看"
+    },
+    "toasts": {
+      "missingFields": "缺少必填字段",
+      "calcError": "计算错误",
+      "copied": "已复制到剪贴板",
+      "nothingToSave": "没有可保存的内容",
+      "saved": "已保存到历史记录",
+      "saveError": "保存时出错"
+    },
+    "infoText": "流量计算通过迭代过程（最多100次迭代）进行，求解能量方程和摩擦方程。可能需要几秒钟才能收敛。定义的容差为：hf 绝对容差 1e-8，Q 相对容差 1e-8。"
+  },
+  "tuberiaSimple": {
+    "title": "校核 - 简单管道",
+    "desc": "通过水头损失和流动状态的迭代计算管道中的流量。"
+  },
+  "tuberiaSimple2": {
+    "title": "设计 - 简单管道",
+    "desc": "根据流量、损失和能量迭代计算最优商用直径。"
+  },
+  "diseñoCalc2": {
+    "calculator": "计算器",
+    "title": "简单管道设计",
+    "paramsSection": "设计参数",
+    "energySection": "能量条件",
+    "resultLabel": "设计直径",
+  
+    "labels": {
+      "L": "长度",
+      "Ks": "绝对粗糙度",
+      "Qd": "设计流量",
+      "mu": "运动粘度",
+      "H": "可用水头",
+      "Km": "局部损失系数",
+      "g": "重力加速度"
+    },
+  
+    "table": {
+      "title": "迭代表",
+      "viewFull": "查看",
+      "si": "是",
+      "no": "否",
+      "header": {
+        "iter": "迭代次数",
+        "H": "H [米]",
+        "hf": "hf [米]",
+        "D_in": "D [英寸]",
+        "D_mm": "D [毫米]",
+        "V": "V [米/秒]",
+        "Qc": "Q [立方米/秒]",
+        "qgeq": "Qc ≥ Qd",
+        "hm": "hm [米]",
+        "hf_next": "hfi+1 [米]",
+        "Vp": "Vp [米/秒]"
+      }
+    },
+  
+    "toasts": {
+      "missingFields": "缺少必填字段",
+      "noSolution": "在商业直径列表中未找到合适的直径",
+      "calcError": "计算错误",
+      "copied": "已复制到剪贴板",
+      "saved": "已保存到历史记录",
+      "saveError": "保存时出错",
+      "nothingToSave": "请先进行计算"
+    },
+
+    "infoText": "请注意，此迭代过程可能需要几秒钟，因为它会评估多个商用直径直到收敛。这些容差标准在代码中定义为 (水头容差 = 1e-5，速度容差 = 1e-3)"
+  },
+
+  "potenciaCalcHm": {
+    "title": "功率 - 简单管道",
+    "desc": "计算考虑摩擦和局部损失的总水头和泵功率。"
+  },
+  "seriePotencia":{
+    "title": "功率 - 串联管道",
+    "desc": "计算串联管道系统中泵所需的功率。"
+  },
+  "potenciaCalc": {
+    "calculator": "计算器",
+    "title": "简单管道功率",
+    "saveToHistory": "保存到历史记录",
+    "resultLabel": "P",
+    "includePresiones": "包含点压力",
+    "infoText": "填写所有参数并点击计算以获得结果。摩擦系数通过应用牛顿-拉弗森法求解隐式 Colebrook-White 方程来求解，收敛容差为 1e-20，因此请注意可能需要时间才能收敛。",
+    "resultsTitle": "结果",
+
+    "sections": {
+      "pipe": "管道参数",
+      "fluid": "流体与系统",
+      "heights": "高度",
+      "pressures": "压力"
+    },
+
+    "labels": {
+      "D": "内径 D",
+      "Q": "体积流量 Q",
+      "ks": "等效粗糙度 ks",
+      "nu": "运动粘度 ν",
+      "L": "系统总长度 L",
+      "km": "局部损失系数 km",
+      "gamma": "流体重度 γ",
+      "eta": "泵效率 η (0 – 1)",
+      "z1": "下游水位高度 z₁",
+      "z2": "上游水位高度 z₂",
+      "p1": "下游点压力 p₁",
+      "p2": "上游点压力 p₂"
+    },
+
+    "table": {
+      "parameter": "参数",
+      "value": "值"
+    },
+
+    "results": {
+      "A": "横截面积 A",
+      "V": "平均流速 V",
+      "Re": "雷诺数 Re",
+      "regimen": "流动状态",
+      "f": "摩擦系数 f",
+      "hf": "沿程损失 (达西) hf",
+      "hm": "局部损失 hm",
+      "deltaZ": "高度差 ΔZ",
+      "deltaPGamma": "ΔP/γ = (p₂ − p₁) / γ",
+      "Ht": "总水头 Ht",
+      "Ph": "水力功率 Ph",
+      "P": "泵功率 P"
+    },
+
+    "regimen": {
+      "laminar": "层流",
+      "transicion": "过渡流",
+      "turbulento": "湍流"
+    },
+
+    "toasts": {
+      "missingFields": "请填写所有必填字段。",
+      "invalidValues": "请检查数值在物理上是否有效。",
+      "copied": "结果已复制到剪贴板。",
+      "nothingToCopy": "没有可复制的结果。",
+      "saved": "计算结果已保存到历史记录。",
+      "nothingToSave": "没有结果可保存。",
+      "saveError": "保存时出错。请重试。"
+    }
+  },
+  "compDiseñoSerie": {
+    "titlecard": "校核 - 串联管道",
+    "desccard": "通过水头损失和流动状态的迭代计算串联管道中的流量。",
+    "infoText": "请注意，此迭代过程可能需要几秒钟，具体取决于管段数量。算法在每次迭代中按比例调整摩擦损失，直到总损失之和收敛于可用水头 (ΔH = H1 − H2)。收敛参数在代码中定义为容差 = 1e-6 米，最大迭代次数 = 200。",
+    "calculator": "计算器",
+    "title": "串联管道校核",
+    "resultLabel": "入口 Q (立方米/秒)",
+    "globalParams": "全局参数",
+    "convergenceParams": "收敛参数",
+    "tramosSection": "管段",
+    "tramoTitle": "管段",
+    "converged": "收敛于",
+    "iterations": "次迭代",
+    "notConverged": "未收敛",
+    "labels": {
+      "nu": "运动粘度 ν",
+      "H1": "上游测压管水头 H1",
+      "H2": "下游测压管水头 H2",
+      "TOL": "容差 [米]",
+      "MAX_ITER": "最大迭代次数",
+      "D": "直径 D",
+      "L": "长度 L",
+      "Km": "局部损失系数 Km",
+      "ks": "绝对粗糙度 ks",
+      "q_lat": "侧向取水 q_lat",
+      "Q_entrada": "入口 Q (管段 1)"
+    },
+    "table": {
+      "summaryTitle": "最终汇总",
+      "iterTitle": "迭代表",
+      "viewFull": "查看",
+      "tramo": "管段",
+      "D": "D [米]",
+      "L": "L [米]",
+      "Q": "Q [立方米/秒]",
+      "V": "V [米/秒]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [米]",
+      "hm": "hm [米]",
+      "htotal": "h_总 [米]",
+      "qlat": "q_侧 [立方米/秒]",
+      "total": "Σ",
+      "iter": "迭代次数",
+      "Hcalc": "H_计算 [米]",
+      "error": "误差 [米]"
+    },
+    "balance": {
+      "entrada": "入口 Q (管段 1)",
+      "extraido": "取水 Q (Σ q_侧)",
+      "salida": "出口 Q (节点 B)"
+    },
+    "toasts": {
+      "missingFields": "缺少必填字段",
+      "notConverged": "未达到收敛",
+      "calcError": "计算错误",
+      "nothingToSave": "没有可保存的内容",
+      "saved": "已保存到历史记录",
+      "saveError": "保存时出错",
+      "copied": "已复制到剪贴板"
+    }
+  },
+  "compParaleloCalc": {
+    "calculator": "计算器",
+    "title": "并联管道校核",
+    "resultLabel": "总 Q [立方米/秒]",
+    "globalParams": "全局参数",
+    "ramalesSection": "支路",
+    "ramalTitle": "支路",
+    "labels": {
+      "nu": "运动粘度 ν",
+      "H1": "上游测压管水头 H1",
+      "H2": "下游测压管水头 H2",
+      "D": "直径 D",
+      "L": "长度 L",
+      "Km": "局部损失系数 Km",
+      "ks": "绝对粗糙度 ks",
+      "Q_total": "总 Q (系统)"
+    },
+    "table": {
+      "summaryTitle": "最终汇总",
+      "iterTitle": "迭代表",
+      "viewFull": "查看",
+      "ramal": "支路",
+      "D": "D [米]",
+      "L": "L [米]",
+      "Q": "Q [立方米/秒]",
+      "V": "V [米/秒]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [米]",
+      "hm": "hm [米]",
+      "Hramal": "H [米]",
+      "total": "Σ",
+      "iter": "迭代次数",
+      "Qtotal": "Q_总 [立方米/秒]"
+    },
+    "balance": {
+      "Qtotal": "总 Q (系统)"
+    },
+    "toasts": {
+      "missingFields": "缺少必填字段",
+      "notConverged": "未达到收敛",
+      "calcError": "计算错误",
+      "nothingToSave": "没有可保存的内容",
+      "saved": "已保存到历史记录",
+      "saveError": "保存时出错",
+      "copied": "已复制到剪贴板"
+    },
+    "infoText": "输入全局参数和每条支路的数据，然后点击计算。该算法使用割线法独立求解每条支路，找到产生水头损失等于 ΔH = H1 − H2 的流量。总流量是各支路流量之和。代码中定义的收敛参数：容差 = 1e-8 米，最大迭代次数 = 300。"
+  },
+  "compDiseñoParalelo": {
+    "titlecard": "校核 - 并联管道",
+    "desccard": "通过水头损失和流动状态的迭代计算并联管道中的流量。"
+  },
+  "seriePotenciaCalc": {
+    "title": "串联管道功率",
+    "calculator": "计算器",
+    "globalParams": "全局参数",
+    "tramosSection": "管段",
+    "tramoTitle": "管段",
+    "resultLabel": "所需功率 [千瓦]",
+    "infoText": "输入全局参数和每段管道的数据，以计算串联管道系统中泵所需的水头和功率。",
+    "labels": {
+      "eficiencia": "效率 η [%]",
+      "densidad": "密度 ρ",
+      "viscosidad": "动力粘度 μ",
+      "cabeza": "总水头 H",
+      "D": "直径 D",
+      "L": "长度 L",
+      "ks": "绝对粗糙度 ks",
+      "Km": "局部损失系数 Km",
+      "Q": "流量 Q"
+    },
+    "balance": {
+      "Qentrada": "入口流量 Q:",
+      "Htotal": "所需水头 H_总:",
+      "P": "所需功率 P:"
+    },
+    "table": {
+      "summaryTitle": "最终汇总",
+      "viewFull": "查看完整",
+      "tramo": "管段",
+      "D": "D [米]",
+      "L": "L [米]",
+      "Q": "Q [立方米/秒]",
+      "V": "V [米/秒]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [米]",
+      "hm": "hm [米]",
+      "htotal": "h_总 [米]",
+      "total": "Σ"
+    },
+    "toasts": {
+      "missingFields": "缺少必填字段或包含无效值",
+      "calcError": "计算错误",
+      "copied": "已复制到剪贴板",
+      "saved": "已保存到历史记录",
+      "saveError": "保存时出错",
+      "nothingToSave": "请先进行计算"
+    }
+  },
+  "paraleloPotencia": {
+    "title": "功率 - 并联管道",
+    "desc": "使用达西-魏斯巴赫公式计算并联管道系统中所需的功率。"
+  },
+  "paraleloPotenciaCalc": {
+    "title": "并联管道功率",
+    "calculator": "计算器",
+    "globalParams": "全局参数",
+    "tramosSection": "管道",
+    "tramoTitle": "管道",
+    "resultLabel": "所需功率 [千瓦]",
+    "infoText": "输入全局参数和每条管道的数据，以计算并联管道系统中的流量分配和功率。",
+    "labels": {
+      "H_presion": "总水头 H",
+      "rho": "密度 ρ",
+      "nu": "运动粘度 ν",
+      "Q_total": "总流量 Q",
+      "D": "直径 D",
+      "L": "长度 L",
+      "ks": "绝对粗糙度 ks",
+      "Km": "局部损失系数 Km"
+    },
+    "balance": {
+      "Hmetros": "水力水头 H:",
+      "Qtotal": "总流量 Q:",
+      "P": "所需功率 P:",
+      "iteraciones": "收敛迭代次数:"
+    },
+    "table": {
+      "summaryTitle": "各管道汇总",
+      "viewFull": "查看完整",
+      "tramo": "管道",
+      "D": "D [米]",
+      "L": "L [米]",
+      "Q": "Q [立方米/秒]",
+      "V": "V [米/秒]",
+      "Re": "Re",
+      "f": "f",
+      "hf": "hf [米]",
+      "total": "Σ"
+    },
+    "toasts": {
+      "missingFields": "缺少必填字段或包含无效值",
+      "calcError": "计算错误",
+      "copied": "已复制到剪贴板",
+      "saved": "已保存到历史记录",
+      "saveError": "保存时出错",
+      "nothingToSave": "请先进行计算"
+    }
+  },
+  "orbit": {
+    "title": "ORBIT",
+    "subtitle": "水力模拟器"
+  },
+  "axis": {
+    "field": {
+      "nodeType": "元素类型",
+      "id": "ID",
+      "x": "X",
+      "y": "Y",
+      "ht": "总水头",
+      "elevation": "高程",
+      "demanda": "基础需水量",
+      "nivelIni": "初始水位",
+      "diametro": "直径",
+      "volumen": "体积",
+      "desde": "起点",
+      "hasta": "终点",
+      "longitud": "长度 (米)",
+      "rugosidad": "粗糙度"
+    },
+    "nodeType": {
+      "nodo": "节点",
+      "tanque": "水箱",
+      "reservorio": "水库"
+    },
+    "pipe": "管道",
+    "tab": {
+      "elementos": "元素",
+      "conexiones": "连接"
+    },
+    "section": {
+      "elementos": "管网元素",
+      "tuberias": "管道",
+      "nodos": "节点",
+      "resultados": "结果"
+    },
+    "modoNodo": {
+      "presion": "压力 (米)",
+      "cabeza": "水头 (米)",
+      "ninguno": "无"
+    },
+    "modoTub": {
+      "caudal": "流量 (升/秒)",
+      "velocidad": "速度 (米/秒)",
+      "friccion": "摩擦系数 (f)",
+      "ninguno": "无"
+    },
+    "table": {
+      "id": "ID",
+      "hm": "H (米)",
+      "zm": "z (米)",
+      "pm": "P (米)",
+      "desde": "起点",
+      "hasta": "终点",
+      "qls": "Q (升/秒)",
+      "vms": "V (米/秒)",
+      "f": "f"
+    },
+    "action": {
+      "verMas": "查看更多"
+    },
+    "options": {
+      "selectOption": "选择一个选项",
+      "selectNode": "选择节点",
+      "title": {
+        "length": "长度",
+        "flow": "流量",
+        "volume": "体积",
+        "modoNodo": "节点显示",
+        "modoTuberia": "管道显示"
+      }
     }
   }
 }

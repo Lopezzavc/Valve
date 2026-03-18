@@ -175,6 +175,28 @@ export const calculatorsDef: CalcDef[] = [
     color: 'rgb(255, 55, 155)',
     progress: 2,
   },
+  {
+    desc: '',
+    id: 'serie-potencia',
+    route: 'seriePotenciaCalc',
+    icon: 'wind',
+    titleKey: 'seriePotencia.title',
+    descKey: 'seriePotencia.desc',
+    math: 'h_f = 10.67 \\frac{L Q^{1.85}}{C^{1.85} D^{4.87}}',
+    color: 'rgb(255, 55, 155)',
+    progress: 2,
+  },
+  {
+    desc: '',
+    id: 'paralelo-potencia',
+    route: 'paraleloPotenciaCalc',
+    icon: 'wind',
+    titleKey: 'paraleloPotencia.title',
+    descKey: 'paraleloPotencia.desc',
+    math: 'h_f = 10.67 \\frac{L Q^{1.85}}{C^{1.85} D^{4.87}}',
+    color: 'rgb(255, 55, 155)',
+    progress: 2,
+  },
 
   
 ];

@@ -12,6 +12,7 @@ import { FontSizeContext } from '../../contexts/FontSizeContext';
 import { useIsFocused } from '@react-navigation/native';
 import { calculatorsDef } from '../../src/data/calculators';
 import { ScrollView } from 'react-native';
+import FastImage from '@d11/react-native-fast-image'; // ← AGREGAR ESTA LÍNEA
 
 type RootStackParamList = {
   InfoScreen: undefined;
@@ -20,6 +21,7 @@ type RootStackParamList = {
   BernoulliCalc: undefined;
   ReynoldsCalc: undefined;
   ColebrookCalc: undefined;
+  AxisScreen: undefined;
 };
 
 const BAR_WIDTH = 4;
@@ -211,6 +213,75 @@ const CalcCard: React.FC<CalcCardProps> = ({
                 } 
               ]} 
             />
+          </View>
+        </Pressable>
+      </View>
+    </View>
+  );
+};
+
+const SpecialCard: React.FC<{
+  title: string;
+  navigation: any;
+  themeColors: any;
+  fontSizeFactor: number;
+  currentTheme: string; // ← AÑADE ESTA PROPIEDAD
+}> = ({ title, navigation, themeColors, fontSizeFactor, currentTheme }) => {
+  
+  // Determinar qué imagen usar según el tema
+  const getCardBackground = () => {
+    if (currentTheme === 'dark') {
+      return require('../../assets/ORBIT/cardBG_dark.png'); // Imagen para modo oscuro
+    }
+    return require('../../assets/ORBIT/cardBG.png'); // Imagen para modo claro
+  };
+
+  return (
+    <View style={styles.buttonContainer}>
+      <View style={{ width: '100%', paddingHorizontal: 20 }}>
+        <Pressable
+          style={[
+            stylesRef.contentBox,
+            { 
+              experimental_backgroundImage: themeColors.gradient,
+              minHeight: 80,
+            },
+          ]}
+          onPress={() => navigation.navigate('AxisScreen')}
+        >
+          <View
+            style={[
+              stylesRef.innerBox,
+              { 
+                backgroundColor: 'transparent', 
+                experimental_backgroundImage: themeColors.cardGradient,
+                position: 'relative',
+                overflow: 'hidden',
+              },
+            ]}
+          >
+            {/* IMAGEN SUPERPUESTA CON SOPORTE PARA MODO CLARO/OSCURO */}
+            <FastImage
+              source={getCardBackground()}
+              style={[
+                StyleSheet.absoluteFillObject,
+                {
+                  opacity: 1,
+                }
+              ]}
+              resizeMode={FastImage.resizeMode.cover}
+            />
+
+            {/* TEXTO */}
+            <View style={[stylesRef.textsContainer, { zIndex: 2 }]}>
+              <View>
+                <View style={stylesRef.titleContainerRef}>
+                  <Text style={[stylesRef.titleText, { color: themeColors.textStrong, fontSize: 16 * fontSizeFactor }]}>
+                    {title}
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
         </Pressable>
       </View>
@@ -464,7 +535,7 @@ const HomeScreen = () => {
   // Calculadoras BOMBAS
   const bombCards = useMemo(() =>
     calculatorsDef
-      .filter(c => ['bomb-Potencia'].includes(c.id))
+      .filter(c => ['bomb-Potencia', 'serie-potencia', 'paralelo-potencia'].includes(c.id))
       .map(c => ({
         key: c.id,
         title: t(c.titleKey) ?? c.id,
@@ -591,6 +662,16 @@ const HomeScreen = () => {
             {t('home.pressureDuctsTitle')}
           </Text>
         </View>
+
+        <View style={styles.preCardSubtitleWrap2}></View>
+
+        <SpecialCard
+          title="ORBIT"
+          navigation={navigation}
+          themeColors={themeColors}
+          fontSizeFactor={fontSizeFactor}
+          currentTheme={currentTheme}
+        />
 
         {/* PRIMERA SECCIÓN: Calculadoras esenciales */}
         <View style={styles.preCardSubtitleWrap}>
@@ -863,6 +944,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingHorizontal: 20,
     marginTop: 22,
+    marginBottom: -3,
+  },
+  preCardSubtitleWrap2: {
+    backgroundColor: 'transparent',
+    paddingHorizontal: 20,
+    marginTop: 15,
     marginBottom: -3,
   },
   preCardSubtitleBase: {
@@ -1174,6 +1261,18 @@ const stylesRef = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignContent: 'center',
+  },
+  specialCardImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    marginLeft: 10,
+  },
+  specialCardContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 });
 
