@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, useContext, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, FlatList, Alert, DeviceEventEmitter, Animated, LayoutChangeEvent } from 'react-native';
+import { View, Text, StyleSheet, Pressable, FlatList, Alert, DeviceEventEmitter, Animated, LayoutChangeEvent, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -309,6 +309,20 @@ const FavScreen = () => {
   return (
     <View style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
       <View style={styles.headerContainer}>
+        {/* Logo a la izquierda */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={
+              currentTheme === 'dark'
+                ? require('../../assets/icon/iconwhite.webp')
+                : require('../../assets/icon/iconblack.webp')
+            }
+            style={styles.headerIcon}
+            resizeMode="contain"
+          />
+        </View>
+          
+        {/* Botón de eliminar favoritos a la derecha */}
         <View style={styles.rightIconsContainer}>
           <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
             <Pressable
@@ -360,7 +374,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     minHeight: 45,
@@ -512,6 +526,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignContent: 'center',
     paddingHorizontal: 0,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  headerIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 6,
   },
 });
 

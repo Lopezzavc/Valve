@@ -1,39 +1,44 @@
 import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, Animated, Dimensions, LayoutChangeEvent } from 'react-native';
+import {
+  View, Text, StyleSheet, Pressable, TextInput,
+  Clipboard, ScrollView, Animated, Dimensions,
+} from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
-import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
-import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
-import FastImage from "@d11/react-native-fast-image";
+import FastImage from '@d11/react-native-fast-image';
+import Decimal from 'decimal.js';
 
-import { getDBConnection, createTable, saveCalculation } from '../../../src/services/database';
-import { createFavoritesTable, isFavorite, addFavorite, removeFavorite } from '../../../src/services/database';
-
+import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
+import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+import {
+  getDBConnection, createTable, saveCalculation,
+  createFavoritesTable, isFavorite, addFavorite, removeFavorite,
+} from '../../../src/services/database';
 
-import Decimal from 'decimal.js';
+// Recursos estáticos de imagen
+const logoLight       = require('../../../assets/icon/iconblack.webp');
+const logoDark        = require('../../../assets/icon/iconwhite.webp');
+const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
 
-const logoLight = require('../../../assets/icon/iconblack.webp');
-const logoDark = require('../../../assets/icon/iconwhite.webp');
+// Precisión global de Decimal para todos los cálculos numéricos del módulo
+Decimal.set({ precision: 20, rounding: Decimal.ROUND_HALF_EVEN });
 
-Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
-
+// Tipos de navegación del stack
 type RootStackParamList = {
   OptionsScreenReynolds: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
   HistoryScreenReynolds: undefined;
   ReynoldsTheory: undefined;
 };
 
-const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
-
-
+// Estructura del estado central de la calculadora
 interface CalculatorState {
   velocity: string;
   dimension: string;
@@ -60,18 +65,19 @@ interface CalculatorState {
   presetFluid: string;
 }
 
+// Factores de conversión de cada magnitud física hacia su unidad base del SI
 const conversionFactors: { [key: string]: { [key: string]: number } } = {
   velocity: {
-    'm/s': 1,
+    'm/s':  1,
     'km/h': 0.27777777777777777778,
     'ft/s': 0.3048,
-    'mph': 0.44704,
-    'kn': 0.51444444444444444444,
+    'mph':  0.44704,
+    'kn':   0.51444444444444444444,
     'cm/s': 0.01,
     'in/s': 0.0254,
   },
   length: {
-    'm': 1,
+    'm':  1,
     'mm': 0.001,
     'cm': 0.01,
     'km': 1000,
@@ -84,55 +90,56 @@ const conversionFactors: { [key: string]: { [key: string]: number } } = {
     'kg/m³': 1,
     'g/cm³': 1000,
     'lb/ft³': 16.018463373960139580,
-    'g/L': 1,
-    'kg/L': 1000,
+    'g/L':   1,
+    'kg/L':  1000,
   },
   dynamicViscosity: {
-    'Pa·s': 1,
-    'cP': 0.001,
-    'P': 0.1,
-    'mPa·s': 0.001,
-    'kg/(m·s)': 1,
+    'Pa·s':      1,
+    'cP':        0.001,
+    'P':         0.1,
+    'mPa·s':     0.001,
+    'kg/(m·s)':  1,
     'lb/(ft·s)': 1.4881639435695538,
     'lb/(ft·h)': 0.00041338443155264994,
   },
   kinematicViscosity: {
-    'm²/s': 1,
-    'cSt': 0.000001,
-    'St': 0.0001,
+    'm²/s':  1,
+    'cSt':   0.000001,
+    'St':    0.0001,
     'mm²/s': 0.000001,
     'cm²/s': 0.0001,
     'ft²/s': 0.09290304,
     'ft²/h': 0.000025806400000000000,
-  }
+  },
 };
 
+// Propiedades físicas de fluidos comunes a temperaturas específicas, en unidades SI (kg/m³ y Pa·s).
 const PRESET_FLUID_PROPS: Record<string, { rho: number; mu: number }> = {
-  'water_0C':   { rho: 999.84, mu: 0.001788 },
-  'water_4C':   { rho: 1000.00, mu: 0.0015673 },
-  'water_5C':   { rho: 999.97, mu: 0.0015182 },
-  'water_10C':  { rho: 999.70, mu: 0.001306 },
-  'water_15C':  { rho: 999.10, mu: 0.00114 },
-  'water_20C':  { rho: 998.21, mu: 0.001002 },
-  'water_25C':  { rho: 997.05, mu: 0.000890 },
-  'water_30C':  { rho: 995.65, mu: 0.000798 },
-  'water_35C':  { rho: 994.00, mu: 0.000719 },
-  'water_40C':  { rho: 992.22, mu: 0.000653 },
-  'water_50C':  { rho: 988.05, mu: 0.000547 },
-  'water_60C':  { rho: 983.20, mu: 0.000467 },
-  'water_70C':  { rho: 977.80, mu: 0.000404 },
-  'water_80C':  { rho: 971.80, mu: 0.000355 },
-  'water_90C':  { rho: 965.30, mu: 0.000315 },
-  'air_0C':     { rho: 1.275,  mu: 0.0000171 },
-  'air_20C':    { rho: 1.204,  mu: 0.0000181 },
-  'acetone_20C':  { rho: 784,    mu: 0.00000032 * 1000 },
-  'ethanol_20C':  { rho: 789,    mu: 0.00120 },
-  'glycerin_20C': { rho: 1260,   mu: 1.49 },
-  'mercury_20C':  { rho: 13534,  mu: 0.001526 },
-  'sae10_20C':    { rho: 870,    mu: 0.200 },
+  'water_0C':     { rho: 999.84,  mu: 0.001788 },
+  'water_4C':     { rho: 1000.00, mu: 0.0015673 },
+  'water_5C':     { rho: 999.97,  mu: 0.0015182 },
+  'water_10C':    { rho: 999.70,  mu: 0.001306 },
+  'water_15C':    { rho: 999.10,  mu: 0.00114 },
+  'water_20C':    { rho: 998.21,  mu: 0.001002 },
+  'water_25C':    { rho: 997.05,  mu: 0.000890 },
+  'water_30C':    { rho: 995.65,  mu: 0.000798 },
+  'water_35C':    { rho: 994.00,  mu: 0.000719 },
+  'water_40C':    { rho: 992.22,  mu: 0.000653 },
+  'water_50C':    { rho: 988.05,  mu: 0.000547 },
+  'water_60C':    { rho: 983.20,  mu: 0.000467 },
+  'water_70C':    { rho: 977.80,  mu: 0.000404 },
+  'water_80C':    { rho: 971.80,  mu: 0.000355 },
+  'water_90C':    { rho: 965.30,  mu: 0.000315 },
+  'air_0C':       { rho: 1.275,   mu: 0.0000171 },
+  'air_20C':      { rho: 1.204,   mu: 0.0000181 },
+  'acetone_20C':  { rho: 784,     mu: 0.000316},
+  'ethanol_20C':  { rho: 789,     mu: 0.00120 },
+  'glycerin_20C': { rho: 1260,    mu: 1.49 },
+  'mercury_20C':  { rho: 13534,   mu: 0.001526 },
+  'sae10_20C':    { rho: 870,     mu: 0.200 },
 };
 
-// Configuración del Toast
+// Configuración visual de los mensajes Toast del sistema
 const toastConfig = {
   success: (props: BaseToastProps) => (
     <BaseToast
@@ -154,6 +161,7 @@ const toastConfig = {
   ),
 };
 
+// Estado inicial limpio para una sesión de cálculo nueva
 const initialState = (): CalculatorState => ({
   velocity: '',
   dimension: '',
@@ -182,102 +190,58 @@ const initialState = (): CalculatorState => ({
 
 const ReynoldsCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { formatNumber } = useContext(PrecisionDecimalContext);
+
+  // Contextos globales de configuración
+  const { formatNumber }             = useContext(PrecisionDecimalContext);
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
-  const { fontSizeFactor } = useContext(FontSizeContext);
-
-  const { currentTheme } = useTheme();
-  const { t, selectedLanguage } = useContext(LanguageContext);
-
-  // ── Custom keyboard ──────────────────────────────────────────────────────────
+  const { fontSizeFactor }           = useContext(FontSizeContext);
+  const { currentTheme }             = useTheme();
+  const { t, selectedLanguage }      = useContext(LanguageContext);
   const { activeInputId, setActiveInputId } = useKeyboard();
 
-  const stateRef = useRef<CalculatorState>(initialState());
-
+  // Referencias que permiten acceder a valores actuales sin generar dependencias en closures
+  const stateRef         = useRef<CalculatorState>(initialState());
   const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  const themeColors = React.useMemo(() => {
-    if (currentTheme === 'dark') {
-      return {
-        card: 'rgb(24,24,24)',
-        text: 'rgb(235,235,235)',
-        textStrong: 'rgb(250,250,250)',
-        separator: 'rgba(255,255,255,0.12)',
-        icon: 'rgb(245,245,245)',
-        gradient: 'linear-gradient(to bottom right, rgba(170, 170, 170, 0.4) 30%, rgba(58, 58, 58, 0.4) 45%, rgba(58, 58, 58, 0.4) 55%, rgba(170, 170, 170, 0.4)) 70%',
-        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
-        blockInput: 'rgba(30, 30, 30, 1)',
-      };
-    }
-    return {
-      card: 'rgba(255, 255, 255, 1)',
-      text: 'rgb(0, 0, 0)',
-      textStrong: 'rgb(0, 0, 0)',
-      separator: 'rgb(235, 235, 235)',
-      icon: 'rgb(0, 0, 0)',
-      gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
-      cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
-      blockInput: 'rgba(240, 240, 240, 1)',
-    };
-  }, [currentTheme]);
+  const scrollViewRef    = useRef<ScrollView>(null);
+  const inputRefs        = useRef<Record<string, View | null>>({});
+  const activeInputIdRef = useRef<string | null>(null);
+  const dbRef            = useRef<any>(null);
+  const heartScale       = useRef(new Animated.Value(1)).current;
 
   const [state, setState] = useState<CalculatorState>(initialState);
+  const [isFav, setIsFav] = useState(false);
 
-  useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
+  // Mantenimiento de refs sincronizadas con los últimos valores reactivos
+  useEffect(() => { stateRef.current = state; }, [state]);
+  useEffect(() => { activeInputIdRef.current = activeInputId; }, [activeInputId]);
 
+  // Cierre del teclado personalizado al perder el foco la pantalla
   useFocusEffect(
     React.useCallback(() => {
-      return () => {
-        setActiveInputId(null);
-      };
+      return () => setActiveInputId(null);
     }, [])
   );
 
-  const scrollViewRef = useRef<ScrollView>(null);
-  const inputRefs = useRef<Record<string, View | null>>({});
-  const activeInputIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    activeInputIdRef.current = activeInputId;
-  }, [activeInputId]);
-
+  // Desplazamiento automático para mantener el input activo visible sobre el teclado
   useEffect(() => {
     if (!activeInputId) return;
     const viewRef = inputRefs.current[activeInputId];
     if (!viewRef || !scrollViewRef.current) return;
-
     setTimeout(() => {
       viewRef.measureLayout(
         scrollViewRef.current as any,
         (_x, y, _w, height) => {
           const KEYBOARD_HEIGHT = 280;
-          const SCREEN_HEIGHT = Dimensions.get('window').height;
-          const targetScrollY = y - (SCREEN_HEIGHT - KEYBOARD_HEIGHT - height - 30);
-          scrollViewRef.current?.scrollTo({ y: Math.max(0, targetScrollY), animated: true });
+          const SCREEN_HEIGHT   = Dimensions.get('window').height;
+          const targetY = y - (SCREEN_HEIGHT - KEYBOARD_HEIGHT - height - 30);
+          scrollViewRef.current?.scrollTo({ y: Math.max(0, targetY), animated: true });
         },
         () => {}
       );
     }, 150);
   }, [activeInputId]);
 
-  const heartScale = useRef(new Animated.Value(1)).current;
-
-  const regimeKey = React.useMemo(() => {
-    const Re = state.resultReynolds;
-    if (!Re || !isFinite(Re)) {
-      return 'reynoldsCalc.reynolds';
-    }
-    if (Re < 2300) return 'reynoldsCalc.regime.laminar';
-    if (Re < 4000) return 'reynoldsCalc.regime.transitional';
-    return 'reynoldsCalc.regime.turbulent';
-  }, [state.resultReynolds]);
-
-  const dbRef = useRef<any>(null);
-  const [isFav, setIsFav] = useState(false);
-
+  // Conexión a la base de datos y verificación del estado de favorito al montar
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -287,7 +251,6 @@ const ReynoldsCalc: React.FC = () => {
         await createTable(db);
         await createFavoritesTable(db);
         dbRef.current = db;
-
         const fav = await isFavorite(db, 'ReynoldsCalc');
         if (mounted) setIsFav(fav);
       } catch {}
@@ -295,50 +258,68 @@ const ReynoldsCalc: React.FC = () => {
     return () => { mounted = false; };
   }, []);
 
-  const toggleFavorite = useCallback(async () => {
-    try {
-      const db = dbRef.current ?? await getDBConnection();
-      if (!dbRef.current) {
-        await createTable(db);
-        await createFavoritesTable(db);
-        dbRef.current = db;
-      }
-    
-      const route = 'ReynoldsCalc';
-      const label = t('reynoldsCalc.title') || 'Calculadora de Reynolds';
-    
-      const currentlyFav = await isFavorite(db, route);
-      if (currentlyFav) {
-        await removeFavorite(db, route);
-        setIsFav(false);
-        Toast.show({ type: 'error', text1: t('favorites.deleted'), text2: t('favorites.deletedDesc') });
-      } else {
-        await addFavorite(db, { route, label });
-        setIsFav(true);
-        Toast.show({ type: 'success', text1: t('favorites.success'), text2: t('favorites.successDesc') });
-      }
-    } catch (e) {
-      Toast.show({ type: 'error', text1: t('common.error'), text2: t('common.genericError') });
-    }
-  }, [t]);
-
-  const bounceHeart = useCallback(() => {
-    Animated.sequence([
-      Animated.spring(heartScale, { toValue: 1.15, useNativeDriver: true, bounciness: 8, speed: 40 }),
-      Animated.spring(heartScale, { toValue: 1.0, useNativeDriver: true, bounciness: 8, speed: 40 }),
-    ]).start();
-  }, [heartScale]);
-
+  // Bloqueo automático del campo de fluido que puede derivarse cuando exactamente dos de los tres están llenos
   useEffect(() => {
-    updateLockedFluidField();
+    const fluidFields = [
+      { id: 'density',            value: state.density },
+      { id: 'dynamicViscosity',   value: state.dynamicViscosity },
+      { id: 'kinematicViscosity', value: state.kinematicViscosity },
+    ];
+    const isValid    = (v: string) => v !== '' && Number.isFinite(parseFloat(v.replace(',', '.')));
+    const validCount = fluidFields.filter(({ value }) => isValid(value)).length;
+    const lockedField = validCount === 2
+      ? (fluidFields.find(({ value }) => !isValid(value))?.id ?? null)
+      : null;
+    setState(prev => ({ ...prev, lockedFluidField: lockedField }));
   }, [state.density, state.dynamicViscosity, state.kinematicViscosity]);
 
+  // Paleta de colores derivada del tema activo
+  const themeColors = React.useMemo(() => {
+    if (currentTheme === 'dark') {
+      return {
+        card:         'rgb(24,24,24)',
+        text:         'rgb(235,235,235)',
+        textStrong:   'rgb(250,250,250)',
+        separator:    'rgba(255,255,255,0.12)',
+        icon:         'rgb(245,245,245)',
+        gradient:     'linear-gradient(to bottom right, rgba(170, 170, 170, 0.4) 30%, rgba(58, 58, 58, 0.4) 45%, rgba(58, 58, 58, 0.4) 55%, rgba(170, 170, 170, 0.4)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
+        blockInput:   'rgba(30, 30, 30, 1)',
+      };
+    }
+    return {
+      card:         'rgba(255, 255, 255, 1)',
+      text:         'rgb(0, 0, 0)',
+      textStrong:   'rgb(0, 0, 0)',
+      separator:    'rgb(235, 235, 235)',
+      icon:         'rgb(0, 0, 0)',
+      gradient:     'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
+      blockInput:   'rgba(240, 240, 240, 1)',
+    };
+  }, [currentTheme]);
+
+  // Clave de traducción del régimen de flujo según el número de Reynolds calculado
+  const regimeKey = React.useMemo(() => {
+    const Re = state.resultReynolds;
+    if (!Re || !isFinite(Re)) return 'reynoldsCalc.reynolds';
+    if (Re < 2300)            return 'reynoldsCalc.regime.laminar';
+    if (Re < 4000)            return 'reynoldsCalc.regime.transitional';
+    return 'reynoldsCalc.regime.turbulent';
+  }, [state.resultReynolds]);
+
+  // Formateo de un número para mostrar, eliminando ceros decimales finales con Decimal para mayor precisión
   const formatResult = useCallback((num: number): string => {
-    if (isNaN(num)) return '';
-    const fixed = num.toFixed(15);
-    return fixed.replace(/\.?0+$/, '');
+    if (!Number.isFinite(num)) return '';
+    return new Decimal(num).toDecimalPlaces(15).toString();
   }, []);
 
+  // Sustitución del punto decimal por coma según la preferencia del usuario
+  const adjustDecimalSeparator = useCallback((value: string): string => {
+    return selectedDecimalSeparator === 'Coma' ? value.replace('.', ',') : value;
+  }, [selectedDecimalSeparator]);
+
+  // Conversión de un valor entre unidades dentro de la misma categoría física
   const convertValue = useCallback((
     value: string,
     fromUnit: string,
@@ -346,50 +327,43 @@ const ReynoldsCalc: React.FC = () => {
     category: 'velocity' | 'length' | 'density' | 'dynamicViscosity' | 'kinematicViscosity'
   ): string => {
     const cleanValue = value.replace(',', '.');
-    if (cleanValue === '' || isNaN(parseFloat(cleanValue))) return value;
-    const numValue = parseFloat(cleanValue);
+    if (cleanValue === '' || !Number.isFinite(parseFloat(cleanValue))) return value;
     const fromFactor = conversionFactors[category][fromUnit];
-    const toFactor = conversionFactors[category][toUnit];
+    const toFactor   = conversionFactors[category][toUnit];
     if (!fromFactor || !toFactor) return value;
-    const convertedValue = (numValue * fromFactor) / toFactor;
-    return formatResult(convertedValue);
+    const result = new Decimal(cleanValue)
+      .times(fromFactor.toString())
+      .dividedBy(toFactor.toString());
+    return formatResult(result.toNumber());
   }, [formatResult]);
 
-  const adjustDecimalSeparator = useCallback((formattedNumber: string): string => {
-    return selectedDecimalSeparator === 'Coma' ? formattedNumber.replace('.', ',') : formattedNumber;
-  }, [selectedDecimalSeparator]);
-
-  const updateLockedFluidField = useCallback(() => {
-    const inputs = [
-      { id: 'density', value: state.density },
-      { id: 'dynamicViscosity', value: state.dynamicViscosity },
-      { id: 'kinematicViscosity', value: state.kinematicViscosity },
-    ];
-    const validInputs = inputs.filter(({ value }) => value !== '' && !isNaN(parseFloat(value.replace(',', '.'))));
-    if (validInputs.length === 2) {
-      const emptyInput = inputs.find(({ value }) => value === '' || isNaN(parseFloat(value.replace(',', '.'))));
-      setState((prev) => ({ ...prev, lockedFluidField: emptyInput ? emptyInput.id : null }));
-    } else {
-      setState((prev) => ({ ...prev, lockedFluidField: null }));
-    }
-  }, [state.density, state.dynamicViscosity, state.kinematicViscosity]);
-
+  // Cálculo principal del número de Reynolds con derivación automática de la propiedad de fluido faltante
   const calculateReynolds = useCallback(() => {
-    const velocity = state.velocity ? parseFloat(state.velocity.replace(',', '.')) * conversionFactors.velocity[state.velocityUnit] : NaN;
-    const dimension = state.dimension ? parseFloat(state.dimension.replace(',', '.')) * conversionFactors.length[state.dimensionUnit] : NaN;
-    const density = state.density ? parseFloat(state.density.replace(',', '.')) * conversionFactors.density[state.densityUnit] : NaN;
-    const dynamicVisc = state.dynamicViscosity ? parseFloat(state.dynamicViscosity.replace(',', '.')) * conversionFactors.dynamicViscosity[state.dynamicViscosityUnit] : NaN;
-    const kinematicVisc = state.kinematicViscosity ? parseFloat(state.kinematicViscosity.replace(',', '.')) * conversionFactors.kinematicViscosity[state.kinematicViscosityUnit] : NaN;
+    const toBase = (raw: string, factor: number): Decimal | null => {
+      const clean = raw.replace(',', '.');
+      if (!clean || !Number.isFinite(parseFloat(clean))) return null;
+      try {
+        return new Decimal(clean).times(factor.toString());
+      } catch {
+        return null;
+      }
+    };
+
+    const dV  = toBase(state.velocity,          conversionFactors.velocity[state.velocityUnit]);
+    const dL  = toBase(state.dimension,          conversionFactors.length[state.dimensionUnit]);
+    const dRo = toBase(state.density,            conversionFactors.density[state.densityUnit]);
+    const dMu = toBase(state.dynamicViscosity,   conversionFactors.dynamicViscosity[state.dynamicViscosityUnit]);
+    const dNu = toBase(state.kinematicViscosity, conversionFactors.kinematicViscosity[state.kinematicViscosityUnit]);
 
     const invalids: string[] = [];
-    if (isNaN(velocity)) invalids.push('velocity');
-    if (isNaN(dimension)) invalids.push('dimension');
+    if (!dV) invalids.push('velocity');
+    if (!dL) invalids.push('dimension');
 
-    const fluidProvidedCount = [density, dynamicVisc, kinematicVisc].filter(v => !isNaN(v)).length;
-    if (fluidProvidedCount < 2) {
-      if (isNaN(density)) invalids.push('density');
-      if (isNaN(dynamicVisc)) invalids.push('dynamicViscosity');
-      if (isNaN(kinematicVisc)) invalids.push('kinematicViscosity');
+    const fluidCount = [dRo, dMu, dNu].filter(Boolean).length;
+    if (fluidCount < 2) {
+      if (!dRo) invalids.push('density');
+      if (!dMu) invalids.push('dynamicViscosity');
+      if (!dNu) invalids.push('kinematicViscosity');
     }
 
     if (invalids.length > 0) {
@@ -405,108 +379,89 @@ const ReynoldsCalc: React.FC = () => {
       Toast.show({
         type: 'error',
         text1: t('common.error'),
-        text2:
-          (isNaN(velocity) || isNaN(dimension))
-            ? (t('reynoldsCalc.toasts.velocityDimensionRequired') || 'Velocidad y dimensión requeridas')
-            : (t('reynoldsCalc.toasts.fluidPropsRequired') || 'Se requieren al menos 2 propiedades del fluido'),
+        text2: (!dV || !dL)
+          ? t('reynoldsCalc.toasts.velocityDimensionRequired') || 'Velocidad y dimensión requeridas'
+          : t('reynoldsCalc.toasts.fluidPropsRequired') || 'Se requieren al menos 2 propiedades del fluido',
       });
       return;
     }
 
-    const newState: Partial<CalculatorState> = {};
+    const partial: Partial<CalculatorState> = {};
+    let finalRo = dRo;
+    let finalMu = dMu;
+    let finalNu = dNu;
 
-    if (fluidProvidedCount === 2) {
-      if (isNaN(density)) {
-        const calculated = dynamicVisc / kinematicVisc;
-        if (!isNaN(calculated) && isFinite(calculated) && calculated > 0) {
-          const resultInTargetUnit = calculated / conversionFactors.density[state.densityUnit];
-          newState.resultDensity = formatResult(resultInTargetUnit);
-          newState.autoCalculatedField = 'density';
-        }
-      } else if (isNaN(dynamicVisc)) {
-        const calculated = density * kinematicVisc;
-        if (!isNaN(calculated) && isFinite(calculated)) {
-          const resultInTargetUnit = calculated / conversionFactors.dynamicViscosity[state.dynamicViscosityUnit];
-          newState.resultDynamicViscosity = formatResult(resultInTargetUnit);
-          newState.autoCalculatedField = 'dynamicViscosity';
-        }
-      } else if (isNaN(kinematicVisc)) {
-        const calculated = dynamicVisc / density;
-        if (!isNaN(calculated) && isFinite(calculated)) {
-          const resultInTargetUnit = calculated / conversionFactors.kinematicViscosity[state.kinematicViscosityUnit];
-          newState.resultKinematicViscosity = formatResult(resultInTargetUnit);
-          newState.autoCalculatedField = 'kinematicViscosity';
-        }
+    if (fluidCount === 2) {
+      if (!dRo && dMu && dNu && dNu.gt(0)) {
+        finalRo = dMu.dividedBy(dNu);
+        const inUnit = finalRo.dividedBy(conversionFactors.density[state.densityUnit].toString());
+        partial.resultDensity = formatResult(inUnit.toNumber());
+        partial.autoCalculatedField = 'density';
+      } else if (!dMu && dRo && dNu) {
+        finalMu = dRo.times(dNu);
+        const inUnit = finalMu.dividedBy(conversionFactors.dynamicViscosity[state.dynamicViscosityUnit].toString());
+        partial.resultDynamicViscosity = formatResult(inUnit.toNumber());
+        partial.autoCalculatedField = 'dynamicViscosity';
+      } else if (!dNu && dMu && dRo && dRo.gt(0)) {
+        finalNu = dMu.dividedBy(dRo);
+        const inUnit = finalNu.dividedBy(conversionFactors.kinematicViscosity[state.kinematicViscosityUnit].toString());
+        partial.resultKinematicViscosity = formatResult(inUnit.toNumber());
+        partial.autoCalculatedField = 'kinematicViscosity';
       }
     }
 
-    const finalDensity = !isNaN(density)
-      ? density
-      : (newState.resultDensity ? parseFloat(newState.resultDensity) * conversionFactors.density[state.densityUnit] : NaN);
-
-    let reynoldsNumber = 0;
-    if (!isNaN(finalDensity) && !isNaN(dynamicVisc)) {
-      reynoldsNumber = (finalDensity * velocity * dimension) / dynamicVisc;
-    } else if (!isNaN(kinematicVisc)) {
-      reynoldsNumber = (velocity * dimension) / kinematicVisc;
-    } else if (newState.resultDynamicViscosity && !isNaN(finalDensity)) {
-      const calcDyn = parseFloat(newState.resultDynamicViscosity) * conversionFactors.dynamicViscosity[state.dynamicViscosityUnit];
-      reynoldsNumber = (finalDensity * velocity * dimension) / calcDyn;
-    } else if (newState.resultKinematicViscosity) {
-      const calcKin = parseFloat(newState.resultKinematicViscosity) * conversionFactors.kinematicViscosity[state.kinematicViscosityUnit];
-      reynoldsNumber = (velocity * dimension) / calcKin;
+    let reynoldsDecimal: Decimal | null = null;
+    if (dV && dL) {
+      if (finalRo && finalMu && finalMu.gt(0)) {
+        reynoldsDecimal = finalRo.times(dV).times(dL).dividedBy(finalMu);
+      } else if (finalNu && finalNu.gt(0)) {
+        reynoldsDecimal = dV.times(dL).dividedBy(finalNu);
+      }
     }
 
-    newState.resultReynolds = (!isNaN(reynoldsNumber) && isFinite(reynoldsNumber)) ? reynoldsNumber : 0;
-    setState(prev => ({ ...prev, ...newState, invalidFields: [] }));
+    partial.resultReynolds = (reynoldsDecimal && reynoldsDecimal.isFinite())
+      ? reynoldsDecimal.toNumber()
+      : 0;
+
+    setState(prev => ({ ...prev, ...partial, invalidFields: [] }));
   }, [state, formatResult, t]);
 
-  const handleCalculate = useCallback(() => {
-    calculateReynolds();
-  }, [calculateReynolds]);
-
-  const handleClear = useCallback(() => {
-    setState(initialState);
-  }, []);
-
+  // Copia de resultados e inputs al portapapeles como texto formateado
   const handleCopy = useCallback(() => {
     const hasResults = state.resultReynolds !== 0 || state.resultDensity || state.resultDynamicViscosity || state.resultKinematicViscosity;
-
     if (!hasResults) {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('reynoldsCalc.toasts.noResultsToCopy') || 'No hay resultados para copiar' });
       return;
     }
 
-    let textToCopy = `${t('reynoldsCalc.title') || 'Calculadora de Reynolds'}\n\n`;
+    let text = `${t('reynoldsCalc.title') || 'Calculadora de Reynolds'}\n\n`;
 
     if (state.resultReynolds !== 0) {
-      textToCopy += `${t('reynoldsCalc.reynoldsNumber') || 'Número de Reynolds'}: ${formatResult(state.resultReynolds)}\n\n`;
+      text += `${t('reynoldsCalc.reynoldsNumber') || 'Número de Reynolds'}: ${formatResult(state.resultReynolds)}\n\n`;
     }
 
     if (state.velocity || state.dimension) {
-      textToCopy += `${t('reynoldsCalc.flowParameters') || 'Parámetros de Flujo'}:\n`;
-      if (state.velocity) textToCopy += `  ${t('reynoldsCalc.labels.velocity') || 'Velocidad'}: ${state.velocity} ${state.velocityUnit}\n`;
-      if (state.dimension) textToCopy += `  ${t('reynoldsCalc.labels.dimension') || 'Dimensión Característica'}: ${state.dimension} ${state.dimensionUnit}\n`;
-      textToCopy += '\n';
+      text += `${t('reynoldsCalc.flowParameters') || 'Parámetros de Flujo'}:\n`;
+      if (state.velocity)  text += `  ${t('reynoldsCalc.labels.velocity')  || 'Velocidad'}: ${state.velocity} ${state.velocityUnit}\n`;
+      if (state.dimension) text += `  ${t('reynoldsCalc.labels.dimension') || 'Dimensión Característica'}: ${state.dimension} ${state.dimensionUnit}\n`;
+      text += '\n';
     }
 
-    textToCopy += `${t('reynoldsCalc.fluidProperties') || 'Propiedades del Fluido'}:\n`;
-    
-    const densityValue = state.resultDensity || state.density;
-    const dynamicViscValue = state.resultDynamicViscosity || state.dynamicViscosity;
-    const kinematicViscValue = state.resultKinematicViscosity || state.kinematicViscosity;
-    
-    if (densityValue) textToCopy += `  ${t('reynoldsCalc.labels.density') || 'Densidad'}: ${densityValue} ${state.densityUnit}\n`;
-    if (dynamicViscValue) textToCopy += `  ${t('reynoldsCalc.labels.dynamicViscosity') || 'Viscosidad Dinámica'}: ${dynamicViscValue} ${state.dynamicViscosityUnit}\n`;
-    if (kinematicViscValue) textToCopy += `  ${t('reynoldsCalc.labels.kinematicViscosity') || 'Viscosidad Cinemática'}: ${kinematicViscValue} ${state.kinematicViscosityUnit}\n`;
+    text += `${t('reynoldsCalc.fluidProperties') || 'Propiedades del Fluido'}:\n`;
+    const densityVal = state.resultDensity            || state.density;
+    const dynViscVal = state.resultDynamicViscosity   || state.dynamicViscosity;
+    const kinViscVal = state.resultKinematicViscosity || state.kinematicViscosity;
+    if (densityVal) text += `  ${t('reynoldsCalc.labels.density')            || 'Densidad'}: ${densityVal} ${state.densityUnit}\n`;
+    if (dynViscVal) text += `  ${t('reynoldsCalc.labels.dynamicViscosity')   || 'Viscosidad Dinámica'}: ${dynViscVal} ${state.dynamicViscosityUnit}\n`;
+    if (kinViscVal) text += `  ${t('reynoldsCalc.labels.kinematicViscosity') || 'Viscosidad Cinemática'}: ${kinViscVal} ${state.kinematicViscosityUnit}\n`;
 
-    Clipboard.setString(textToCopy);
+    Clipboard.setString(text);
     Toast.show({ type: 'success', text1: t('common.success'), text2: t('reynoldsCalc.toasts.copied') || 'Resultados copiados al portapapeles' });
   }, [state, formatResult, t]);
 
+  // Persistencia del cálculo actual en el historial de la base de datos
   const handleSaveHistory = useCallback(async () => {
     const hasResults = state.resultReynolds !== 0 || state.resultDensity || state.resultDynamicViscosity || state.resultKinematicViscosity;
-
     if (!hasResults) {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('reynoldsCalc.toasts.nothingToSave') || 'No hay resultados para guardar' });
       return;
@@ -520,21 +475,19 @@ const ReynoldsCalc: React.FC = () => {
       }
 
       const inputs = {
-        velocity: state.velocity || 'N/A',
-        velocityUnit: state.velocityUnit,
-        dimension: state.dimension || 'N/A',
-        dimensionUnit: state.dimensionUnit,
-        density: state.resultDensity || state.density || 'N/A',
-        densityUnit: state.densityUnit,
-        dynamicViscosity: state.resultDynamicViscosity || state.dynamicViscosity || 'N/A',
-        dynamicViscosityUnit: state.dynamicViscosityUnit,
-        kinematicViscosity: state.resultKinematicViscosity || state.kinematicViscosity || 'N/A',
+        velocity:               state.velocity               || 'N/A',
+        velocityUnit:           state.velocityUnit,
+        dimension:              state.dimension               || 'N/A',
+        dimensionUnit:          state.dimensionUnit,
+        density:                state.resultDensity          || state.density            || 'N/A',
+        densityUnit:            state.densityUnit,
+        dynamicViscosity:       state.resultDynamicViscosity || state.dynamicViscosity   || 'N/A',
+        dynamicViscosityUnit:   state.dynamicViscosityUnit,
+        kinematicViscosity:     state.resultKinematicViscosity || state.kinematicViscosity || 'N/A',
         kinematicViscosityUnit: state.kinematicViscosityUnit,
       };
 
-      const result = formatResult(state.resultReynolds);
-
-      await saveCalculation(db, 'reynolds', JSON.stringify(inputs), result);
+      await saveCalculation(db, 'reynolds', JSON.stringify(inputs), formatResult(state.resultReynolds));
       Toast.show({ type: 'success', text1: t('common.success'), text2: t('reynoldsCalc.toasts.saved') || 'Cálculo guardado en el historial' });
     } catch (error) {
       console.error('Error al guardar el historial:', error);
@@ -542,13 +495,52 @@ const ReynoldsCalc: React.FC = () => {
     }
   }, [state, formatResult, t]);
 
-  const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string) => {
+  // Alternancia del estado de favorito con animación del icono de corazón
+  const toggleFavorite = useCallback(async () => {
+    try {
+      const db = dbRef.current ?? await getDBConnection();
+      if (!dbRef.current) {
+        await createTable(db);
+        await createFavoritesTable(db);
+        dbRef.current = db;
+      }
+      const route = 'ReynoldsCalc';
+      const label = t('reynoldsCalc.title') || 'Calculadora de Reynolds';
+      const currentlyFav = await isFavorite(db, route);
+      if (currentlyFav) {
+        await removeFavorite(db, route);
+        setIsFav(false);
+        Toast.show({ type: 'error', text1: t('favorites.deleted'), text2: t('favorites.deletedDesc') });
+      } else {
+        await addFavorite(db, { route, label });
+        setIsFav(true);
+        Toast.show({ type: 'success', text1: t('favorites.success'), text2: t('favorites.successDesc') });
+      }
+    } catch {
+      Toast.show({ type: 'error', text1: t('common.error'), text2: t('common.genericError') });
+    }
+  }, [t]);
+
+  const bounceHeart = useCallback(() => {
+    Animated.sequence([
+      Animated.spring(heartScale, { toValue: 1.15, useNativeDriver: true, bounciness: 8, speed: 40 }),
+      Animated.spring(heartScale, { toValue: 1.0,  useNativeDriver: true, bounciness: 8, speed: 40 }),
+    ]).start();
+  }, [heartScale]);
+
+  // Redirige a la pantalla de selección de unidades para una categoría física dada
+  const navigateToOptions = useCallback((
+    category: string,
+    onSelectOption: (opt: string) => void,
+    selectedOption?: string
+  ) => {
     navigation.navigate('OptionsScreenReynolds', { category, onSelectOption, selectedOption });
   }, [navigation]);
 
+  // Carga de propiedades predefinidas de un fluido en los campos de densidad y viscosidad dinámica
   const handleSelectPresetFluid = useCallback((option: string) => {
     if (option === 'custom') {
-      setState((prev) => ({
+      setState(prev => ({
         ...prev,
         presetFluid: option,
         density: '',
@@ -562,10 +554,14 @@ const ReynoldsCalc: React.FC = () => {
     const props = PRESET_FLUID_PROPS[option];
     if (!props) return;
 
-    const rhoDisplay = (props.rho / conversionFactors.density[state.densityUnit]).toString();
-    const muDisplay  = (props.mu  / conversionFactors.dynamicViscosity[state.dynamicViscosityUnit]).toString();
+    const rhoDisplay = new Decimal(props.rho)
+      .dividedBy(conversionFactors.density[state.densityUnit].toString())
+      .toDecimalPlaces(15).toString();
+    const muDisplay = new Decimal(props.mu)
+      .dividedBy(conversionFactors.dynamicViscosity[state.dynamicViscosityUnit].toString())
+      .toDecimalPlaces(15).toString();
 
-    setState((prev) => ({
+    setState(prev => ({
       ...prev,
       presetFluid: option,
       density: rhoDisplay,
@@ -577,70 +573,40 @@ const ReynoldsCalc: React.FC = () => {
     }));
   }, [state.densityUnit, state.dynamicViscosityUnit]);
 
-  // ── Handlers del teclado custom ──────────────────────────────────────────────
-  const getActiveValue = useCallback((): string => {
+  const handleClear = useCallback(() => setState(initialState), []);
+
+  // Enrutador interno del teclado personalizado que aplica una transformación al input activo en ese momento
+  const withActiveInput = useCallback((transform: (current: string) => string) => {
     const id = activeInputIdRef.current;
-    if (!id) return '';
+    if (!id) return;
+    const handler = inputHandlersRef.current[id];
+    if (!handler) return;
     const s = stateRef.current;
-    const map: Record<string, string> = {
-      velocity: s.velocity,
-      dimension: s.dimension,
-      density: s.density,
-      dynamicViscosity: s.dynamicViscosity,
+    const valueMap: Record<string, string> = {
+      velocity:           s.velocity,
+      dimension:          s.dimension,
+      density:            s.density,
+      dynamicViscosity:   s.dynamicViscosity,
       kinematicViscosity: s.kinematicViscosity,
     };
-    return map[id] ?? '';
+    handler(transform(valueMap[id] ?? ''));
   }, []);
 
-  const handleKeyboardKey = useCallback((key: string) => {
-    const id = activeInputIdRef.current;
-    if (!id) return;
-    const handler = inputHandlersRef.current[id];
-    if (!handler) return;
-    handler(getActiveValue() + key);
-  }, []);
+  // Manejadores individuales de las acciones del teclado personalizado
+  const handleKeyboardKey        = useCallback((key: string) => withActiveInput(v => v + key), [withActiveInput]);
+  const handleKeyboardDelete     = useCallback(() => withActiveInput(v => v.slice(0, -1)), [withActiveInput]);
+  const handleKeyboardClear      = useCallback(() => withActiveInput(() => ''), [withActiveInput]);
+  const handleKeyboardMultiply10 = useCallback(() => withActiveInput(v => {
+    if (!v || v === '.') return v;
+    return new Decimal(v.replace(',', '.')).times(10).toString();
+  }), [withActiveInput]);
+  const handleKeyboardDivide10   = useCallback(() => withActiveInput(v => {
+    if (!v || v === '.') return v;
+    return new Decimal(v.replace(',', '.')).dividedBy(10).toString();
+  }), [withActiveInput]);
+  const handleKeyboardSubmit     = useCallback(() => setActiveInputId(null), [setActiveInputId]);
 
-  const handleKeyboardDelete = useCallback(() => {
-    const id = activeInputIdRef.current;
-    if (!id) return;
-    const handler = inputHandlersRef.current[id];
-    if (!handler) return;
-    handler(getActiveValue().slice(0, -1));
-  }, []);
-
-  const handleKeyboardClear = useCallback(() => {
-    const id = activeInputIdRef.current;
-    if (!id) return;
-    const handler = inputHandlersRef.current[id];
-    if (!handler) return;
-    handler('');
-  }, []);
-
-  const handleKeyboardMultiply10 = useCallback(() => {
-    const id = activeInputIdRef.current;
-    if (!id) return;
-    const handler = inputHandlersRef.current[id];
-    if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) * 10).toString());
-  }, []);
-
-  const handleKeyboardDivide10 = useCallback(() => {
-    const id = activeInputIdRef.current;
-    if (!id) return;
-    const handler = inputHandlersRef.current[id];
-    if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) / 10).toString());
-  }, []);
-
-  const handleKeyboardSubmit = useCallback(() => {
-    setActiveInputId(null);
-  }, [setActiveInputId]);
-  // ─────────────────────────────────────────────────────────────────────────────
-
+  // Renderizado de una fila de input etiquetada con su selector de unidades
   const renderInput = useCallback((
     labelKey: string,
     value: string,
@@ -650,41 +616,52 @@ const ReynoldsCalc: React.FC = () => {
     displayLabel?: string,
     isLocked?: boolean
   ) => {
-    const unitByField: { [K in NonNullable<typeof fieldId>]: string } = {
-      velocity: state.velocityUnit,
-      dimension: state.dimensionUnit,
-      density: state.densityUnit,
-      dynamicViscosity: state.dynamicViscosityUnit,
+    const unitByField: Record<NonNullable<typeof fieldId>, string> = {
+      velocity:           state.velocityUnit,
+      dimension:          state.dimensionUnit,
+      density:            state.densityUnit,
+      dynamicViscosity:   state.dynamicViscosityUnit,
       kinematicViscosity: state.kinematicViscosityUnit,
     } as const;
-  
-    const shownLabel = displayLabel || t(labelKey);
-    const unit = fieldId ? unitByField[fieldId] : '';
-    const isFieldLocked = isLocked || (fieldId && state.lockedFluidField === fieldId);
-    const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
-  
+
     const categoryByField: Record<NonNullable<typeof fieldId>, 'velocity' | 'length' | 'density' | 'dynamicViscosity' | 'kinematicViscosity'> = {
-      velocity: 'velocity',
-      dimension: 'length',
-      density: 'density',
-      dynamicViscosity: 'dynamicViscosity',
+      velocity:           'velocity',
+      dimension:          'length',
+      density:            'density',
+      dynamicViscosity:   'dynamicViscosity',
       kinematicViscosity: 'kinematicViscosity',
     };
+
+    const shownLabel       = displayLabel || t(labelKey);
+    const unit             = fieldId ? unitByField[fieldId] : '';
+    const isFieldLocked    = isLocked || (fieldId ? state.lockedFluidField === fieldId : false);
+    const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
 
     if (fieldId) {
       inputHandlersRef.current[fieldId] = (text: string) => {
         onChange(text);
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
-          invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
+          invalidFields: prev.invalidFields.filter(f => f !== fieldId),
           autoCalculatedField: prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
-          ...(fieldId === 'density' ? { resultDensity: '' } : {}),
-          ...(fieldId === 'dynamicViscosity' ? { resultDynamicViscosity: '' } : {}),
+          ...(fieldId === 'density'            ? { resultDensity: '' }            : {}),
+          ...(fieldId === 'dynamicViscosity'   ? { resultDynamicViscosity: '' }   : {}),
           ...(fieldId === 'kinematicViscosity' ? { resultKinematicViscosity: '' } : {}),
         }));
       };
     }
-  
+
+    const hasUserValue = (value?.trim()?.length ?? 0) > 0;
+    const isInvalid    = fieldId ? state.invalidFields.includes(fieldId) : false;
+    const isAuto       = (fieldId && fieldId === state.autoCalculatedField)
+      && !hasUserValue
+      && !!(resultValue && resultValue !== '');
+
+    let dotColor = 'rgb(200,200,200)';
+    if (isInvalid)         dotColor = 'rgb(254, 12, 12)';
+    else if (isAuto)       dotColor = 'rgba(62, 136, 255, 1)';
+    else if (hasUserValue) dotColor = 'rgb(194, 254, 12)';
+
     return (
       <View
         ref={(r) => { if (fieldId) inputRefs.current[fieldId] = r; }}
@@ -694,32 +671,14 @@ const ReynoldsCalc: React.FC = () => {
           <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
             {shownLabel}
           </Text>
-          {(() => {
-            const id = fieldId;
-            const hasUserValue = (value?.trim()?.length ?? 0) > 0;
-            const isInvalid = id ? state.invalidFields.includes(id) : false;
-            const isAuto =
-              (id && id === state.autoCalculatedField) &&
-              !hasUserValue &&
-              !!(resultValue && resultValue !== '');
-          
-            let dotColor = 'rgb(200,200,200)';
-            if (isInvalid) dotColor = 'rgb(254, 12, 12)';
-            else if (isAuto) dotColor = 'rgba(62, 136, 255, 1)';
-            else if (hasUserValue) dotColor = 'rgb(194, 254, 12)';
-          
-            return <View style={[styles.valueDot, { backgroundColor: dotColor }]} />;
-          })()}
+          <View style={[styles.valueDot, { backgroundColor: dotColor }]} />
         </View>
-        
+
         <View style={styles.redContainer}>
           <View style={[styles.Container, { experimental_backgroundImage: themeColors.gradient }]}>
             <View style={[styles.innerWhiteContainer, { backgroundColor: inputContainerBg }]}>
               <Pressable
-                onPress={() => {
-                  if (isFieldLocked || !fieldId) return;
-                  setActiveInputId(fieldId);
-                }}
+                onPress={() => { if (isFieldLocked || !fieldId) return; setActiveInputId(fieldId); }}
                 style={StyleSheet.absoluteFill}
               />
               <TextInput
@@ -732,42 +691,40 @@ const ReynoldsCalc: React.FC = () => {
               />
             </View>
           </View>
-              
+
           <Pressable
             style={[styles.Container2, { experimental_backgroundImage: themeColors.gradient }]}
             onPress={() => {
               if (!fieldId) return;
               const category = categoryByField[fieldId];
-            
               navigateToOptions(category, (option: string) => {
                 const updateUnit = (
                   field: keyof CalculatorState,
                   prevField: keyof CalculatorState,
                   resultField?: keyof CalculatorState
                 ) => {
-                  const inputValue = state[field] as string;
-                  const prevUnit = state[prevField] as string;
-                  const resultVal = resultField ? (state[resultField] as string) : '';
-                  const convertedInputValue = convertValue(inputValue, prevUnit, option, category as any);
-                  let convertedResultValue = resultVal;
-                  if (resultVal && resultField) {
-                    convertedResultValue = convertValue(resultVal, prevUnit, option, category as any);
-                  }
-                  setState((prev) => ({
+                  const inputValue      = state[field] as string;
+                  const prevUnit        = state[prevField] as string;
+                  const resultVal       = resultField ? (state[resultField] as string) : '';
+                  const convertedInput  = convertValue(inputValue, prevUnit, option, category as any);
+                  const convertedResult = resultVal && resultField
+                    ? convertValue(resultVal, prevUnit, option, category as any)
+                    : resultVal;
+                  setState(prev => ({
                     ...prev,
-                    [field]: convertedInputValue,
+                    [field]: convertedInput,
                     [prevField]: option,
                     [`${field}Unit`]: option,
-                    ...(resultField && convertedResultValue ? { [resultField]: convertedResultValue } as any : {}),
+                    ...(resultField && convertedResult ? { [resultField]: convertedResult } as any : {}),
                   }));
                 };
-              
+
                 switch (fieldId) {
-                  case 'velocity':           updateUnit('velocity', 'prevVelocityUnit'); break;
-                  case 'dimension':          updateUnit('dimension', 'prevDimensionUnit'); break;
-                  case 'density':            updateUnit('density', 'prevDensityUnit', 'resultDensity'); break;
-                  case 'dynamicViscosity':   updateUnit('dynamicViscosity', 'prevDynamicViscosityUnit', 'resultDynamicViscosity'); break;
-                  case 'kinematicViscosity': updateUnit('kinematicViscosity', 'prevKinematicViscosityUnit', 'resultKinematicViscosity'); break;
+                  case 'velocity':           updateUnit('velocity',          'prevVelocityUnit');                                          break;
+                  case 'dimension':          updateUnit('dimension',         'prevDimensionUnit');                                         break;
+                  case 'density':            updateUnit('density',           'prevDensityUnit',           'resultDensity');                break;
+                  case 'dynamicViscosity':   updateUnit('dynamicViscosity',  'prevDynamicViscosityUnit',  'resultDynamicViscosity');        break;
+                  case 'kinematicViscosity': updateUnit('kinematicViscosity','prevKinematicViscosityUnit','resultKinematicViscosity');      break;
                 }
               }, unit);
             }}
@@ -793,7 +750,7 @@ const ReynoldsCalc: React.FC = () => {
         keyboardShouldPersistTaps="handled"
         contentInset={{ bottom: isKeyboardOpen ? 280 : 0 }}
       >
-        {/* Header */}
+        {/* Cabecera con navegación y acciones rápidas */}
         <View style={styles.headerContainer}>
           <View style={styles.iconWrapper}>
             <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.goBack()}>
@@ -805,9 +762,9 @@ const ReynoldsCalc: React.FC = () => {
               <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => { bounceHeart(); toggleFavorite(); }}>
                 <Animated.View style={{ transform: [{ scale: heartScale }] }}>
                   <IconFavorite
-                    name={isFav ? "heart" : "heart-o"}
+                    name={isFav ? 'heart' : 'heart-o'}
                     size={20}
-                    color={isFav ? "rgba(255, 63, 63, 1)" : "rgb(255, 255, 255)"}
+                    color={isFav ? 'rgba(255, 63, 63, 1)' : 'rgb(255, 255, 255)'}
                   />
                 </Animated.View>
               </Pressable>
@@ -820,13 +777,13 @@ const ReynoldsCalc: React.FC = () => {
           </View>
         </View>
 
-        {/* Títulos */}
+        {/* Título y subtítulo de la pantalla */}
         <View style={styles.titlesContainer}>
           <Text style={[styles.subtitle, { fontSize: 18 * fontSizeFactor }]}>{t('reynoldsCalc.calculator') || 'Calculadora'}</Text>
-          <Text style={[styles.title, { fontSize: 30 * fontSizeFactor }]}>{t('reynoldsCalc.title') || 'Número de Reynolds'}</Text>
+          <Text style={[styles.title,    { fontSize: 30 * fontSizeFactor }]}>{t('reynoldsCalc.title')      || 'Número de Reynolds'}</Text>
         </View>
 
-        {/* Resultados */}
+        {/* Tarjeta de resultado */}
         <View style={styles.resultsMain}>
           <View style={styles.resultsContainerMain}>
             <Pressable style={styles.resultsContainer} onPress={handleSaveHistory}>
@@ -836,41 +793,21 @@ const ReynoldsCalc: React.FC = () => {
               </View>
               <View style={styles.imageContainer}>
                 <View style={styles.flowContainer}>
-                  <FastImage
-                    source={backgroundImage}
-                    style={StyleSheet.absoluteFillObject}
-                  />
+                  <FastImage source={backgroundImage} style={StyleSheet.absoluteFillObject} />
                   {currentTheme === 'dark' && (
                     <View
                       pointerEvents="none"
-                      style={{
-                        ...StyleSheet.absoluteFillObject as any,
-                        backgroundColor: 'rgba(0,0,0,0.7)'
-                      }}
+                      style={{ ...StyleSheet.absoluteFillObject as any, backgroundColor: 'rgba(0,0,0,0.7)' }}
                     />
                   )}
                   <View style={styles.caudalLabel}>
-                    <Text
-                      style={[
-                        styles.flowLabel,
-                        { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 14 * fontSizeFactor }
-                      ]}
-                    >
-                      {state.resultReynolds === 0 
-                        ? 'な' 
-                        : t(regimeKey)}
+                    <Text style={[styles.flowLabel, { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 14 * fontSizeFactor }]}>
+                      {state.resultReynolds === 0 ? 'な' : t(regimeKey)}
                     </Text>
                   </View>
                   <View style={styles.flowValueContainer}>
-                    <Text
-                      style={[
-                        styles.flowValue,
-                        { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 30 * fontSizeFactor }
-                      ]}
-                    >
-                      {state.resultReynolds === 0 
-                      ? '一' 
-                      : adjustDecimalSeparator(formatNumber(state.resultReynolds))}
+                    <Text style={[styles.flowValue, { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 30 * fontSizeFactor }]}>
+                      {state.resultReynolds === 0 ? '一' : adjustDecimalSeparator(formatNumber(state.resultReynolds))}
                     </Text>
                   </View>
                 </View>
@@ -879,13 +816,13 @@ const ReynoldsCalc: React.FC = () => {
           </View>
         </View>
 
-        {/* Botones de acción */}
+        {/* Botones de acción principal */}
         <View style={styles.buttonsContainer}>
           {[
-            { icon: 'terminal', label: t('common.calculate') || 'Calcular', action: handleCalculate },
-            { icon: 'copy', label: t('common.copy') || 'Copiar', action: handleCopy },
-            { icon: 'trash', label: t('common.clear') || 'Limpiar', action: handleClear },
-            { icon: 'clock', label: t('common.history') || 'Historial', action: () => navigation.navigate('HistoryScreenReynolds') },
+            { icon: 'terminal', label: t('common.calculate') || 'Calcular',  action: calculateReynolds },
+            { icon: 'copy',     label: t('common.copy')      || 'Copiar',    action: handleCopy },
+            { icon: 'trash',    label: t('common.clear')     || 'Limpiar',   action: handleClear },
+            { icon: 'clock',    label: t('common.history')   || 'Historial', action: () => navigation.navigate('HistoryScreenReynolds') },
           ].map(({ icon, label, action }) => (
             <View style={styles.actionWrapper} key={label}>
               <View style={styles.actionButtonMain}>
@@ -899,55 +836,45 @@ const ReynoldsCalc: React.FC = () => {
           ))}
         </View>
 
-        {/* Inputs */}
-        <View
-          style={[
-            styles.inputsSection,
-            { 
-              backgroundColor: themeColors.card,
-              paddingBottom: isKeyboardOpen ? 330 : 70,
-            }
-          ]}
-        >
+        {/* Sección de campos de entrada */}
+        <View style={[styles.inputsSection, { backgroundColor: themeColors.card, paddingBottom: isKeyboardOpen ? 330 : 70 }]}>
           <View style={styles.inputsContainer}>
-            {/* Parámetros de flujo */}
             <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
               {t('reynoldsCalc.flowParameters') || 'Parámetros de Flujo'}
             </Text>
 
             {renderInput(
-              'reynoldsCalc.labels.velocity',
-              state.velocity,
-              (text) => setState((prev) => ({ ...prev, velocity: text })),
-              'velocity'
+              'reynoldsCalc.labels.velocity', 
+              state.velocity,  
+              v => setState(p => ({ ...p, velocity: v })),  
+              'velocity',
+              undefined,
+              `${t('reynoldsCalc.labels.velocity') || 'Velocidad'} (V)`
             )}
+            
             {renderInput(
-              'reynoldsCalc.labels.dimension',
-              state.dimension,
-              (text) => setState((prev) => ({ ...prev, dimension: text })),
-              'dimension'
+              'reynoldsCalc.labels.dimension', 
+              state.dimension, 
+              v => setState(p => ({ ...p, dimension: v })), 
+              'dimension',
+              undefined,
+              `${t('reynoldsCalc.labels.dimension') || 'Dimensión Característica'} (L)`
             )}
 
             <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
 
-            {/* Propiedades del fluido */}
             <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
               {t('reynoldsCalc.fluidProperties') || 'Propiedades del Fluido'}
             </Text>
 
-            {/* Fluidos predeterminados (picker 100% ancho) */}
+            {/* Selector de fluido predefinido */}
             <View style={styles.inputWrapper}>
               <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
                 {t('reynoldsCalc.labels.presetFluids')}
               </Text>
-
               <Pressable
                 style={[styles.pickerPressable, { experimental_backgroundImage: themeColors.gradient }]}
-                onPress={() => {
-                  navigateToOptions('presetFluids', (opt: string) => {
-                    handleSelectPresetFluid(opt);
-                  }, state.presetFluid);
-                }}
+                onPress={() => navigateToOptions('presetFluids', handleSelectPresetFluid, state.presetFluid)}
               >
                 <View style={[styles.innerWhiteContainer2, { backgroundColor: themeColors.card }]}>
                   <Text style={[styles.textOptions, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
@@ -959,25 +886,30 @@ const ReynoldsCalc: React.FC = () => {
             </View>
 
             {renderInput(
-              'reynoldsCalc.labels.density',
-              state.density,
-              (text) => setState((prev) => ({ ...prev, density: text })),
-              'density',
-              state.resultDensity
+              'reynoldsCalc.labels.density',            
+              state.density,            
+              v => setState(p => ({ ...p, density: v })),            
+              'density',            
+              state.resultDensity,
+              `${t('reynoldsCalc.labels.density') || 'Densidad'} (ρ)`
             )}
+
             {renderInput(
-              'reynoldsCalc.labels.dynamicViscosity',
-              state.dynamicViscosity,
-              (text) => setState((prev) => ({ ...prev, dynamicViscosity: text })),
-              'dynamicViscosity',
-              state.resultDynamicViscosity
+              'reynoldsCalc.labels.dynamicViscosity',   
+              state.dynamicViscosity,   
+              v => setState(p => ({ ...p, dynamicViscosity: v })),   
+              'dynamicViscosity',   
+              state.resultDynamicViscosity,
+              `${t('reynoldsCalc.labels.dynamicViscosity') || 'Viscosidad Dinámica'} (μ)`
             )}
+
             {renderInput(
-              'reynoldsCalc.labels.kinematicViscosity',
-              state.kinematicViscosity,
-              (text) => setState((prev) => ({ ...prev, kinematicViscosity: text })),
-              'kinematicViscosity',
-              state.resultKinematicViscosity
+              'reynoldsCalc.labels.kinematicViscosity', 
+              state.kinematicViscosity, 
+              v => setState(p => ({ ...p, kinematicViscosity: v })), 
+              'kinematicViscosity', 
+              state.resultKinematicViscosity,
+              `${t('reynoldsCalc.labels.kinematicViscosity') || 'Viscosidad Cinemática'} (ν)`
             )}
           </View>
 
@@ -1000,7 +932,7 @@ const ReynoldsCalc: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* ── Teclado custom ── */}
+      {/* Teclado numérico personalizado superpuesto en la parte inferior */}
       {isKeyboardOpen && (
         <View style={styles.customKeyboardWrapper}>
           <CustomKeyboardPanel
@@ -1093,7 +1025,7 @@ const styles = StyleSheet.create({
     color: 'rgb(255, 255, 255)', 
     fontSize: 18, 
     fontFamily: 'SFUIDisplay-Bold'
-   },
+  },
   title: { 
     color: 'rgb(255, 255, 255)', 
     fontSize: 30, 
@@ -1308,7 +1240,6 @@ const styles = StyleSheet.create({
     borderRadius: 30, 
     padding: 1 
   },
-  // ── Teclado custom ──
   customKeyboardWrapper: {
     position: 'absolute',
     bottom: 0,

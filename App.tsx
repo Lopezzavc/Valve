@@ -109,6 +109,7 @@ import OptionsScreenSeriePotenciaCalc from './screens/calculators/13_SeriePotenc
 
 // 14_POTENCIA PARALELO
 import paraleloPotenciaCalc from './screens/calculators/14_ParaleloPotencia/ParaleloPotenciaCalc';
+import OptionsScreenParaleloPotenciaCalc from './screens/calculators/14_ParaleloPotencia/OptionsScreenParaleloPotenciaCalc';
 
 // ORBIT
 import AxisScreen from './screens/orbit/AxisScreen';
@@ -188,6 +189,7 @@ export type RootStackParamList = {
   paraleloPotenciaCalc: undefined;
   AxisScreen: undefined;
   OptionsScreenAxis: undefined;
+  OptionsScreenParaleloPotenciaCalc: undefined;
 };
 
 export type RootTabParamList = {
@@ -489,8 +491,8 @@ const App = () => {
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forScaleFromCenterAndroid,
                           transitionSpec: {
-                            open: { animation: 'timing', config: { duration: 500 } },
-                            close: { animation: 'timing', config: { duration: 500 } },
+                            open: { animation: 'timing', config: { duration: 1000 } },
+                            close: { animation: 'timing', config: { duration: 1000 } },
                           },
                         }}
                       />
@@ -833,6 +835,14 @@ const App = () => {
                       <Stack.Screen
                         name="OptionsScreenReynolds"
                         component={OptionsScreenReynolds}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="OptionsScreenParaleloPotenciaCalc"
+                        component={OptionsScreenParaleloPotenciaCalc}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,

@@ -76,7 +76,8 @@
     "inputs": "Entradas"
   },
   "continuidadCalc": {
-    "infoText": "Ingrese 3 de los 4 parámetros (A₁, v₁, A₂, v₂) para calcular el caudal y la variable desconocida.",
+    "infoTextCaudal": "El caudal se calcula multiplicando el área de la sección transversal por la velocidad media del fluido. Q = A × v",
+    "infoTextContinuidad": "El principio de continuidad establece que el caudal es constante: A₁·v₁ = A₂·v₂. Al variar la sección, la velocidad se ajusta inversamente.",
     "calculator": "Calculadora",
     "title": "ECUACIÓN DE CONTINUIDAD",
     "titlehistory": "Ecuación de continuidad",
@@ -96,10 +97,10 @@
       "height": "Alto",
       "velocity": "Velocidad",
       "fillHeight": "Altura de lámina",
-      "A1": "Área de la sección (A₁)",
-      "v1": "Velocidad en la sección (v₁)",
-      "A2": "Área de la sección (A₂)",
-      "v2": "Velocidad en la sección (v₂)",
+      "A1": "Área de la sección",
+      "v1": "Velocidad en la sección",
+      "A2": "Área de la sección",
+      "v2": "Velocidad en la sección",
       "mode": "Modo"
     },
     "mode": {
@@ -446,7 +447,7 @@
       "width": "Ancho del Canal",
       "hydraulicDepth": "Profundidad Hidráulica Media",
       "velocity": "Velocidad de Flujo",
-      "gravity": "Aceleración de la Gravedad"
+      "gravity": "Gravedad"
     },
     "toasts": {
       "velocityGravityRequired": "Se requieren velocidad y gravedad",
@@ -500,31 +501,31 @@
     "result": "Resultado",
     "saveToHistory": "Guardar en historial",
     "lossInputType": "Tipo de pérdida",
-    "direct": "Pérdida directa (hL)",
+    "direct": "Pérdida directa",
     "darcy": "Ecuación de Darcy",
     "labels": {
-      "P1": "Presión (P₁)",
-      "P2": "Presión (P₂)",
-      "P1_suction": "Presión en succión (P₁)",
-      "z1": "Elevación (z₁)",
-      "z2": "Elevación (z₂)",
-      "z_suction": "Elevación en succión (z₁)",
-      "V1": "Velocidad (V₁)",
-      "V2": "Velocidad (V₂)",
-      "V_suction": "Velocidad en succión (V₁)",
-      "gamma": "Peso específico (γ)",
-      "g": "Gravedad (g)",
-      "alpha1": "Coeficiente de Coriolis (α₁)",
-      "alpha2": "Coeficiente de Coriolis (α₂)",
-      "hb": "Altura de bomba (hB)",
-      "ht": "Altura de turbina (hT)",
-      "hL": "Pérdida de carga (hL)",
-      "hL_suction": "Pérdida en succión (hL)",
-      "L": "Longitud de tubería (L)",
-      "D1": "Diámetro (D₁)",
-      "f": "Factor de fricción (f)",
-      "K": "Coeficiente de pérdidas (K)",
-      "temperatura": "Temperatura (T)",
+      "P1": "Presión",
+      "P2": "Presión",
+      "P1_suction": "Presión en succión",
+      "z1": "Elevación",
+      "z2": "Elevación",
+      "z_suction": "Elevación en succión",
+      "V1": "Velocidad",
+      "V2": "Velocidad",
+      "V_suction": "Velocidad en succión",
+      "gamma": "Peso específico",
+      "g": "Gravedad",
+      "alpha1": "Coeficiente de Coriolis",
+      "alpha2": "Coeficiente de Coriolis",
+      "hb": "Altura de bomba",
+      "ht": "Altura de turbina",
+      "hL": "Pérdida de carga",
+      "hL_suction": "Pérdida en succión",
+      "L": "Longitud de tubería",
+      "D1": "Diámetro",
+      "f": "Factor de fricción",
+      "K": "Coeficiente de pérdidas",
+      "temperatura": "Temperatura",
       "Velocity": "Velocidad",
       "Pressure": "Presión",
       "Density": "Densidad",
@@ -1421,7 +1422,7 @@
     }
   },
   "orbit": {
-    "title": "ORBIT",
+    "title": "NODARA",
     "subtitle": "Simulador hidráulico"
   },
   "axis": {
@@ -1493,5 +1494,8 @@
         "modoTuberia": "Mostrar en tuberías"
       }
     }
+  },
+  "homeNodara": {
+    "infoText": "NODARA es un simulador de redes hidráulicas que permite modelar nodos, reservorios, tanques y tuberías en un entorno 3D, ingresar datos, visualizar conexiones y calcular presión, caudal, velocidad y pérdidas."
   }
 }

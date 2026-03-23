@@ -37,7 +37,8 @@ type CalcCardProps = {
   themeColors: any;
   fontSizeFactor: number;
   barColor?: string;
-  progress?: number;  // ← NUEVA PROPIEDAD
+  progress?: number;
+  currentTheme: string;
 };
 
 const CalcCard: React.FC<CalcCardProps> = ({ 
@@ -49,27 +50,31 @@ const CalcCard: React.FC<CalcCardProps> = ({
   themeColors, 
   fontSizeFactor,
   barColor,
-  progress
+  progress,
+  currentTheme,
 }) => {
   const renderProgressDots = () => {
     const dots = [];
-    const currentProgress = progress || 0; // ← Usar la variable directa
+    const currentProgress = progress || 0;
+    
+    // Definir color base según el tema
+    const defaultDotColor = currentTheme === 'dark' ? '#4e4e4e' : '#E0E0E0';
     
     for (let i = 1; i <= 5; i++) {
-      let dotColor = '#E0E0E0'; // Gris por defecto
-
+      let dotColor = defaultDotColor; // Color base según tema
+  
       if (i <= currentProgress) {
         if (i === 1) {
           dotColor = '#FF3B30'; // Rojo para el primero
         } else if (i === 2) {
-          dotColor = '#FF9500'; // Naranja para segundo y tercero
+          dotColor = '#FF9500'; // Naranja para segundo
         } else if (i === 3 || i === 4) {
-          dotColor = '#34C759'; // Verde para el cuarto
+          dotColor = '#34C759'; // Verde para tercero y cuarto
         } else if (i === 5) {
           dotColor = '#FFD700'; // Dorado para el quinto
         }
       }
-
+  
       dots.push(
         <View
           key={i}
@@ -80,7 +85,7 @@ const CalcCard: React.FC<CalcCardProps> = ({
         />
       );
     }
-
+  
     return <View style={styles.progressContainer}>{dots}</View>;
   };
   const [boxW, setBoxW] = useState(0);
@@ -389,6 +394,7 @@ const HomeScreen = () => {
         background: 'rgb(12,12,12)',
         card: 'rgb(24,24,24)',
         textDesc: 'rgba(135, 135, 135, 1)',
+        textDesc2: 'rgb(254, 254, 254)',
         text: 'rgb(235,235,235)',
         textStrong: 'rgb(250,250,250)',
         separator: 'rgba(255,255,255,0.12)',
@@ -402,6 +408,7 @@ const HomeScreen = () => {
       background: 'rgba(255, 255, 255, 1)',
       card: 'rgba(255, 255, 255, 1)',
       textDesc: 'rgba(120, 120, 120, 1)',
+      textDesc2: 'rgb(50, 50, 50)',
       text: 'rgb(0, 0, 0)',
       textStrong: 'rgb(0, 0, 0)',
       separator: 'rgb(235, 235, 235)',
@@ -644,18 +651,18 @@ const HomeScreen = () => {
           </View>
         </View>
 
-        <View style={styles.titlesContainerCalc}>
-          <Text
+        <View style={styles.favTitlesContainer}>
+          <Text 
             style={[
-              styles.subtitleCalc,
-              { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
+              styles.favSubtitle, 
+              { color: themeColors.text, fontSize: 18 * fontSizeFactor }
             ]}
           >
             {t('home.calculatorsTitle')}
           </Text>
           <Text
             style={[
-              styles.titleCalc,
+              styles.favTitle,
               { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor },
             ]}
           >
@@ -666,23 +673,37 @@ const HomeScreen = () => {
         <View style={styles.preCardSubtitleWrap2}></View>
 
         <SpecialCard
-          title="ORBIT"
+          title="NODARA"
           navigation={navigation}
           themeColors={themeColors}
           fontSizeFactor={fontSizeFactor}
           currentTheme={currentTheme}
         />
 
+        {/* TEXTO INFORMATIVO - AGREGAR ESTA SECCIÓN */}
+        <View style={styles.infoSection2}>
+          <Text
+            style={[
+              styles.infoTextHome,
+              { color: themeColors.textDesc2, fontSize: 14 * fontSizeFactor }
+            ]}
+          >
+            {t('homeNodara.infoText')}
+          </Text>
+        </View>
+
         {/* PRIMERA SECCIÓN: Calculadoras esenciales */}
         <View style={styles.preCardSubtitleWrap}>
+          <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 0 }]} />
           <Text
             style={[
               styles.preCardSubtitleBase,
               { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
             ]}
           >
+            <Text style={[styles.preCardICON, { fontSize: 16 * fontSizeFactor }]}>s  </Text>
             <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitleEssential')}</Text>
-            <Text> - </Text>
+            <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}> - </Text>
             <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle1')}</Text>
           </Text>
         </View>
@@ -699,17 +720,20 @@ const HomeScreen = () => {
             fontSizeFactor={fontSizeFactor}
             barColor={card.color}
             progress={card.progress}
+            currentTheme={currentTheme}
           />
         ))}
 
         {/* SEGUNDA SECCIÓN: canales y tuberias */}
         <View style={styles.preCardSubtitleWrap}>
+          <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 0 }]} />
           <Text
             style={[
               styles.preCardSubtitleBase,
               { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
             ]}
           >
+            <Text style={[styles.preCardICON, { fontSize: 16 * fontSizeFactor }]}>s  </Text>
             <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}></Text>
             <Text></Text>
             <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle2')}</Text>
@@ -728,17 +752,20 @@ const HomeScreen = () => {
             fontSizeFactor={fontSizeFactor}
             barColor={card.color}
             progress={card.progress}
+            currentTheme={currentTheme}
           />
         ))}
 
         {/* TERCERA SECCIÓN: diseño */}
         <View style={styles.preCardSubtitleWrap}>
+          <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 0 }]} />
           <Text
             style={[
               styles.preCardSubtitleBase,
               { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
             ]}
           >
+            <Text style={[styles.preCardICON, { fontSize: 16 * fontSizeFactor }]}>s  </Text>
             <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}></Text>
             <Text></Text>
             <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle3')}</Text>
@@ -757,17 +784,20 @@ const HomeScreen = () => {
             fontSizeFactor={fontSizeFactor}
             barColor={card.color}
             progress={card.progress}
+            currentTheme={currentTheme}
           />
         ))}
 
         {/* TERCERA SECCIÓN: comprobacion diseño */}
         <View style={styles.preCardSubtitleWrap}>
+          <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 0 }]} />
           <Text
             style={[
               styles.preCardSubtitleBase,
               { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
             ]}
           >
+            <Text style={[styles.preCardICON, { fontSize: 16 * fontSizeFactor }]}>s  </Text>
             <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}></Text>
             <Text></Text>
             <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle4')}</Text>
@@ -786,17 +816,20 @@ const HomeScreen = () => {
             fontSizeFactor={fontSizeFactor}
             barColor={card.color}
             progress={card.progress}
+            currentTheme={currentTheme}
           />
         ))}
 
         {/* AUN NO SECCIÓN: Bombas */}
         <View style={styles.preCardSubtitleWrap}>
+          <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 0 }]} />
           <Text
             style={[
               styles.preCardSubtitleBase,
               { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor },
             ]}
           >
+            <Text style={[styles.preCardICON, { fontSize: 16 * fontSizeFactor }]}>s  </Text>
             <Text style={[styles.preCardEssential, { fontSize: 16 * fontSizeFactor }]}></Text>
             <Text></Text>
             <Text style={[styles.preCardMF, { fontSize: 16 * fontSizeFactor }]}>{t('mainMenu.subtitle5')}</Text>
@@ -815,6 +848,7 @@ const HomeScreen = () => {
             fontSizeFactor={fontSizeFactor}
             barColor={card.color}
             progress={card.progress}
+            currentTheme={currentTheme}
           />
         ))}
         
@@ -826,93 +860,102 @@ const HomeScreen = () => {
             {t('home.progressInfo.title') || 'Indicador de progreso'}
           </Text>
 
-          {/* Caso 1: 1 punto */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoDotsContainer}>
-              {[1,2,3,4,5].map((i) => {
-                let dotColor = '#E0E0E0';
-                if (i === 1) dotColor = '#FF3B30';
-                return (
-                  <View key={`info1-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
-                );
-              })}
-            </View>
-            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
-              {t('home.progressInfo.level1') || 'Nivel 1: Introducción'}
-            </Text>
-          </View>
+          {/* Definir color base según el tema */}
+          {(() => {
+            const defaultDotColor = currentTheme === 'dark' ? '#4e4e4e' : '#E0E0E0';
 
-          {/* Caso 2: 2 puntos */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoDotsContainer}>
-              {[1,2,3,4,5].map((i) => {
-                let dotColor = '#E0E0E0';
-                if (i === 1) dotColor = '#FF3B30';
-                if (i === 2) dotColor = '#FF9500';
-                return (
-                  <View key={`info2-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
-                );
-              })}
-            </View>
-            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
-              {t('home.progressInfo.level2') || 'Nivel 2: Conceptos básicos'}
-            </Text>
-          </View>
-
-          {/* Caso 3: 3 puntos */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoDotsContainer}>
-              {[1,2,3,4,5].map((i) => {
-                let dotColor = '#E0E0E0';
-                if (i === 1) dotColor = '#FF3B30';
-                if (i === 2) dotColor = '#FF9500';
-                if (i === 3) dotColor = '#34C759';
-                return (
-                  <View key={`info3-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
-                );
-              })}
-            </View>
-            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
-              {t('home.progressInfo.level3') || 'Nivel 3: Aplicaciones prácticas'}
-            </Text>
-          </View>
-
-          {/* Caso 4: 4 puntos */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoDotsContainer}>
-              {[1,2,3,4,5].map((i) => {
-                let dotColor = '#E0E0E0';
-                if (i === 1) dotColor = '#FF3B30';
-                if (i === 2) dotColor = '#FF9500';
-                if (i === 4 || i === 3) dotColor = '#34C759';
-                return (
-                  <View key={`info4-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
-                );
-              })}
-            </View>
-            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
-              {t('home.progressInfo.level4') || 'Nivel 4: Análisis avanzado'}
-            </Text>
-          </View>
-
-          {/* Caso 5: 5 puntos */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoDotsContainer}>
-              {[1,2,3,4,5].map((i) => {
-                let dotColor = '#E0E0E0';
-                if (i === 1) dotColor = '#FF3B30';
-                if (i === 2) dotColor = '#FF9500';
-                if (i === 4 || i === 3) dotColor = '#34C759';
-                if (i === 5) dotColor = '#FFD700';
-                return (
-                  <View key={`info5-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
-                );
-              })}
-            </View>
-            <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
-              {t('home.progressInfo.level5') || 'Nivel 5: Experto'}
-            </Text>
-          </View>
+            return (
+              <>
+                {/* Caso 1: 1 punto */}
+                <View style={styles.infoRow}>
+                  <View style={styles.infoDotsContainer}>
+                    {[1,2,3,4,5].map((i) => {
+                      let dotColor = defaultDotColor;
+                      if (i === 1) dotColor = '#FF3B30';
+                      return (
+                        <View key={`info1-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                      );
+                    })}
+                  </View>
+                  <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+                    {t('home.progressInfo.level1') || 'Nivel 1: Introducción'}
+                  </Text>
+                </View>
+                  
+                {/* Caso 2: 2 puntos */}
+                <View style={styles.infoRow}>
+                  <View style={styles.infoDotsContainer}>
+                    {[1,2,3,4,5].map((i) => {
+                      let dotColor = defaultDotColor;
+                      if (i === 1) dotColor = '#FF3B30';
+                      if (i === 2) dotColor = '#FF9500';
+                      return (
+                        <View key={`info2-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                      );
+                    })}
+                  </View>
+                  <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+                    {t('home.progressInfo.level2') || 'Nivel 2: Conceptos básicos'}
+                  </Text>
+                </View>
+                  
+                {/* Caso 3: 3 puntos */}
+                <View style={styles.infoRow}>
+                  <View style={styles.infoDotsContainer}>
+                    {[1,2,3,4,5].map((i) => {
+                      let dotColor = defaultDotColor;
+                      if (i === 1) dotColor = '#FF3B30';
+                      if (i === 2) dotColor = '#FF9500';
+                      if (i === 3) dotColor = '#34C759';
+                      return (
+                        <View key={`info3-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                      );
+                    })}
+                  </View>
+                  <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+                    {t('home.progressInfo.level3') || 'Nivel 3: Aplicaciones prácticas'}
+                  </Text>
+                </View>
+                  
+                {/* Caso 4: 4 puntos */}
+                <View style={styles.infoRow}>
+                  <View style={styles.infoDotsContainer}>
+                    {[1,2,3,4,5].map((i) => {
+                      let dotColor = defaultDotColor;
+                      if (i === 1) dotColor = '#FF3B30';
+                      if (i === 2) dotColor = '#FF9500';
+                      if (i === 4 || i === 3) dotColor = '#34C759';
+                      return (
+                        <View key={`info4-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                      );
+                    })}
+                  </View>
+                  <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+                    {t('home.progressInfo.level4') || 'Nivel 4: Análisis avanzado'}
+                  </Text>
+                </View>
+                  
+                {/* Caso 5: 5 puntos */}
+                <View style={styles.infoRow}>
+                  <View style={styles.infoDotsContainer}>
+                    {[1,2,3,4,5].map((i) => {
+                      let dotColor = defaultDotColor;
+                      if (i === 1) dotColor = '#FF3B30';
+                      if (i === 2) dotColor = '#FF9500';
+                      if (i === 4 || i === 3) dotColor = '#34C759';
+                      if (i === 5) dotColor = '#FFD700';
+                      return (
+                        <View key={`info5-${i}`} style={[styles.infoDot, { backgroundColor: dotColor }]} />
+                      );
+                    })}
+                  </View>
+                  <Text style={[styles.infoText, { color: themeColors.textDesc, fontSize: 14 * fontSizeFactor }]}>
+                    {t('home.progressInfo.level5') || 'Nivel 5: Experto'}
+                  </Text>
+                </View>
+              </>
+            );
+          })()}
         </View>
 
         <View style={styles.bottomSpacing} />
@@ -954,12 +997,16 @@ const styles = StyleSheet.create({
   },
   preCardSubtitleBase: {
     lineHeight: 22,
+    marginBottom: 5,
   },
   preCardEssential: {
-    fontFamily: 'SFUIDisplay-Regular',
+    fontFamily: 'HomeVideo-BLG6G',
   },
   preCardMF: {
-    fontFamily: 'SFUIDisplay-Regular',
+    fontFamily: 'HomeVideo-BLG6G',
+  },
+  preCardICON: {
+    fontFamily: 'Gravitica-Patterned',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -1063,13 +1110,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'SFUIDisplay-Bold',
   },
-  titleCalc: {
-    color: 'rgb(49, 32, 32)',
-    fontSize: 30,
-    fontFamily: 'Alliance No.2 Medium',
-    marginTop: -8,
-    marginBottom: -5,
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -1124,14 +1164,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 20,
   },
-  sectionTitleContainer: {
-    marginBottom: 5,
-  },
-  sectionTitle: {
-    fontFamily: 'Alliance No.2 SemiBold',
-    fontSize: 22,
-    marginBottom: 2,
-  },
   sectionSubtitle: {
     fontFamily: 'SFUIDisplay-Regular',
     fontSize: 14,
@@ -1158,14 +1190,24 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
   },
+  infoSection2: {
+    paddingHorizontal: 20,
+    marginTop: 18,
+    marginBottom: -3,
+  },
   separatorInfo: {
     height: 1,
     marginBottom: 20,
   },
+  separator2: {
+    height: 1,
+    marginBottom: 20,
+  },
   infoTitle: {
-    fontFamily: 'SFUIDisplay-Bold',
-    marginBottom: 10,
-    marginTop: -7,
+    fontFamily: 'HomeVideoBold-R90Dv',
+    marginBottom: 20,
+    marginTop: 0,
+    alignSelf: 'center',
   },
   infoRow: {
     flexDirection: 'row',
@@ -1194,6 +1236,30 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 5,
     opacity: 0.7,
+  },
+  favTitlesContainer: {
+    backgroundColor: 'transparent',
+    marginVertical: 0,
+    paddingHorizontal: 20,
+    marginBottom: -10,
+    marginTop: 15,
+  },
+  favSubtitle: {
+    color: 'rgb(0, 0, 0)',
+    fontSize: 18,
+    fontFamily: 'SFUIDisplay-Bold',
+  },
+  favTitle: {
+    color: 'rgb(0, 0, 0)',
+    fontSize: 30,
+    fontFamily: 'SFUIDisplay-Bold',
+    marginTop: -10,
+  },
+  infoTextHome: {
+    fontFamily: 'SFUIDisplay-Regular',
+    lineHeight: 20,
+    textAlign: 'left',
+    opacity: 0.8,
   },
 });
 
@@ -1227,7 +1293,7 @@ const stylesRef = StyleSheet.create({
   titleText: {
     color: 'rgb(0, 0, 0)',
     fontSize: 16,
-    fontFamily: 'Alliance No.2 SemiBold',
+    fontFamily: 'SFUIDisplay-Semibold',
   },
   subtitleText: {
     color: 'rgb(120, 120, 120)',

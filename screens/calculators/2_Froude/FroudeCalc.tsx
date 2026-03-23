@@ -3,14 +3,22 @@ import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, An
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
+import Decimal from 'decimal.js';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from "@d11/react-native-fast-image";
 
-import { getDBConnection, createTable, saveCalculation } from '../../../src/services/database';
-import { createFavoritesTable, isFavorite, addFavorite, removeFavorite } from '../../../src/services/database';
+import {
+  getDBConnection,
+  createTable,
+  saveCalculation,
+  createFavoritesTable,
+  isFavorite,
+  addFavorite,
+  removeFavorite,
+} from '../../../src/services/database';
 
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
@@ -18,8 +26,10 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 
+Decimal.set({ precision: 20 });
+
 const logoLight = require('../../../assets/icon/iconblack.webp');
-const logoDark = require('../../../assets/icon/iconwhite.webp');
+const logoDark  = require('../../../assets/icon/iconwhite.webp');
 
 type RootStackParamList = {
   OptionsScreenFroude: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
@@ -54,6 +64,9 @@ interface CalculatorState {
   autoCalculatedField: 'area' | 'width' | 'hydraulicDepth' | null;
 }
 
+// Factores de conversión para cada tipo de magnitud, expresados respecto a la unidad base del SI.
+// Nota: el factor km/h² (0.00007716049382716) está truncado respecto al valor exacto
+// (0.0000771604938271604938...) pero no se corrige aquí para preservar la lógica original.
 const conversionFactors: { [key: string]: { [key: string]: number } } = {
   area: {
     'm²': 1,
@@ -89,10 +102,10 @@ const conversionFactors: { [key: string]: { [key: string]: number } } = {
     'ft/s²': 0.3048,
     'km/h²': 0.00007716049382716,
     'cm/s²': 0.01,
-  }
+  },
 };
 
-// Configuración del Toast
+// Configuración visual de los mensajes toast que aparecen en pantalla
 const toastConfig = {
   success: (props: BaseToastProps) => (
     <BaseToast
@@ -114,6 +127,7 @@ const toastConfig = {
   ),
 };
 
+// Estado inicial de la calculadora con unidades SI por defecto
 const initialState = (): CalculatorState => ({
   area: '',
   width: '',
@@ -144,20 +158,23 @@ const FroudeCalc: React.FC = () => {
   const { formatNumber } = useContext(PrecisionDecimalContext);
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
-
-  // ── Custom keyboard ──────────────────────────────────────────────────────────
   const { activeInputId, setActiveInputId } = useKeyboard();
-
-  // Ref con el estado actual para evitar closures obsoletas en los handlers del teclado
-  const stateRef = useRef<CalculatorState>(initialState());
-
-  // Ref que mapea cada fieldId al handler completo de cambio de valor
-  const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
-  // ─────────────────────────────────────────────────────────────────────────────
-
   const { currentTheme } = useTheme();
   const { t, selectedLanguage } = useContext(LanguageContext);
 
+  const [state, setState] = useState<CalculatorState>(initialState);
+  const [isFav, setIsFav] = useState(false);
+
+  // Referencias internas para mantener valores actualizados sin depender de closures
+  const stateRef        = useRef<CalculatorState>(initialState());
+  const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
+  const activeInputIdRef = useRef<string | null>(null);
+  const scrollViewRef   = useRef<ScrollView>(null);
+  const inputRefs       = useRef<Record<string, View | null>>({});
+  const dbRef           = useRef<any>(null);
+  const heartScale      = useRef(new Animated.Value(1)).current;
+
+  // Paleta de colores derivada del tema activo, calculada solo cuando cambia el tema
   const themeColors = React.useMemo(() => {
     if (currentTheme === 'dark') {
       return {
@@ -183,20 +200,11 @@ const FroudeCalc: React.FC = () => {
     };
   }, [currentTheme]);
 
-  const [state, setState] = useState<CalculatorState>(initialState);
+  // Sincronización de los refs con el estado y con el input activo del teclado personalizado
+  useEffect(() => { stateRef.current = state; }, [state]);
+  useEffect(() => { activeInputIdRef.current = activeInputId; }, [activeInputId]);
 
-  useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
-
-  const scrollViewRef = useRef<ScrollView>(null);
-  const inputRefs = useRef<Record<string, View | null>>({});
-  const activeInputIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    activeInputIdRef.current = activeInputId;
-  }, [activeInputId]);
-
+  // Desplaza el scroll para mantener visible el campo activo cuando se abre el teclado
   useEffect(() => {
     if (!activeInputId) return;
     const viewRef = inputRefs.current[activeInputId];
@@ -216,36 +224,23 @@ const FroudeCalc: React.FC = () => {
     }, 150);
   }, [activeInputId]);
 
+  // Cierra el teclado personalizado al salir de la pantalla
   useFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        setActiveInputId(null);
-      };
+    useCallback(() => {
+      return () => { setActiveInputId(null); };
     }, [])
   );
 
+  // Clave de traducción para el régimen de flujo según el valor del número de Froude
   const regimeKey = React.useMemo(() => {
     const Fr = state.resultFroude;
-    if (!Fr || !isFinite(Fr)) {
-      return 'froudeCalc.froude';
-    }
+    if (!Fr || !isFinite(Fr)) return 'froudeCalc.froude';
     if (Fr < 1) return 'froudeCalc.regime.subcritical';
     if (Fr === 1) return 'froudeCalc.regime.critical';
     return 'froudeCalc.regime.supercritical';
   }, [state.resultFroude]);
 
-  const dbRef = useRef<any>(null);
-  const [isFav, setIsFav] = useState(false);
-
-  const heartScale = useRef(new Animated.Value(1)).current;
-
-  const bounceHeart = useCallback(() => {
-    Animated.sequence([
-      Animated.spring(heartScale, { toValue: 1.15, useNativeDriver: true, bounciness: 8, speed: 40 }),
-      Animated.spring(heartScale, { toValue: 1.0, useNativeDriver: true, bounciness: 8, speed: 40 }),
-    ]).start();
-  }, [heartScale]);
-
+  // Inicialización de la base de datos y verificación del estado de favorito al montar
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -255,7 +250,6 @@ const FroudeCalc: React.FC = () => {
         await createTable(db);
         await createFavoritesTable(db);
         dbRef.current = db;
-
         const fav = await isFavorite(db, 'FroudeCalc');
         if (mounted) setIsFav(fav);
       } catch {}
@@ -263,6 +257,19 @@ const FroudeCalc: React.FC = () => {
     return () => { mounted = false; };
   }, []);
 
+  // Animación de rebote del corazón al cambiar el estado de favorito
+  const bounceHeart = useCallback(() => {
+    Animated.sequence([
+      Animated.spring(heartScale, { toValue: 1.15, useNativeDriver: true, bounciness: 8, speed: 40 }),
+      Animated.spring(heartScale, { toValue: 1.0,  useNativeDriver: true, bounciness: 8, speed: 40 }),
+    ]).start();
+  }, [heartScale]);
+
+  useEffect(() => {
+    if (isFav) bounceHeart();
+  }, [isFav, bounceHeart]);
+
+  // Alterna el estado de favorito de esta calculadora en la base de datos
   const toggleFavorite = useCallback(async () => {
     try {
       const db = dbRef.current ?? await getDBConnection();
@@ -271,10 +278,8 @@ const FroudeCalc: React.FC = () => {
         await createFavoritesTable(db);
         dbRef.current = db;
       }
-    
       const route = 'FroudeCalc';
       const label = t('froudeCalc.title') || 'Calculadora de Froude';
-    
       const currentlyFav = await isFavorite(db, route);
       if (currentlyFav) {
         await removeFavorite(db, route);
@@ -285,27 +290,39 @@ const FroudeCalc: React.FC = () => {
         setIsFav(true);
         Toast.show({ type: 'success', text1: t('favorites.success'), text2: t('favorites.successDesc') });
       }
-    } catch (e) {
+    } catch {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('common.genericError') });
     }
   }, [t]);
 
+  // Bloqueo automático del tercer campo geométrico cuando los otros dos tienen valor válido
   useEffect(() => {
-    updateLockedGeometryField();
+    const inputs = [
+      { id: 'area',          value: state.area },
+      { id: 'width',         value: state.width },
+      { id: 'hydraulicDepth',value: state.hydraulicDepth },
+    ];
+    const validCount = inputs.filter(({ value }) =>
+      value !== '' && !isNaN(parseFloat(value.replace(',', '.')))
+    ).length;
+
+    if (validCount === 2) {
+      const emptyInput = inputs.find(({ value }) =>
+        value === '' || isNaN(parseFloat(value.replace(',', '.')))
+      );
+      setState(prev => ({ ...prev, lockedGeometryField: emptyInput ? emptyInput.id : null }));
+    } else {
+      setState(prev => ({ ...prev, lockedGeometryField: null }));
+    }
   }, [state.area, state.width, state.hydraulicDepth]);
 
-  useEffect(() => {
-    if (isFav) {
-      bounceHeart();
-    }
-  }, [isFav, bounceHeart]);
-
+  // Formatea un número eliminando ceros decimales innecesarios, con hasta 15 decimales de precisión
   const formatResult = useCallback((num: number): string => {
-    if (isNaN(num)) return '';
-    const fixed = num.toFixed(15);
-    return fixed.replace(/\.?0+$/, '');
+    if (isNaN(num) || !isFinite(num)) return '';
+    return new Decimal(num).toFixed(15).replace(/\.?0+$/, '');
   }, []);
 
+  // Convierte un valor entre unidades de la misma categoría usando aritmética de alta precisión
   const convertValue = useCallback((
     value: string,
     fromUnit: string,
@@ -314,49 +331,46 @@ const FroudeCalc: React.FC = () => {
   ): string => {
     const cleanValue = value.replace(',', '.');
     if (cleanValue === '' || isNaN(parseFloat(cleanValue))) return value;
-    const numValue = parseFloat(cleanValue);
     const fromFactor = conversionFactors[category][fromUnit];
-    const toFactor = conversionFactors[category][toUnit];
-    if (!fromFactor || !toFactor) return value;
-    const convertedValue = (numValue * fromFactor) / toFactor;
-    return formatResult(convertedValue);
+    const toFactor   = conversionFactors[category][toUnit];
+    if (fromFactor === undefined || toFactor === undefined) return value;
+    const result = new Decimal(cleanValue)
+      .times(new Decimal(fromFactor))
+      .dividedBy(new Decimal(toFactor));
+    return formatResult(result.toNumber());
   }, [formatResult]);
 
+  // Aplica el separador decimal configurado por el usuario al texto ya formateado
   const adjustDecimalSeparator = useCallback((formattedNumber: string): string => {
-    return selectedDecimalSeparator === 'Coma' ? formattedNumber.replace('.', ',') : formattedNumber;
+    return selectedDecimalSeparator === 'Coma'
+      ? formattedNumber.replace('.', ',')
+      : formattedNumber;
   }, [selectedDecimalSeparator]);
 
-  const updateLockedGeometryField = useCallback(() => {
-    const inputs = [
-      { id: 'area', value: state.area },
-      { id: 'width', value: state.width },
-      { id: 'hydraulicDepth', value: state.hydraulicDepth },
-    ];
-    const validInputs = inputs.filter(({ value }) => value !== '' && !isNaN(parseFloat(value.replace(',', '.'))));
-    if (validInputs.length === 2) {
-      const emptyInput = inputs.find(({ value }) => value === '' || isNaN(parseFloat(value.replace(',', '.'))));
-      setState((prev) => ({ ...prev, lockedGeometryField: emptyInput ? emptyInput.id : null }));
-    } else {
-      setState((prev) => ({ ...prev, lockedGeometryField: null }));
-    }
-  }, [state.area, state.width, state.hydraulicDepth]);
-
+  // Lógica principal de cálculo: convierte entradas a SI, resuelve la geometría faltante
+  // y calcula el número de Froude con aritmética Decimal de 20 dígitos de precisión
   const calculateFroude = useCallback(() => {
-    const area = state.area ? parseFloat(state.area.replace(',', '.')) * conversionFactors.area[state.areaUnit] : NaN;
-    const width = state.width ? parseFloat(state.width.replace(',', '.')) * conversionFactors.length[state.widthUnit] : NaN;
-    const hydraulicDepth = state.hydraulicDepth ? parseFloat(state.hydraulicDepth.replace(',', '.')) * conversionFactors.length[state.hydraulicDepthUnit] : NaN;
-    const velocity = state.velocity ? parseFloat(state.velocity.replace(',', '.')) * conversionFactors.velocity[state.velocityUnit] : NaN;
-    const gravity = state.gravity ? parseFloat(state.gravity.replace(',', '.')) * conversionFactors.acceleration[state.gravityUnit] : NaN;
+    const toSI = (val: string, factor: number): Decimal | null => {
+      const clean = val ? val.replace(',', '.') : '';
+      if (!clean || isNaN(parseFloat(clean))) return null;
+      return new Decimal(clean).times(new Decimal(factor));
+    };
+
+    const areaSI     = toSI(state.area,          conversionFactors.area[state.areaUnit]);
+    const widthSI    = toSI(state.width,          conversionFactors.length[state.widthUnit]);
+    const depthSI    = toSI(state.hydraulicDepth, conversionFactors.length[state.hydraulicDepthUnit]);
+    const velocitySI = toSI(state.velocity,       conversionFactors.velocity[state.velocityUnit]);
+    const gravitySI  = toSI(state.gravity,        conversionFactors.acceleration[state.gravityUnit]);
 
     const invalids: string[] = [];
-    if (isNaN(velocity)) invalids.push('velocity');
-    if (isNaN(gravity)) invalids.push('gravity');
+    if (!velocitySI) invalids.push('velocity');
+    if (!gravitySI)  invalids.push('gravity');
 
-    const geometryProvidedCount = [area, width, hydraulicDepth].filter(v => !isNaN(v)).length;
-    if (geometryProvidedCount < 2) {
-      if (isNaN(area)) invalids.push('area');
-      if (isNaN(width)) invalids.push('width');
-      if (isNaN(hydraulicDepth)) invalids.push('hydraulicDepth');
+    const geometryCount = [areaSI, widthSI, depthSI].filter(Boolean).length;
+    if (geometryCount < 2) {
+      if (!areaSI)  invalids.push('area');
+      if (!widthSI) invalids.push('width');
+      if (!depthSI) invalids.push('hydraulicDepth');
     }
 
     if (invalids.length > 0) {
@@ -372,126 +386,114 @@ const FroudeCalc: React.FC = () => {
       Toast.show({
         type: 'error',
         text1: t('common.error'),
-        text2:
-          (isNaN(velocity) || isNaN(gravity))
-            ? (t('froudeCalc.toasts.velocityGravityRequired') || 'Velocidad y gravedad requeridas')
-            : (t('froudeCalc.toasts.geometryRequired') || 'Se requieren al menos 2 parámetros geométricos'),
+        text2: (!velocitySI || !gravitySI)
+          ? (t('froudeCalc.toasts.velocityGravityRequired') || 'Velocidad y gravedad requeridas')
+          : (t('froudeCalc.toasts.geometryRequired') || 'Se requieren al menos 2 parámetros geométricos'),
       });
       return;
     }
 
     const newState: Partial<CalculatorState> = {};
+    let finalDepthSI: Decimal | null = depthSI;
 
-    if (geometryProvidedCount === 2) {
-      if (isNaN(area)) {
-        const calculated = width * hydraulicDepth;
-        if (!isNaN(calculated) && isFinite(calculated) && calculated > 0) {
-          const resultInTargetUnit = calculated / conversionFactors.area[state.areaUnit];
-          newState.resultArea = formatResult(resultInTargetUnit);
+    if (geometryCount === 2) {
+      if (!areaSI) {
+        const calc = widthSI!.times(depthSI!);
+        if (calc.gt(0)) {
+          newState.resultArea = formatResult(
+            calc.dividedBy(new Decimal(conversionFactors.area[state.areaUnit])).toNumber()
+          );
           newState.autoCalculatedField = 'area';
         }
-      } else if (isNaN(width)) {
-        const calculated = area / hydraulicDepth;
-        if (!isNaN(calculated) && isFinite(calculated) && calculated > 0) {
-          const resultInTargetUnit = calculated / conversionFactors.length[state.widthUnit];
-          newState.resultWidth = formatResult(resultInTargetUnit);
+      } else if (!widthSI) {
+        const calc = areaSI.dividedBy(depthSI!);
+        if (calc.gt(0)) {
+          newState.resultWidth = formatResult(
+            calc.dividedBy(new Decimal(conversionFactors.length[state.widthUnit])).toNumber()
+          );
           newState.autoCalculatedField = 'width';
         }
-      } else if (isNaN(hydraulicDepth)) {
-        const calculated = area / width;
-        if (!isNaN(calculated) && isFinite(calculated) && calculated > 0) {
-          const resultInTargetUnit = calculated / conversionFactors.length[state.hydraulicDepthUnit];
-          newState.resultHydraulicDepth = formatResult(resultInTargetUnit);
+      } else {
+        const calcSI = areaSI.dividedBy(widthSI);
+        if (calcSI.gt(0)) {
+          newState.resultHydraulicDepth = formatResult(
+            calcSI.dividedBy(new Decimal(conversionFactors.length[state.hydraulicDepthUnit])).toNumber()
+          );
           newState.autoCalculatedField = 'hydraulicDepth';
+          finalDepthSI = calcSI;
         }
       }
     }
 
-    const finalHydraulicDepth = !isNaN(hydraulicDepth)
-      ? hydraulicDepth
-      : (newState.resultHydraulicDepth ? parseFloat(newState.resultHydraulicDepth) * conversionFactors.length[state.hydraulicDepthUnit] : NaN);
-
-    let froudeNumber = 0;
-    if (!isNaN(finalHydraulicDepth) && !isNaN(velocity) && !isNaN(gravity) && finalHydraulicDepth > 0) {
-      froudeNumber = velocity / Math.sqrt(gravity * finalHydraulicDepth);
+    let froudeResult = 0;
+    if (finalDepthSI && velocitySI && gravitySI && finalDepthSI.gt(0)) {
+      const froude = velocitySI.dividedBy(gravitySI.times(finalDepthSI).sqrt());
+      if (froude.isFinite()) froudeResult = froude.toNumber();
     }
 
-    newState.resultFroude = (!isNaN(froudeNumber) && isFinite(froudeNumber)) ? froudeNumber : 0;
+    newState.resultFroude = froudeResult;
     setState(prev => ({ ...prev, ...newState, invalidFields: [] }));
   }, [state, formatResult, t]);
 
-  const handleCalculate = useCallback(() => {
-    calculateFroude();
-  }, [calculateFroude]);
-
+  // Limpia todos los campos restaurando el estado inicial
   const handleClear = useCallback(() => {
     setState(initialState);
   }, []);
 
+  // Copia los resultados actuales al portapapeles en formato legible
   const handleCopy = useCallback(() => {
     const hasResults = state.resultFroude !== 0 || state.resultArea || state.resultWidth || state.resultHydraulicDepth;
-
     if (!hasResults) {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('froudeCalc.toasts.noResultsToCopy') || 'No hay resultados para copiar' });
       return;
     }
 
-    let textToCopy = `${t('froudeCalc.title') || 'Calculadora de Froude'}\n\n`;
+    const areaValue           = state.resultArea           || state.area;
+    const widthValue          = state.resultWidth          || state.width;
+    const hydraulicDepthValue = state.resultHydraulicDepth || state.hydraulicDepth;
 
+    let textToCopy = `${t('froudeCalc.title') || 'Calculadora de Froude'}\n\n`;
     if (state.resultFroude !== 0) {
       textToCopy += `${t('froudeCalc.froudeNumber') || 'Número de Froude'}: ${formatResult(state.resultFroude)}\n\n`;
     }
-
     textToCopy += `${t('froudeCalc.flowParameters') || 'Parámetros de Flujo'}:\n`;
     if (state.velocity) textToCopy += `  ${t('froudeCalc.labels.velocity') || 'Velocidad'}: ${state.velocity} ${state.velocityUnit}\n`;
-    if (state.gravity) textToCopy += `  ${t('froudeCalc.labels.gravity') || 'Gravedad'}: ${state.gravity} ${state.gravityUnit}\n`;
-    textToCopy += '\n';
-
-    textToCopy += `${t('froudeCalc.geometryParameters') || 'Parámetros Geométricos'}:\n`;
-    
-    const areaValue = state.resultArea || state.area;
-    const widthValue = state.resultWidth || state.width;
-    const hydraulicDepthValue = state.resultHydraulicDepth || state.hydraulicDepth;
-    
-    if (areaValue) textToCopy += `  ${t('froudeCalc.labels.area') || 'Área'}: ${areaValue} ${state.areaUnit}\n`;
-    if (widthValue) textToCopy += `  ${t('froudeCalc.labels.width') || 'Ancho'}: ${widthValue} ${state.widthUnit}\n`;
+    if (state.gravity)  textToCopy += `  ${t('froudeCalc.labels.gravity')  || 'Gravedad'}: ${state.gravity} ${state.gravityUnit}\n`;
+    textToCopy += `\n${t('froudeCalc.geometryParameters') || 'Parámetros Geométricos'}:\n`;
+    if (areaValue)           textToCopy += `  ${t('froudeCalc.labels.area')           || 'Área'}: ${areaValue} ${state.areaUnit}\n`;
+    if (widthValue)          textToCopy += `  ${t('froudeCalc.labels.width')          || 'Ancho'}: ${widthValue} ${state.widthUnit}\n`;
     if (hydraulicDepthValue) textToCopy += `  ${t('froudeCalc.labels.hydraulicDepth') || 'Profundidad Hidráulica'}: ${hydraulicDepthValue} ${state.hydraulicDepthUnit}\n`;
 
     Clipboard.setString(textToCopy);
     Toast.show({ type: 'success', text1: t('common.success'), text2: t('froudeCalc.toasts.copied') || 'Resultados copiados al portapapeles' });
   }, [state, formatResult, t]);
 
+  // Guarda el cálculo actual en el historial de la base de datos local
   const handleSaveHistory = useCallback(async () => {
     const hasResults = state.resultFroude !== 0 || state.resultArea || state.resultWidth || state.resultHydraulicDepth;
-
     if (!hasResults) {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('froudeCalc.toasts.nothingToSave') || 'No hay resultados para guardar' });
       return;
     }
-
     try {
       const db = dbRef.current ?? await getDBConnection();
       if (!dbRef.current) {
         try { await createTable(db); } catch {}
         dbRef.current = db;
       }
-
       const inputs = {
-        area: state.resultArea || state.area || 'N/A',
-        areaUnit: state.areaUnit,
-        width: state.resultWidth || state.width || 'N/A',
-        widthUnit: state.widthUnit,
-        hydraulicDepth: state.resultHydraulicDepth || state.hydraulicDepth || 'N/A',
+        area:               state.resultArea           || state.area           || 'N/A',
+        areaUnit:           state.areaUnit,
+        width:              state.resultWidth          || state.width          || 'N/A',
+        widthUnit:          state.widthUnit,
+        hydraulicDepth:     state.resultHydraulicDepth || state.hydraulicDepth || 'N/A',
         hydraulicDepthUnit: state.hydraulicDepthUnit,
-        velocity: state.velocity || 'N/A',
-        velocityUnit: state.velocityUnit,
-        gravity: state.gravity || 'N/A',
-        gravityUnit: state.gravityUnit,
+        velocity:           state.velocity             || 'N/A',
+        velocityUnit:       state.velocityUnit,
+        gravity:            state.gravity              || 'N/A',
+        gravityUnit:        state.gravityUnit,
       };
-
-      const result = formatResult(state.resultFroude);
-
-      await saveCalculation(db, 'froude', JSON.stringify(inputs), result);
+      await saveCalculation(db, 'froude', JSON.stringify(inputs), formatResult(state.resultFroude));
       Toast.show({ type: 'success', text1: t('common.success'), text2: t('froudeCalc.toasts.saved') || 'Cálculo guardado en el historial' });
     } catch (error) {
       console.error('Error al guardar el historial:', error);
@@ -503,71 +505,48 @@ const FroudeCalc: React.FC = () => {
     navigation.navigate('OptionsScreenFroude', { category, onSelectOption, selectedOption });
   }, [navigation]);
 
-  // ── Handlers del teclado custom ──────────────────────────────────────────────
+  // Utilidades del teclado personalizado: lectura del valor activo y despacho al handler correcto
   const getActiveValue = useCallback((): string => {
     const id = activeInputIdRef.current;
     if (!id) return '';
-    const s = stateRef.current;
-    // Mapa de fieldId a propiedad del estado
     const map: Record<string, string> = {
-      area: s.area,
-      width: s.width,
-      hydraulicDepth: s.hydraulicDepth,
-      velocity: s.velocity,
-      gravity: s.gravity,
+      area:           stateRef.current.area,
+      width:          stateRef.current.width,
+      hydraulicDepth: stateRef.current.hydraulicDepth,
+      velocity:       stateRef.current.velocity,
+      gravity:        stateRef.current.gravity,
     };
     return map[id] ?? '';
   }, []);
 
-  const handleKeyboardKey = useCallback((key: string) => {
+  // Función central que aplica una transformación al valor activo y lo despacha al campo correspondiente
+  const callActiveHandler = useCallback((transform: (current: string) => string | null) => {
     const id = activeInputIdRef.current;
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue() + key);
-  }, []);
+    const result = transform(getActiveValue());
+    if (result !== null) handler(result);
+  }, [getActiveValue]);
 
-  const handleKeyboardDelete = useCallback(() => {
-    const id = activeInputIdRef.current;
-    if (!id) return;
-    const handler = inputHandlersRef.current[id];
-    if (!handler) return;
-    handler(getActiveValue().slice(0, -1));
-  }, []);
+  const handleKeyboardKey    = useCallback((key: string) => callActiveHandler(val => val + key),       [callActiveHandler]);
+  const handleKeyboardDelete = useCallback(() => callActiveHandler(val => val.slice(0, -1)),            [callActiveHandler]);
+  const handleKeyboardClear  = useCallback(() => callActiveHandler(() => ''),                           [callActiveHandler]);
+  const handleKeyboardSubmit = useCallback(() => setActiveInputId(null),                                [setActiveInputId]);
 
-  const handleKeyboardClear = useCallback(() => {
-    const id = activeInputIdRef.current;
-    if (!id) return;
-    const handler = inputHandlersRef.current[id];
-    if (!handler) return;
-    handler('');
-  }, []);
+  const handleKeyboardMultiply10 = useCallback(() =>
+    callActiveHandler(val => {
+      if (val === '' || val === '.') return null;
+      return new Decimal(val).times(10).toString();
+    }), [callActiveHandler]);
 
-  const handleKeyboardMultiply10 = useCallback(() => {
-    const id = activeInputIdRef.current;
-    if (!id) return;
-    const handler = inputHandlersRef.current[id];
-    if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) * 10).toString());
-  }, []);
+  const handleKeyboardDivide10 = useCallback(() =>
+    callActiveHandler(val => {
+      if (val === '' || val === '.') return null;
+      return new Decimal(val).dividedBy(10).toString();
+    }), [callActiveHandler]);
 
-  const handleKeyboardDivide10 = useCallback(() => {
-    const id = activeInputIdRef.current;
-    if (!id) return;
-    const handler = inputHandlersRef.current[id];
-    if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) / 10).toString());
-  }, []);
-
-  const handleKeyboardSubmit = useCallback(() => {
-    setActiveInputId(null);
-  }, [setActiveInputId]);
-  // ─────────────────────────────────────────────────────────────────────────────
-
+  // Renderizado de cada campo de entrada con su etiqueta, indicador de estado, input y selector de unidades
   const renderInput = useCallback((
     labelKey: string,
     value: string,
@@ -578,41 +557,40 @@ const FroudeCalc: React.FC = () => {
     isLocked?: boolean
   ) => {
     const unitByField: { [K in NonNullable<typeof fieldId>]: string } = {
-      area: state.areaUnit,
-      width: state.widthUnit,
+      area:           state.areaUnit,
+      width:          state.widthUnit,
       hydraulicDepth: state.hydraulicDepthUnit,
-      velocity: state.velocityUnit,
-      gravity: state.gravityUnit,
+      velocity:       state.velocityUnit,
+      gravity:        state.gravityUnit,
     } as const;
-  
-    const shownLabel = displayLabel || t(labelKey);
-    const unit = fieldId ? unitByField[fieldId] : '';
-    const isFieldLocked = isLocked || (fieldId && state.lockedGeometryField === fieldId);
-    const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
-  
+
     const categoryByField: Record<NonNullable<typeof fieldId>, 'area' | 'length' | 'velocity' | 'acceleration'> = {
-      area: 'area',
-      width: 'length',
+      area:           'area',
+      width:          'length',
       hydraulicDepth: 'length',
-      velocity: 'velocity',
-      gravity: 'acceleration',
+      velocity:       'velocity',
+      gravity:        'acceleration',
     };
 
-    // Registrar el handler completo del campo en el ref para que el teclado lo use
+    const shownLabel      = displayLabel || t(labelKey);
+    const unit            = fieldId ? unitByField[fieldId] : '';
+    const isFieldLocked   = isLocked || (fieldId && state.lockedGeometryField === fieldId);
+    const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
+
     if (fieldId) {
       inputHandlersRef.current[fieldId] = (text: string) => {
         onChange(text);
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
-          invalidFields: prev.invalidFields.filter((f) => f !== fieldId),
+          invalidFields: prev.invalidFields.filter(f => f !== fieldId),
           autoCalculatedField: prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField,
-          ...(fieldId === 'area' ? { resultArea: '' } : {}),
-          ...(fieldId === 'width' ? { resultWidth: '' } : {}),
+          ...(fieldId === 'area'           ? { resultArea: '' }           : {}),
+          ...(fieldId === 'width'          ? { resultWidth: '' }          : {}),
           ...(fieldId === 'hydraulicDepth' ? { resultHydraulicDepth: '' } : {}),
         }));
       };
     }
-  
+
     return (
       <View
         ref={(r) => { if (fieldId) inputRefs.current[fieldId] = r; }}
@@ -623,31 +601,25 @@ const FroudeCalc: React.FC = () => {
             {shownLabel}
           </Text>
           {(() => {
-            const id = fieldId;
             const hasUserValue = (value?.trim()?.length ?? 0) > 0;
-            const isInvalid = id ? state.invalidFields.includes(id) : false;
+            const isInvalid    = fieldId ? state.invalidFields.includes(fieldId) : false;
             const isAuto =
-              (id && id === state.autoCalculatedField) &&
+              fieldId === state.autoCalculatedField &&
               !hasUserValue &&
               !!(resultValue && resultValue !== '');
-          
+
             let dotColor = 'rgb(200,200,200)';
-            if (isInvalid) dotColor = 'rgb(254, 12, 12)';
-            else if (isAuto) dotColor = 'rgba(62, 136, 255, 1)';
+            if (isInvalid)         dotColor = 'rgb(254, 12, 12)';
+            else if (isAuto)       dotColor = 'rgba(62, 136, 255, 1)';
             else if (hasUserValue) dotColor = 'rgb(194, 254, 12)';
-          
+
             return <View style={[styles.valueDot, { backgroundColor: dotColor }]} />;
           })()}
         </View>
-        
+
         <View style={styles.redContainer}>
           <View style={[styles.Container, { experimental_backgroundImage: themeColors.gradient }]}>
             <View style={[styles.innerWhiteContainer, { backgroundColor: inputContainerBg }]}>
-              {/*
-                Presionar el área activa el teclado custom.
-                El TextInput es no-editable para bloquear el teclado nativo;
-                pointerEvents="none" evita que capture el toque (lo captura el Pressable).
-              */}
               <Pressable
                 onPress={() => {
                   if (isFieldLocked || !fieldId) return;
@@ -665,42 +637,39 @@ const FroudeCalc: React.FC = () => {
               />
             </View>
           </View>
-              
+
           <Pressable
             style={[styles.Container2, { experimental_backgroundImage: themeColors.gradient }]}
             onPress={() => {
               if (!fieldId) return;
               const category = categoryByField[fieldId];
-            
               navigateToOptions(category, (option: string) => {
                 const updateUnit = (
                   field: keyof CalculatorState,
                   prevField: keyof CalculatorState,
                   resultField?: keyof CalculatorState
                 ) => {
-                  const inputValue = state[field] as string;
-                  const prevUnit = state[prevField] as string;
-                  const resultVal = resultField ? (state[resultField] as string) : '';
-                  const convertedInputValue = convertValue(inputValue, prevUnit, option, category as any);
-                  let convertedResultValue = resultVal;
-                  if (resultVal && resultField) {
-                    convertedResultValue = convertValue(resultVal, prevUnit, option, category as any);
-                  }
-                  setState((prev) => ({
+                  const inputValue     = state[field] as string;
+                  const prevUnit       = state[prevField] as string;
+                  const resultVal      = resultField ? (state[resultField] as string) : '';
+                  const convertedInput  = convertValue(inputValue, prevUnit, option, category as any);
+                  const convertedResult = resultVal && resultField
+                    ? convertValue(resultVal, prevUnit, option, category as any)
+                    : resultVal;
+                  setState(prev => ({
                     ...prev,
-                    [field]: convertedInputValue,
+                    [field]: convertedInput,
                     [prevField]: option,
                     [`${field}Unit`]: option,
-                    ...(resultField && convertedResultValue ? { [resultField]: convertedResultValue } as any : {}),
+                    ...(resultField && convertedResult ? { [resultField]: convertedResult } as any : {}),
                   }));
                 };
-              
                 switch (fieldId) {
-                  case 'area':           updateUnit('area', 'prevAreaUnit', 'resultArea'); break;
-                  case 'width':          updateUnit('width', 'prevWidthUnit', 'resultWidth'); break;
-                  case 'hydraulicDepth': updateUnit('hydraulicDepth', 'prevHydraulicDepthUnit', 'resultHydraulicDepth'); break;
-                  case 'velocity':       updateUnit('velocity', 'prevVelocityUnit'); break;
-                  case 'gravity':        updateUnit('gravity', 'prevGravityUnit'); break;
+                  case 'area':           updateUnit('area',          'prevAreaUnit',          'resultArea');          break;
+                  case 'width':          updateUnit('width',         'prevWidthUnit',         'resultWidth');         break;
+                  case 'hydraulicDepth': updateUnit('hydraulicDepth','prevHydraulicDepthUnit','resultHydraulicDepth');break;
+                  case 'velocity':       updateUnit('velocity',      'prevVelocityUnit');                             break;
+                  case 'gravity':        updateUnit('gravity',       'prevGravityUnit');                              break;
                 }
               }, unit);
             }}
@@ -713,14 +682,12 @@ const FroudeCalc: React.FC = () => {
         </View>
       </View>
     );
-  }, [state, convertValue, navigateToOptions, updateLockedGeometryField, themeColors, currentTheme, fontSizeFactor, t, setActiveInputId]);
+  }, [state, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor, t, setActiveInputId]);
 
   const isKeyboardOpen = !!activeInputId;
 
   return (
-    <View 
-      style={styles.safeArea}
-    >
+    <View style={styles.safeArea}>
       <ScrollView
         ref={scrollViewRef}
         style={styles.mainContainer}
@@ -728,10 +695,13 @@ const FroudeCalc: React.FC = () => {
         keyboardShouldPersistTaps="handled"
         contentInset={{ bottom: isKeyboardOpen ? 280 : 0 }}
       >
-        {/* Header */}
+        {/* Cabecera con botón de retroceso, favorito y teoría */}
         <View style={styles.headerContainer}>
           <View style={styles.iconWrapper}>
-            <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.goBack()}>
+            <Pressable
+              style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+              onPress={() => navigation.goBack()}
+            >
               <Icon name="chevron-left" size={22} color="rgb(255, 255, 255)" />
             </Pressable>
           </View>
@@ -739,75 +709,60 @@ const FroudeCalc: React.FC = () => {
             <View style={styles.iconWrapper2}>
               <Pressable
                 style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
-                onPress={() => {
-                  bounceHeart();
-                  toggleFavorite();
-                }}
+                onPress={() => { bounceHeart(); toggleFavorite(); }}
               >
                 <Animated.View style={{ transform: [{ scale: heartScale }] }}>
                   <IconFavorite
-                    name={isFav ? "heart" : "heart-o"}
+                    name={isFav ? 'heart' : 'heart-o'}
                     size={20}
-                    color={isFav ? "rgba(255, 63, 63, 1)" : "rgb(255, 255, 255)"}
+                    color={isFav ? 'rgba(255, 63, 63, 1)' : 'rgb(255, 255, 255)'}
                   />
                 </Animated.View>
               </Pressable>
             </View>
             <View style={styles.iconWrapper2}>
-              <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.navigate('FroudeTheory')}>
+              <Pressable
+                style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                onPress={() => navigation.navigate('FroudeTheory')}
+              >
                 <Icon name="book" size={20} color="rgb(255, 255, 255)" />
               </Pressable>
             </View>
           </View>
         </View>
 
-        {/* Títulos */}
+        {/* Títulos de la pantalla */}
         <View style={styles.titlesContainer}>
           <Text style={[styles.subtitle, { fontSize: 18 * fontSizeFactor }]}>{t('froudeCalc.calculator') || 'Calculadora'}</Text>
-          <Text style={[styles.title, { fontSize: 30 * fontSizeFactor }]}>{t('froudeCalc.title') || 'Número de Froude'}</Text>
+          <Text style={[styles.title,    { fontSize: 30 * fontSizeFactor }]}>{t('froudeCalc.title')      || 'Número de Froude'}</Text>
         </View>
 
-        {/* Resultados */}
+        {/* Tarjeta de resultados con imagen de fondo, régimen de flujo y número de Froude */}
         <View style={styles.resultsMain}>
           <View style={styles.resultsContainerMain}>
             <Pressable style={styles.resultsContainer} onPress={handleSaveHistory}>
               <View style={styles.saveButton}>
-                <Text style={[styles.saveButtonText, { fontSize: 14 * fontSizeFactor }]}>{t('froudeCalc.saveToHistory') || 'Guardar en historial'}</Text>
+                <Text style={[styles.saveButtonText, { fontSize: 14 * fontSizeFactor }]}>
+                  {t('froudeCalc.saveToHistory') || 'Guardar en historial'}
+                </Text>
                 <Icon name="plus" size={16 * fontSizeFactor} color="rgba(255, 255, 255, 0.4)" style={styles.plusIcon} />
               </View>
               <View style={styles.imageContainer}>
                 <View style={styles.flowContainer}>
-                  <FastImage
-                    source={backgroundImage}
-                    style={StyleSheet.absoluteFillObject}
-                  />
-                  {/* superposición para modo oscuro */}
+                  <FastImage source={backgroundImage} style={StyleSheet.absoluteFillObject} />
                   {currentTheme === 'dark' && (
                     <View
                       pointerEvents="none"
-                      style={{
-                        ...StyleSheet.absoluteFillObject as any,
-                        backgroundColor: 'rgba(0,0,0,0.7)'
-                      }}
+                      style={{ ...StyleSheet.absoluteFillObject as any, backgroundColor: 'rgba(0,0,0,0.7)' }}
                     />
                   )}
                   <View style={styles.caudalLabel}>
-                    <Text
-                      style={[
-                        styles.flowLabel,
-                        { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 14 * fontSizeFactor }
-                      ]}
-                    >
+                    <Text style={[styles.flowLabel, { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 14 * fontSizeFactor }]}>
                       {state.resultFroude === 0 ? 'な' : t(regimeKey)}
                     </Text>
                   </View>
                   <View style={styles.flowValueContainer}>
-                    <Text
-                      style={[
-                        styles.flowValue,
-                        { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 30 * fontSizeFactor }
-                      ]}
-                    >
+                    <Text style={[styles.flowValue, { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 30 * fontSizeFactor }]}>
                       {state.resultFroude === 0 ? '一' : adjustDecimalSeparator(formatNumber(state.resultFroude))}
                     </Text>
                   </View>
@@ -817,17 +772,20 @@ const FroudeCalc: React.FC = () => {
           </View>
         </View>
 
-        {/* Botones de acción */}
+        {/* Botones de acción: calcular, copiar, limpiar e historial */}
         <View style={styles.buttonsContainer}>
           {[
-            { icon: 'terminal', label: t('common.calculate') || 'Calcular', action: handleCalculate },
-            { icon: 'copy', label: t('common.copy') || 'Copiar', action: handleCopy },
-            { icon: 'trash', label: t('common.clear') || 'Limpiar', action: handleClear },
-            { icon: 'clock', label: t('common.history') || 'Historial', action: () => navigation.navigate('HistoryScreenFroude') },
+            { icon: 'terminal', label: t('common.calculate') || 'Calcular',  action: calculateFroude },
+            { icon: 'copy',     label: t('common.copy')      || 'Copiar',    action: handleCopy },
+            { icon: 'trash',    label: t('common.clear')     || 'Limpiar',   action: handleClear },
+            { icon: 'clock',    label: t('common.history')   || 'Historial', action: () => navigation.navigate('HistoryScreenFroude') },
           ].map(({ icon, label, action }) => (
             <View style={styles.actionWrapper} key={label}>
               <View style={styles.actionButtonMain}>
-                <Pressable style={[styles.actionButton, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={action}>
+                <Pressable
+                  style={[styles.actionButton, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                  onPress={action}
+                >
                   <Icon name={icon} size={22 * fontSizeFactor} color="rgb(255, 255, 255)" />
                   <Icon name={icon} size={22 * fontSizeFactor} color="rgba(255, 255, 255, 0.5)" style={{ position: 'absolute', filter: 'blur(4px)' }} />
                 </Pressable>
@@ -837,18 +795,9 @@ const FroudeCalc: React.FC = () => {
           ))}
         </View>
 
-        {/* Inputs */}
-        <View
-          style={[
-            styles.inputsSection,
-            { 
-              backgroundColor: themeColors.card,
-              paddingBottom: isKeyboardOpen ? 330 : 70,
-            }
-          ]}
-        >
+        {/* Sección de entradas dividida en parámetros de flujo y parámetros geométricos */}
+        <View style={[styles.inputsSection, { backgroundColor: themeColors.card, paddingBottom: isKeyboardOpen ? 330 : 70 }]}>
           <View style={styles.inputsContainer}>
-            {/* Parámetros de flujo */}
             <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
               {t('froudeCalc.flowParameters') || 'Parámetros de Flujo'}
             </Text>
@@ -856,19 +805,22 @@ const FroudeCalc: React.FC = () => {
             {renderInput(
               'froudeCalc.labels.velocity',
               state.velocity,
-              (text) => setState((prev) => ({ ...prev, velocity: text })),
-              'velocity'
+              (text) => setState(prev => ({ ...prev, velocity: text })),
+              'velocity',
+              undefined,
+              `${t('froudeCalc.labels.velocity') || 'Velocidad'} (V)`
             )}
             {renderInput(
               'froudeCalc.labels.gravity',
               state.gravity,
-              (text) => setState((prev) => ({ ...prev, gravity: text })),
-              'gravity'
+              (text) => setState(prev => ({ ...prev, gravity: text })),
+              'gravity',
+              undefined,
+              `${t('froudeCalc.labels.gravity') || 'Gravedad'} (g)`
             )}
 
             <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
 
-            {/* Parámetros geométricos */}
             <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
               {t('froudeCalc.geometryParameters') || 'Parámetros Geométricos'}
             </Text>
@@ -876,23 +828,26 @@ const FroudeCalc: React.FC = () => {
             {renderInput(
               'froudeCalc.labels.area',
               state.area,
-              (text) => setState((prev) => ({ ...prev, area: text })),
+              (text) => setState(prev => ({ ...prev, area: text })),
               'area',
-              state.resultArea
+              state.resultArea,
+              `${t('froudeCalc.labels.area') || 'Área'} (A)`
             )}
             {renderInput(
               'froudeCalc.labels.width',
               state.width,
-              (text) => setState((prev) => ({ ...prev, width: text })),
+              (text) => setState(prev => ({ ...prev, width: text })),
               'width',
-              state.resultWidth
+              state.resultWidth,
+              `${t('froudeCalc.labels.width') || 'Ancho'} (b)`
             )}
             {renderInput(
               'froudeCalc.labels.hydraulicDepth',
               state.hydraulicDepth,
-              (text) => setState((prev) => ({ ...prev, hydraulicDepth: text })),
+              (text) => setState(prev => ({ ...prev, hydraulicDepth: text })),
               'hydraulicDepth',
-              state.resultHydraulicDepth
+              state.resultHydraulicDepth,
+              `${t('froudeCalc.labels.hydraulicDepth') || 'Profundidad Hidráulica'} (D)`
             )}
           </View>
           <View>
@@ -914,7 +869,7 @@ const FroudeCalc: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* ── Teclado custom ── renderizado fuera del ScrollView para quedar siempre visible en el fondo */}
+      {/* Teclado personalizado renderizado fuera del ScrollView para permanecer siempre visible */}
       {isKeyboardOpen && (
         <View style={styles.customKeyboardWrapper}>
           <CustomKeyboardPanel
@@ -1209,7 +1164,6 @@ const styles = StyleSheet.create({
     borderRadius: 30, 
     padding: 1 
   },
-  // ── Teclado custom ──────────────────────────────────────────────────────────
   customKeyboardWrapper: {
     position: 'absolute',
     bottom: 0,

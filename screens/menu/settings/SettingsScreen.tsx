@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, Image } from 'react-native';
 import Icon2 from 'react-native-vector-icons/Feather';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icons3 from 'react-native-vector-icons/AntDesign';
@@ -135,6 +135,20 @@ const SettingsScreen = () => {
   return (
     <View style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
       <View style={styles.headerContainer}>
+        {/* Logo a la izquierda */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={
+              currentTheme === 'dark'
+                ? require('../../../assets/icon/iconwhite.webp')
+                : require('../../../assets/icon/iconblack.webp')
+            }
+            style={styles.headerIcon}
+            resizeMode="contain"
+          />
+        </View>
+          
+        {/* Botón de reset a la derecha */}
         <View style={styles.rightIconsContainer}>
           <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
             <Pressable
@@ -291,7 +305,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     minHeight: 45,
@@ -401,6 +415,16 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: 'rgb(235, 235, 235)',
     marginVertical: 0,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  headerIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 6,
   },
 });
 

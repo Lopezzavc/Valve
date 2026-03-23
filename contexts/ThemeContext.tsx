@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Appearance } from 'react-native';
 import { useContext } from 'react';
 
 interface ThemeContextType {
@@ -28,6 +27,12 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         if (savedTheme) {
           setSelectedTheme(savedTheme);
           updateCurrentTheme(savedTheme);
+        } else {
+          // Si no hay tema guardado, usar 'Claro' por defecto
+          setSelectedTheme('Claro');
+          setCurrentTheme('light');
+          // Opcional: guardar el tema por defecto en AsyncStorage
+          await AsyncStorage.setItem('selectedTheme', 'Claro');
         }
       } catch (error) {
         console.error('Error al cargar el tema:', error);
@@ -36,19 +41,12 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     loadTheme();
   }, []);
 
-  useEffect(() => {
-    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-      if (selectedTheme === 'Sistema') {
-        setCurrentTheme(colorScheme || 'light');
-      }
-    });
-    return () => subscription.remove();
-  }, [selectedTheme]);
+  // Eliminar el useEffect que escucha cambios del sistema
+  // Ya no es necesario porque no queremos adaptarnos al tema del celular
 
   const updateCurrentTheme = (theme: string) => {
-    if (theme === 'Sistema') {
-      setCurrentTheme(Appearance.getColorScheme() || 'light');
-    } else if (theme === 'Oscuro') {
+    // Eliminar la opción 'Sistema' y solo manejar 'Claro' y 'Oscuro'
+    if (theme === 'Oscuro') {
       setCurrentTheme('dark');
     } else {
       setCurrentTheme('light');

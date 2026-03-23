@@ -22,6 +22,7 @@ type RootStackParamList = {
     category: string;
     onSelectOption?: (option: string) => void;
     selectedOption?: string;
+    fieldLabel?: string;
   };
 };
 
@@ -36,9 +37,9 @@ const OPTIONS_DATA: Record<string, string[]> = {
 
 // Claves de título/subtítulo (aprovecha claves previas y añade mínimas nuevas para longitud/área/unidades)
 const TITLE_I18N_KEY: Record<string, string> = {
-  length: 'optionsScreen.titles.length',
+  length: 'continuidadCalc.labels.diameter',  // Usaremos la clave de diámetro como base
   velocity: 'continuidadCalc.labels.velocity',
-  area: 'optionsScreen.titles.area',
+  area: 'continuidadCalc.labels.A1',
   sectionType: 'continuidadCalc.labels.sectionType',
   fillType: 'continuidadCalc.labels.fillType',
 };
@@ -164,7 +165,40 @@ const OptionsScreen = () => {
   const options = useMemo(() => OPTIONS_DATA[category] ?? [], [category]);
 
   // Título/subtítulo traducidos
-  const title = useMemo(() => t(TITLE_I18N_KEY[category] ?? 'optionsScreen.titles.generic'), [category, t]);
+  
+  const fieldLabel = params.fieldLabel;
+
+  const getTitleKey = (category: string, fieldLabel?: string): string => {
+    if (fieldLabel) {
+      switch (fieldLabel) {
+        case 'Altura de lámina':
+          return 'continuidadCalc.labels.fillHeight';
+        case 'Velocidad en la sección (v₁)':
+          return 'continuidadCalc.labels.v1';
+        case 'Velocidad en la sección (v₂)':
+          return 'continuidadCalc.labels.v2';
+        default:
+          break;
+      }
+    }
+    switch (category) {
+      case 'length':
+        return 'continuidadCalc.labels.diameter';
+      case 'velocity':
+        return 'continuidadCalc.labels.velocity';
+      case 'area':
+        return 'continuidadCalc.labels.A1';
+      case 'sectionType':
+        return 'continuidadCalc.labels.sectionType';
+      case 'fillType':
+        return 'continuidadCalc.labels.fillType';
+      default:
+        return 'optionsScreen.titles.generic';
+    }
+  };
+
+  const titleKey = getTitleKey(category, fieldLabel);
+  const title = useMemo(() => t(titleKey), [category, fieldLabel, t]);
   const subtitle = useMemo(() => t(SUBTITLE_I18N_KEY[category] ?? 'optionsScreen.subtitles.generic'), [category, t]);
 
   // Estado de selección (sin cambios en la lógica)

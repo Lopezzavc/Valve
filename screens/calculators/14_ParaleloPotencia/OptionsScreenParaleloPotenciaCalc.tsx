@@ -8,6 +8,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -18,50 +19,39 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 
 type RootStackParamList = {
-  OptionsScreenEnergiaBernoulli: {
+  OptionsScreenParaleloPotenciaCalc: {
     category: string;
     onSelectOption?: (option: string) => void;
     selectedOption?: string;
-    fieldLabel?: string;
   };
 };
 
-// Datos estáticos para las categorías de EnergiaBernoulliCalc
 const OPTIONS_DATA: Record<string, string[]> = {
-  length: ['m', 'mm', 'cm', 'km', 'in', 'ft', 'yd', 'mi'],
-  velocity: ['m/s', 'km/h', 'ft/s', 'mph', 'kn', 'cm/s', 'in/s'],
-  area: ['m²', 'cm²', 'mm²', 'km²', 'ha', 'in²', 'ft²', 'yd²', 'mi²', 'acre'],
-  pressure: ['Pa', 'kPa', 'MPa', 'bar', 'atm', 'psi', 'mmHg', 'mca'],
-  density: ['kg/m³', 'g/cm³', 'lb/ft³'],
-  acceleration: ['m/s²', 'ft/s²'],
-  temperature: ['°C', '°F', 'K'],
-  specificWeight: ['N/m³', 'kN/m³', 'lbf/ft³'], // Nueva categoría para peso específico
+  length:             ['m', 'mm', 'cm', 'ft', 'in', 'μm'],
+  pressure:           ['Pa', 'kPa', 'MPa', 'bar', 'atm', 'psi'],
+  density:            ['kg/m³', 'g/cm³', 'kg/L', 'lb/ft³'],
+  kinematicViscosity: ['m²/s', 'mm²/s', 'cm²/s', 'cSt', 'ft²/s'],
+  flow:               ['m³/s', 'L/s', 'm³/min', 'm³/h', 'ft³/s'],
 };
 
-// Claves de título/subtítulo para i18n
 const TITLE_I18N_KEY: Record<string, string> = {
-  length: 'optionsScreen.titles.length',
-  velocity: 'energiaBernoulliCalc.labels.Velocity',
-  area: 'optionsScreen.titles.area',
-  pressure: 'energiaBernoulliCalc.labels.Pressure',
-  density: 'energiaBernoulliCalc.labels.Density',
-  acceleration: 'energiaBernoulliCalc.labels.Acceleration',
-  temperature: 'energiaBernoulliCalc.labels.Temperature',
-  specificWeight: 'energiaBernoulliCalc.labels.SpecificWeight', // Nueva clave
+  length:             'optionsScreen.titles.length',
+  pressure:           'optionsScreen.titles.pressure',
+  density:            'reynoldsCalc.labels.density',
+  kinematicViscosity: 'optionsScreen.titles.viscosity',
+  flow:               'optionsScreen.titles.flow',
 };
 
 const SUBTITLE_I18N_KEY: Record<string, string> = {
-  length: 'optionsScreen.subtitles.units',
-  velocity: 'optionsScreen.subtitles.units',
-  area: 'optionsScreen.subtitles.units',
-  pressure: 'optionsScreen.subtitles.units',
-  density: 'optionsScreen.subtitles.units',
-  acceleration: 'optionsScreen.subtitles.units',
-  temperature: 'optionsScreen.subtitles.units',
-  specificWeight: 'optionsScreen.subtitles.units', // Nueva clave
+  length:             'optionsScreen.subtitles.units',
+  pressure:           'optionsScreen.subtitles.units',
+  density:            'optionsScreen.subtitles.units',
+  kinematicViscosity: 'optionsScreen.subtitles.units',
+  flow:               'optionsScreen.subtitles.units',
 };
 
-// Componente de fila memoizado (idéntico al original)
+// ─── OptionItem ───────────────────────────────────────────────────────────────
+
 type OptionItemProps = {
   option: string;
   displayLabel: string;
@@ -74,7 +64,16 @@ type OptionItemProps = {
 };
 
 const OptionItem = React.memo(
-  ({ option, displayLabel, isSelected, onPress, textColor, textSelectedColor, checkColor, fontSizeFactor }: OptionItemProps) => {
+  ({
+    option,
+    displayLabel,
+    isSelected,
+    onPress,
+    textColor,
+    textSelectedColor,
+    checkColor,
+    fontSizeFactor,
+  }: OptionItemProps) => {
     const handlePress = useCallback(() => onPress(option), [onPress, option]);
 
     return (
@@ -118,53 +117,52 @@ const OptionItem = React.memo(
     prev.fontSizeFactor === next.fontSizeFactor
 );
 
-const OptionsScreenEnergiaBernoulli = () => {
+// ─── Main component ───────────────────────────────────────────────────────────
+
+const OptionsScreenParaleloPotenciaCalc = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'OptionsScreenEnergiaBernoulli'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'OptionsScreenParaleloPotenciaCalc'>>();
   const params = route.params ?? { category: 'length' };
 
   const { currentTheme } = useTheme();
-  const { t, selectedLanguage } = useContext(LanguageContext);
+  const { t } = useContext(LanguageContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
 
-  // Paleta de colores (idéntica a la original)
   const themeColors = useMemo(() => {
     if (currentTheme === 'dark') {
       return {
-        background: 'rgb(12,12,12)',
-        card: 'rgb(24,24,24)',
-        text: 'rgb(235,235,235)',
-        textStrong: 'rgb(250,250,250)',
-        separator: 'rgba(255,255,255,0.12)',
-        icon: 'rgb(245,245,245)',
-        checkIcon: 'rgb(12,12,12)',
-        accentChip: 'rgb(194, 254, 12)',
-        gradient: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        background:   'rgb(12,12,12)',
+        card:         'rgb(24,24,24)',
+        text:         'rgb(235,235,235)',
+        textStrong:   'rgb(250,250,250)',
+        separator:    'rgba(255,255,255,0.12)',
+        icon:         'rgb(245,245,245)',
+        checkIcon:    'rgb(12,12,12)',
+        accentChip:   'rgb(194, 254, 12)',
+        gradient:
+          'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
         cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
-    // light
     return {
-      background: 'rgba(255, 255, 255, 1)',
-      card: 'rgba(255, 255, 255, 1)',
-      text: 'rgb(0, 0, 0)',
-      textStrong: 'rgb(0, 0, 0)',
-      separator: 'rgb(235, 235, 235)',
-      icon: 'rgb(0, 0, 0)',
-      checkIcon: 'rgb(0, 0, 0)',
-      accentChip: 'rgb(194, 254, 12)',
-      gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      background:   'rgba(255, 255, 255, 1)',
+      card:         'rgba(255, 255, 255, 1)',
+      text:         'rgb(0, 0, 0)',
+      textStrong:   'rgb(0, 0, 0)',
+      separator:    'rgb(235, 235, 235)',
+      icon:         'rgb(0, 0, 0)',
+      checkIcon:    'rgb(0, 0, 0)',
+      accentChip:   'rgb(194, 254, 12)',
+      gradient:
+        'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
       cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
 
-  const category = params.category ?? 'length';
-  const onSelectOption = params.onSelectOption;
+  const category        = params.category ?? 'length';
+  const onSelectOption  = params.onSelectOption;
   const selectedFromParams = params.selectedOption;
 
-  const fieldLabel = params.fieldLabel;
-
-  // Habilitar LayoutAnimation en Android
   useEffect(() => {
     if (
       Platform.OS === 'android' &&
@@ -176,66 +174,25 @@ const OptionsScreenEnergiaBernoulli = () => {
 
   const options = useMemo(() => OPTIONS_DATA[category] ?? [], [category]);
 
-  // Título/subtítulo traducidos
-  const getTitleKey = (category: string, fieldLabel?: string): string => {
-    if (fieldLabel) {
-      switch (fieldLabel) {
-        case 'P₁': return 'energiaBernoulliCalc.labels.P1';
-        case 'z₁': return 'energiaBernoulliCalc.labels.z1';
-        case 'V₁': return 'energiaBernoulliCalc.labels.V1';
-        case 'P₂': return 'energiaBernoulliCalc.labels.P2';
-        case 'z₂': return 'energiaBernoulliCalc.labels.z2';
-        case 'V₂': return 'energiaBernoulliCalc.labels.V2';
-        case 'γ': return 'energiaBernoulliCalc.labels.gamma';
-        case 'g': return 'energiaBernoulliCalc.labels.g';
-        case 'hB': return 'energiaBernoulliCalc.labels.hb';
-        case 'hT': return 'energiaBernoulliCalc.labels.ht';
-        case 'hL': return 'energiaBernoulliCalc.labels.hL';
-        case 'L': return 'energiaBernoulliCalc.labels.L';
-        case 'D₁': return 'energiaBernoulliCalc.labels.D1';
-        case 'f': return 'energiaBernoulliCalc.labels.f';
-        case 'K': return 'energiaBernoulliCalc.labels.K';
-        case 'P_s': return 'energiaBernoulliCalc.labels.Ps';
-        case 'V_s': return 'energiaBernoulliCalc.labels.Vs';
-        case 'P_atm': return 'energiaBernoulliCalc.labels.Patm';
-        case 'z₀': return 'energiaBernoulliCalc.labels.z0';
-        case 'z_s': return 'energiaBernoulliCalc.labels.zs';
-        case 'h_fs': return 'energiaBernoulliCalc.labels.hfs';
-        case 'ρ': return 'energiaBernoulliCalc.labels.rho';
-        case 'T': return 'energiaBernoulliCalc.labels.temperatura';
-        case 'P_v': return 'energiaBernoulliCalc.labels.Pv';
-        default: break;
-      }
-    }
-    switch (category) {
-      case 'length': return 'energiaBernoulliCalc.labels.z1';
-      case 'velocity': return 'energiaBernoulliCalc.labels.V1';
-      case 'pressure': return 'energiaBernoulliCalc.labels.P1';
-      case 'density': return 'energiaBernoulliCalc.labels.rho';
-      case 'acceleration': return 'energiaBernoulliCalc.labels.g';
-      case 'temperature': return 'energiaBernoulliCalc.labels.temperatura';
-      case 'specificWeight': return 'energiaBernoulliCalc.labels.gamma';
-      default: return TITLE_I18N_KEY[category] ?? 'optionsScreen.titles.generic';
-    }
-  };
-  
-  const titleKey = getTitleKey(category, fieldLabel);
-  const title = useMemo(() => t(titleKey), [category, fieldLabel, t]);
-  const subtitle = useMemo(() => t(SUBTITLE_I18N_KEY[category] ?? 'optionsScreen.subtitles.generic'), [category, t]);
+  const title    = useMemo(
+    () => t(TITLE_I18N_KEY[category] ?? 'optionsScreen.titles.generic'),
+    [category, t]
+  );
+  const subtitle = useMemo(
+    () => t(SUBTITLE_I18N_KEY[category] ?? 'optionsScreen.subtitles.generic'),
+    [category, t]
+  );
 
-  // Estado de selección
   const [selectedOptionState, setSelectedOption] = useState<string>(
     selectedFromParams && options.includes(selectedFromParams)
       ? selectedFromParams
-      : options[0] ?? ''
+      : (options[0] ?? '')
   );
 
-  // Mantener selección válida si cambia la categoría
   useEffect(() => {
     if (selectedOptionState && !options.includes(selectedOptionState)) {
       setSelectedOption(options[0] ?? '');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   const handleOptionSelect = useCallback(
@@ -252,13 +209,10 @@ const OptionsScreenEnergiaBernoulli = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // getDisplayLabel: para las nuevas categorías, mostramos el símbolo/unidad directamente.
-  // Las categorías como pressure, density, etc., ya son símbolos que el usuario quiere ver tal cual.
-  const getDisplayLabel = useCallback((cat: string, value: string): string => {
-    // Si en el futuro se necesitan traducciones específicas para algunas unidades,
-    // se pueden añadir aquí. Por ahora, devolvemos el valor interno.
-    return value;
-  }, [t]);
+  const getDisplayLabel = useCallback(
+    (_cat: string, value: string): string => value,
+    []
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: string }) => (
@@ -273,14 +227,27 @@ const OptionsScreenEnergiaBernoulli = () => {
         fontSizeFactor={fontSizeFactor}
       />
     ),
-    [selectedOptionState, handleOptionSelect, themeColors.text, themeColors.textStrong, themeColors.checkIcon, category, getDisplayLabel, fontSizeFactor]
+    [
+      selectedOptionState,
+      handleOptionSelect,
+      themeColors.text,
+      themeColors.textStrong,
+      themeColors.checkIcon,
+      category,
+      getDisplayLabel,
+      fontSizeFactor,
+    ]
   );
 
   const keyExtractor = useCallback((item: string) => item, []);
+
   const ItemSeparator = useCallback(
-    () => <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />,
+    () => (
+      <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
+    ),
     [themeColors.separator]
   );
+
   const getItemLayout = useCallback(
     (_: any, index: number) => ({
       length: 46,
@@ -291,8 +258,12 @@ const OptionsScreenEnergiaBernoulli = () => {
   );
 
   return (
-    <View style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
-      {/* Header sin texto; botón alineado a la derecha */}
+    <ScrollView
+      style={[styles.safeArea, { backgroundColor: themeColors.background }]}
+      contentContainerStyle={{ flexGrow: 1 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.rightIconsContainer}>
           <View
@@ -302,7 +273,13 @@ const OptionsScreenEnergiaBernoulli = () => {
             ]}
           >
             <Pressable
-              style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+              style={[
+                styles.iconContainer,
+                {
+                  backgroundColor: 'transparent',
+                  experimental_backgroundImage: themeColors.cardGradient,
+                },
+              ]}
               onPress={handleGoBack}
             >
               <Icon name="chevron-down" size={22} color={themeColors.icon} />
@@ -311,10 +288,26 @@ const OptionsScreenEnergiaBernoulli = () => {
         </View>
       </View>
 
-      {/* Contenedor de títulos */}
+      {/* Títulos */}
       <View style={styles.titlesContainer}>
-        <Text style={[styles.subtitle, { color: themeColors.text }, { fontSize: 18 * fontSizeFactor }]}>{subtitle}</Text>
-        <Text style={[styles.title, { color: themeColors.textStrong }, { fontSize: 30 * fontSizeFactor }]}>{title}</Text>
+        <Text
+          style={[
+            styles.subtitle,
+            { color: themeColors.text },
+            { fontSize: 18 * fontSizeFactor },
+          ]}
+        >
+          {subtitle}
+        </Text>
+        <Text
+          style={[
+            styles.title,
+            { color: themeColors.textStrong },
+            { fontSize: 30 * fontSizeFactor },
+          ]}
+        >
+          {title}
+        </Text>
       </View>
 
       {/* Lista de opciones */}
@@ -324,7 +317,15 @@ const OptionsScreenEnergiaBernoulli = () => {
           { experimental_backgroundImage: themeColors.gradient },
         ]}
       >
-        <View style={[styles.optionsContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}>
+        <View
+          style={[
+            styles.optionsContainer,
+            {
+              backgroundColor: 'transparent',
+              experimental_backgroundImage: themeColors.cardGradient,
+            },
+          ]}
+        >
           <FlatList
             data={options}
             keyExtractor={keyExtractor}
@@ -337,18 +338,27 @@ const OptionsScreenEnergiaBernoulli = () => {
             updateCellsBatchingPeriod={16}
             removeClippedSubviews
             getItemLayout={getItemLayout}
+            scrollEnabled={false}
           />
         </View>
       </View>
-    </View>
+
+      <View style={styles.spaceEndPage} />
+    </ScrollView>
   );
 };
 
-// Estilos (idénticos al original)
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 1)',
+  },
+  spaceEndPage: {
+    width: '100%',
+    height: 100,
+    backgroundColor: 'transparent',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -455,7 +465,8 @@ const styles = StyleSheet.create({
   },
   iconSelected: {
     backgroundColor: 'rgb(194, 254, 12)',
+    borderRadius: 0,
   },
 });
 
-export default OptionsScreenEnergiaBernoulli;
+export default OptionsScreenParaleloPotenciaCalc;

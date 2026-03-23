@@ -141,19 +141,23 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
   if (item.calculation_type === 'Continuidad_caudal') {
     const { sectionType, fillType, ...restInputs } = parsedInputs;
     let inputString = `${t('continuidadCalc.labels.sectionType')}: ${translateSectionValue(sectionType, t)}\n`;
+    
     if (sectionType === 'Circular') {
-      inputString += `${t('continuidadCalc.labels.diameter')}: ${restInputs.diameter} ${restInputs.diameterUnit}\n`;
+      inputString += `  ${t('continuidadCalc.labels.diameter')}: ${restInputs.diameter} ${restInputs.diameterUnit}\n`;
     } else if (sectionType === 'Cuadrada') {
-      inputString += `${t('continuidadCalc.labels.side')}: ${restInputs.side} ${restInputs.sideUnit}\n`;
+      inputString += `  ${t('continuidadCalc.labels.side')}: ${restInputs.side} ${restInputs.sideUnit}\n`;
     } else if (sectionType === 'Rectangular') {
-      inputString += `${t('continuidadCalc.labels.width')}: ${restInputs.rectWidth} ${restInputs.rectWidthUnit}\n`;
-      inputString += `${t('continuidadCalc.labels.height')}: ${restInputs.rectHeight} ${restInputs.rectHeightUnit}\n`;
+      inputString += `  ${t('continuidadCalc.labels.width')}: ${restInputs.rectWidth} ${restInputs.rectWidthUnit}\n`;
+      inputString += `  ${t('continuidadCalc.labels.height')}: ${restInputs.rectHeight} ${restInputs.rectHeightUnit}\n`;
     }
-    inputString += `${t('continuidadCalc.labels.velocity')}: ${restInputs.velocityCaudal} ${restInputs.velocityCaudalUnit}\n`;
+    
+    inputString += `  ${t('continuidadCalc.labels.velocity')}: ${restInputs.velocityCaudal} ${restInputs.velocityCaudalUnit}\n`;
     inputString += `${t('continuidadCalc.labels.fillType')}: ${translateFillValue(fillType, t)}\n`;
+    
     if (fillType === 'Parcial') {
-      inputString += `${t('continuidadCalc.labels.fillHeight')}: ${restInputs.fillHeight} ${restInputs.fillHeightUnit}`;
+      inputString += `  ${t('continuidadCalc.labels.fillHeight')}: ${restInputs.fillHeight} ${restInputs.fillHeightUnit}`;
     }
+    
     return inputString;
   } else {
     const { A1, A1Unit, v1, v1Unit, A2, A2Unit, v2, v2Unit } = parsedInputs;
@@ -163,7 +167,7 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
       `  ${t('continuidadCalc.labels.v1')}: ${v1 ?? 'N/A'} ${v1Unit ?? ''}\n` +
       `${t('continuidadCalc.section2')}:\n` +
       `  ${t('continuidadCalc.labels.A2')}: ${A2 ?? 'N/A'} ${A2Unit ?? ''}\n` +
-      `  ${t('continuidadCalc.labels.v2')}: ${v2 ?? 'N/A'} ${v2Unit ?? ''}\n`
+      `  ${t('continuidadCalc.labels.v2')}: ${v2 ?? 'N/A'} ${v2Unit ?? ''}`
     );
   }
 };

@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
     lineHeight: 25,
   },
   lovelaceText: {
-    fontFamily: 'BerlingLTStd-Roman',
+    fontFamily: 'Alliance No.2 Medium',
   },
   optionsContainer: {
     borderRadius: 24,

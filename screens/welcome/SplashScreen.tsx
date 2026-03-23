@@ -95,7 +95,7 @@ const SplashScreen = () => {
         }).start(() => {
           navigation.replace('WelcomeScreen');
         });
-      }, 1500); 
+      }, 500); 
       return () => clearTimeout(timer);
     }
   }, [isReady, assetsLoaded, navigation, fadeAnim]);
@@ -105,8 +105,8 @@ const SplashScreen = () => {
       <View style={styles.imageBackground}>
         <View style={styles.overlay} />
         <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-          <Text style={styles.title}>VALVE</Text>
-          <Text style={styles.subtitle}>Beta 26M03.17.01 [Build IDK]</Text>
+          <Text style={styles.title}></Text>
+          <Text style={styles.subtitle}></Text>
         </Animated.View>
       </View>
     </View>
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: 'rgb(0, 0, 0)',
-    backgroundColor: 'rgb(194, 254, 12)',
+    backgroundColor: 'rgba(194, 254, 12, 0)',
     fontFamily: 'SFUIDisplay-Medium',
     padding: 2,
   },

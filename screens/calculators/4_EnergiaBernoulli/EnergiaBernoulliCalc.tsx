@@ -31,11 +31,28 @@ import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput
 const logoLight = require('../../../assets/icon/iconblack.webp');
 const logoDark = require('../../../assets/icon/iconwhite.webp');
 
-Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
+Decimal.set({ precision: 20, rounding: Decimal.ROUND_HALF_EVEN });
 
-// Rutas disponibles desde esta pantalla
+const DECIMAL_ZERO = new Decimal('0');
+const DECIMAL_ONE = new Decimal('1');
+const DECIMAL_TWO = new Decimal('2');
+const DECIMAL_THREE = new Decimal('3');
+const DECIMAL_FOUR = new Decimal('4');
+const DECIMAL_FIVE = new Decimal('5');
+const DECIMAL_NINE = new Decimal('9');
+const DECIMAL_TEN = new Decimal('10');
+const DECIMAL_HALF = new Decimal('0.5');
+const DECIMAL_THIRTY_TWO = new Decimal('32');
+const DECIMAL_KELVIN_OFFSET = new Decimal('273.15');
+const DECIMAL_DEFAULT_G = new Decimal('9.81');
+const DECIMAL_DEFAULT_G_LOSSES = new Decimal('9.807');
+const DECIMAL_DEFAULT_GAMMA = new Decimal('9810');
+const DECIMAL_TEMP_MIN_C = new Decimal('0');
+const DECIMAL_TEMP_MAX_C = new Decimal('374');
+
+// Tipos de rutas disponibles desde esta pantalla
 type RootStackParamList = {
-  OptionsScreenEnergiaBernoulli: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
+  OptionsScreenEnergiaBernoulli: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string; fieldLabel?: string };
   HistoryScreenEnergiaBernoulli: undefined;
   EnergiaBernoulliTheory: undefined;
 };
@@ -47,7 +64,6 @@ type CalculatorMode = 'ideal' | 'losses' | 'cavitation';
 interface CalculatorState {
   mode: CalculatorMode;
 
-  // Campos de la ecuación de energía para los puntos 1 y 2
   P1: string;
   P2: string;
   z1: string;
@@ -66,14 +82,12 @@ interface CalculatorState {
   includeBomba: boolean;
   includeTurbina: boolean;
 
-  // Campos específicos del modo con pérdidas
   lossInputType: 'direct' | 'darcy';
   hL: string;
   L: string;
   f: string;
   K: string;
 
-  // Campos específicos del análisis de cavitación
   cavitationSystemType: 'closed' | 'open';
   Ps: string;
   Vs: string;
@@ -86,7 +100,6 @@ interface CalculatorState {
   useRhoForGamma: boolean;
   useTempForPv: boolean;
 
-  // Unidades seleccionadas para cada campo
   P1Unit: string;
   P2Unit: string;
   z1Unit: string;
@@ -111,7 +124,6 @@ interface CalculatorState {
   temperaturaUnit: string;
   PvUnit: string;
 
-  // Unidades previas para poder aplicar la conversión correcta al cambiar de unidad
   prevP1Unit: string;
   prevP2Unit: string;
   prevZ1Unit: string;
@@ -136,8 +148,7 @@ interface CalculatorState {
   prevTemperaturaUnit: string;
   prevPvUnit: string;
 
-  // Valores calculados por la calculadora
-  resultTotalEnergy: number;
+  resultTotalEnergy: string;
   resultP1: string;
   resultV1: string;
   resultZ1: string;
@@ -151,7 +162,6 @@ interface CalculatorState {
   resultPv: string;
   resultAlpha2?: string;
 
-  // Indican si el usuario ha editado manualmente cada campo (o si fue auto-calculado)
   isManualEditP1: boolean;
   isManualEditP2: boolean;
   isManualEditz1: boolean;
@@ -187,70 +197,90 @@ interface CalculatorState {
   autoCalculatedField: string | null;
 }
 
-// Factores de conversión a unidades SI para cada categoría de magnitud física
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
+// Factores de conversión a unidades SI agrupados por categoría de magnitud física
+const conversionFactors: { [key: string]: { [key: string]: string } } = {
   length: {
-    'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.344,
+    'm': '1',
+    'mm': '0.001',
+    'cm': '0.01',
+    'km': '1000',
+    'in': '0.0254',
+    'ft': '0.3048',
+    'yd': '0.9144',
+    'mi': '1609.344',
   },
   velocity: {
-    'm/s': 1,
-    'km/h': 0.2777777777777778,
-    'ft/s': 0.3048,
-    'mph': 0.44704,
-    'kn': 0.5144444444444445,
-    'cm/s': 0.01,
-    'in/s': 0.0254,
+    'm/s': '1',
+    'km/h': '0.2777777777777778',
+    'ft/s': '0.3048',
+    'mph': '0.44704',
+    'kn': '0.5144444444444445',
+    'cm/s': '0.01',
+    'in/s': '0.0254',
   },
   area: {
-    'm²': 1,
-    'cm²': 0.0001,
-    'mm²': 0.000001,
-    'km²': 1000000,
-    'ha': 10000,
-    'in²': 0.00064516,
-    'ft²': 0.09290304,
-    'yd²': 0.83612736,
-    'mi²': 2589988.110336,
-    'acre': 4046.8564224,
+    'm²': '1',
+    'cm²': '0.0001',
+    'mm²': '0.000001',
+    'km²': '1000000',
+    'ha': '10000',
+    'in²': '0.00064516',
+    'ft²': '0.09290304',
+    'yd²': '0.83612736',
+    'mi²': '2589988.110336',
+    'acre': '4046.8564224',
   },
   pressure: {
-    'Pa': 1,
-    'kPa': 1000,
-    'MPa': 1000000,
-    'bar': 100000,
-    'atm': 101325,
-    'psi': 6894.757293178,
-    'mmHg': 133.32236842105263,
-    'mca': 9806.65,
-    'N/m³': 1,
+    'Pa': '1',
+    'kPa': '1000',
+    'MPa': '1000000',
+    'bar': '100000',
+    'atm': '101325',
+    'psi': '6894.757293178',
+    'mmHg': '133.32236842105263',
+    'mca': '9806.65',
   },
   density: {
-    'kg/m³': 1,
-    'g/cm³': 1000,
-    'lb/ft³': 16.018463373,
+    'kg/m³': '1',
+    'g/cm³': '1000',
+    'lb/ft³': '16.018463373',
   },
   acceleration: {
-    'm/s²': 1,
-    'ft/s²': 0.3048,
-    'g': 9.80665,
+    'm/s²': '1',
+    'ft/s²': '0.3048',
+    'g': '9.80665',
   },
   temperature: {
-    '°C': 1,
-    '°F': 1,
-    'K': 1,
+    '°C': '1',
+    '°F': '1',
+    'K': '1',
   },
   specificWeight: {
-    'N/m³': 1,
-    'kN/m³': 1000,
-    'lbf/ft³': 157.08746061538463,
+    'N/m³': '1',
+    'kN/m³': '1000',
+    'lbf/ft³': '157.08746061538463',
   },
+};
+
+const isValidDecimalString = (val: string): boolean => {
+  if (!val || val.trim() === '') return false;
+  try {
+    new Decimal(val.replace(',', '.'));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const getConversionFactor = (
+  category: 'length' | 'velocity' | 'area' | 'pressure' | 'density' | 'acceleration' | 'temperature' | 'specificWeight',
+  unit: string
+): Decimal => {
+  const factor = conversionFactors[category]?.[unit];
+  if (factor === undefined) {
+    throw new Error(`Unidad no reconocida: "${unit}" en categoría "${category}"`);
+  }
+  return new Decimal(factor);
 };
 
 // Categoría y unidad base en SI para cada campo del formulario
@@ -274,7 +304,7 @@ const fieldConfigs: { [key: string]: { category: string; unit: string } } = {
   K: { category: 'none', unit: '' },
 };
 
-// Apariencia personalizada de los mensajes Toast de éxito y error
+// Estilos personalizados para los mensajes Toast de éxito y error
 const toastConfig = {
   success: (props: BaseToastProps) => (
     <BaseToast
@@ -296,7 +326,7 @@ const toastConfig = {
   ),
 };
 
-// Valores por defecto de todos los campos al iniciar o limpiar la calculadora
+// Estado inicial de todos los campos; se usa al montar y al limpiar la calculadora
 const initialState = (): CalculatorState => ({
   mode: 'ideal',
 
@@ -309,8 +339,8 @@ const initialState = (): CalculatorState => ({
   D1: '',
   D2: '',
   rho: '1000',
-  gamma: '9810',
-  g: '9.81',
+  gamma: '9807',
+  g: '9.807',
   alpha1: '1',
   alpha2: '1',
   hb: '',
@@ -384,7 +414,7 @@ const initialState = (): CalculatorState => ({
   prevTemperaturaUnit: '°C',
   prevPvUnit: 'Pa',
 
-  resultTotalEnergy: 0,
+  resultTotalEnergy: '',
   resultP1: '',
   resultV1: '',
   resultZ1: '',
@@ -427,7 +457,7 @@ const initialState = (): CalculatorState => ({
   autoCalculatedField: null,
 });
 
-// Componente de casilla de verificación para activar opciones como bomba o turbina
+// Casilla de verificación para activar opciones como bomba o turbina
 const Checkbox = ({
   label,
   value,
@@ -464,7 +494,7 @@ const Checkbox = ({
   </Pressable>
 );
 
-// Retorna el color del indicador de estado de un campo según si fue editado, tiene error o fue calculado
+// Retorna el color del indicador de estado según si fue editado, inválido o auto-calculado
 const getDotColor = (
   hasUserValue: boolean,
   isInvalid: boolean,
@@ -476,27 +506,32 @@ const getDotColor = (
   return 'rgb(200,200,200)';
 };
 
-// Componente principal que contiene toda la lógica y la interfaz de la calculadora de Bernoulli
+// Componente principal de la calculadora de Bernoulli
 const EnergiaBernoulliCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { formatNumber } = useContext(PrecisionDecimalContext);
+  const {
+    selectedPrecision,
+    decimalCountFixed,
+    decimalCountScientific,
+    decimalCountEngineering,
+  } = useContext(PrecisionDecimalContext);
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
 
-  // ── Custom keyboard ──────────────────────────────────────────────────────────
+  // ── Teclado personalizado ────────────────────────────────────────────────────
   const { activeInputId, setActiveInputId } = useKeyboard();
 
   // Ref con el estado actual para evitar closures obsoletas en los handlers del teclado
   const stateRef = useRef<CalculatorState>(initialState());
 
-  // Ref que mapea cada fieldId al handler completo de cambio de valor
+  // Ref que mapea cada fieldId al handler de cambio de valor para uso del teclado
   const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
   // ─────────────────────────────────────────────────────────────────────────────
 
   const { currentTheme } = useTheme();
   const { t, selectedLanguage } = useContext(LanguageContext);
 
-  // Paleta de colores que se recalcula solo cuando el tema cambia
+  // Paleta de colores recalculada solo cuando cambia el tema
   const themeColors = React.useMemo(() => {
     if (currentTheme === 'dark') {
       return {
@@ -569,18 +604,18 @@ const EnergiaBernoulliCalc: React.FC = () => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const animatedScale = useRef(new Animated.Value(1)).current;
 
-  // Valor de animación para el rebote del corazón de favorito
+  // Animación del ícono de favorito
   const heartScale = useRef(new Animated.Value(1)).current;
 
   // Valores de animación para el selector de tipo de pérdida
   const animatedLossValue = useRef(new Animated.Value(0)).current;
   const animatedLossScale = useRef(new Animated.Value(1)).current;
 
-  // Valores de animación para el selector cerrado/abierto en modo cavitación
+  // Valores de animación para el selector de sistema en cavitación
   const animatedCavitationValue = useRef(new Animated.Value(0)).current;
   const animatedCavitationScale = useRef(new Animated.Value(1)).current;
 
-  // Tamaños y posiciones de los botones del selector de modo principal
+  // Dimensiones y posiciones de los botones del selector de modo principal
   const [buttonMetrics, setButtonMetrics] = useState<{ ideal: number; losses: number; cavitation: number }>({
     ideal: 0,
     losses: 0,
@@ -592,7 +627,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     cavitation: 0,
   });
 
-  // Tamaños y posiciones de los botones del selector de tipo de pérdida
+  // Dimensiones y posiciones de los botones del selector de tipo de pérdida
   const [lossButtonMetrics, setLossButtonMetrics] = useState<{ direct: number; darcy: number }>({
     direct: 0,
     darcy: 0,
@@ -602,7 +637,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     darcy: 0,
   });
 
-  // Tamaños y posiciones de los botones del selector de sistema cerrado/abierto en cavitación
+  // Dimensiones y posiciones de los botones del selector de sistema en cavitación
   const [cavitationButtonMetrics, setCavitationButtonMetrics] = useState<{ closed: number; open: number }>({
     closed: 0,
     open: 0,
@@ -612,11 +647,11 @@ const EnergiaBernoulliCalc: React.FC = () => {
     open: 0,
   });
 
-  // Referencia a la conexión de base de datos y estado del botón de favorito
+  // Referencia a la conexión de base de datos y estado del favorito
   const dbRef = useRef<any>(null);
   const [isFav, setIsFav] = useState(false);
 
-  // Al montar el componente, se conecta a la base de datos y consulta si esta calculadora está en favoritos
+  // Conecta a la base de datos al montar y consulta si esta calculadora está en favoritos
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -634,7 +669,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     return () => { mounted = false; };
   }, []);
 
-  // Agrega o quita esta calculadora de favoritos y muestra un Toast de confirmación
+  // Agrega o quita la calculadora de favoritos y muestra un Toast de confirmación
   const toggleFavorite = useCallback(async () => {
     try {
       const db = dbRef.current ?? await getDBConnection();
@@ -662,7 +697,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [t]);
 
-  // Pequeña animación de rebote sobre el ícono de corazón al tocar favorito
+  // Animación de rebote sobre el ícono de favorito
   const bounceHeart = useCallback(() => {
     Animated.sequence([
       Animated.spring(heartScale, { toValue: 1.15, useNativeDriver: true, bounciness: 8, speed: 40 }),
@@ -670,7 +705,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     ]).start();
   }, [heartScale]);
 
-  // Mueve el indicador deslizante del selector de modo cuando el usuario cambia entre Ideal, Pérdidas y Cavitación
+  // Anima el indicador deslizante del selector de modo al cambiar entre Ideal, Pérdidas y Cavitación
   useEffect(() => {
     if (buttonMetrics.ideal > 0 && buttonMetrics.losses > 0 && buttonMetrics.cavitation > 0) {
       let targetX = 0;
@@ -693,7 +728,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state.mode, buttonMetrics, buttonPositions]);
 
-  // Mueve el indicador deslizante del selector de tipo de pérdida entre Directo y Darcy
+  // Anima el indicador del selector de tipo de pérdida entre Directo y Darcy
   useEffect(() => {
     if (lossButtonMetrics.direct > 0 && lossButtonMetrics.darcy > 0) {
       let targetX = 0;
@@ -715,7 +750,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state.lossInputType, lossButtonMetrics, lossButtonPositions]);
 
-  // Mueve el indicador deslizante del selector de sistema entre Cerrado y Abierto
+  // Anima el indicador del selector de sistema entre Cerrado y Abierto
   useEffect(() => {
     if (cavitationButtonMetrics.closed > 0 && cavitationButtonMetrics.open > 0) {
       let targetX = 0;
@@ -737,15 +772,75 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state.cavitationSystemType, cavitationButtonMetrics, cavitationButtonPositions]);
 
-  // Convierte un número a texto eliminando los ceros decimales innecesarios
-  const formatResult = useCallback((num: number): string => {
-    if (isNaN(num) || !isFinite(num)) return '';
-    const decimalNum = new Decimal(num);
-    const fixed = decimalNum.toFixed(15);
+  // Convierte un Decimal a texto eliminando ceros decimales innecesarios
+  const formatResult = useCallback((value: Decimal): string => {
+    if (!value.isFinite()) return '';
+    const fixed = value.toFixed(15);
     return fixed.replace(/\.?0+$/, '');
   }, []);
 
-  // Convierte un valor numérico de una unidad de medida a otra dentro de la misma categoría
+  const toSuperscriptExponent = useCallback((value: string): string => {
+    const superscriptMap: Record<string, string> = {
+      '-': '⁻',
+      '0': '⁰',
+      '1': '¹',
+      '2': '²',
+      '3': '³',
+      '4': '⁴',
+      '5': '⁵',
+      '6': '⁶',
+      '7': '⁷',
+      '8': '⁸',
+      '9': '⁹',
+    };
+
+    return value
+      .split('')
+      .map((char) => superscriptMap[char] ?? char)
+      .join('');
+  }, []);
+
+  const formatDecimalWithPrecision = useCallback((value: Decimal): string => {
+    if (!value.isFinite()) return value.toString();
+
+    switch (selectedPrecision) {
+      case 'Normal':
+        return value.toFixed(10).replace(/\.?0+$/, '');
+      case 'Fix':
+        return value.toFixed(decimalCountFixed);
+      case 'Científica': {
+        if (value.isZero()) return '0';
+        const scientific = value.toExponential(decimalCountScientific);
+        const [mantissa, exponent = '0'] = scientific.split('e');
+        return `${mantissa} × 10${toSuperscriptExponent(exponent.replace('+', ''))}`;
+      }
+      case 'Ingeniería': {
+        if (value.isZero()) return '0';
+
+        const scientific = value.toExponential();
+        const [, exponent = '0'] = scientific.split('e');
+        const engineeringExponent = new Decimal(exponent.replace('+', ''))
+          .div(DECIMAL_THREE)
+          .floor()
+          .mul(DECIMAL_THREE);
+        const mantissa = value
+          .div(DECIMAL_TEN.pow(engineeringExponent.toFixed(0)))
+          .toFixed(decimalCountEngineering);
+
+        return `${mantissa} × 10${toSuperscriptExponent(engineeringExponent.toFixed(0))}`;
+      }
+      default:
+        return value.toString();
+    }
+  }, [
+    selectedPrecision,
+    decimalCountFixed,
+    decimalCountScientific,
+    decimalCountEngineering,
+    toSuperscriptExponent,
+  ]);
+
+  // Convierte un valor de una unidad a otra dentro de la misma categoría
   const convertValue = useCallback((
     value: string,
     fromUnit: string,
@@ -753,37 +848,32 @@ const EnergiaBernoulliCalc: React.FC = () => {
     category: 'length' | 'velocity' | 'area' | 'pressure' | 'density' | 'acceleration' | 'temperature' | 'specificWeight'
   ): string => {
     const cleanValue = value.replace(',', '.');
-    if (cleanValue === '' || isNaN(parseFloat(cleanValue))) return value;
+    if (cleanValue === '' || !isValidDecimalString(cleanValue)) return value;
 
     const decimalValue = new Decimal(cleanValue);
 
     if (category === 'temperature') {
+      if (fromUnit === toUnit) return value;
       if (fromUnit === '°C' && toUnit === '°F') {
-        return formatResult(decimalValue.mul(9).div(5).plus(32).toNumber());
+        return formatResult(decimalValue.mul(DECIMAL_NINE).div(DECIMAL_FIVE).plus(DECIMAL_THIRTY_TWO));
       } else if (fromUnit === '°C' && toUnit === 'K') {
-        return formatResult(decimalValue.plus(273.15).toNumber());
+        return formatResult(decimalValue.plus(DECIMAL_KELVIN_OFFSET));
       } else if (fromUnit === '°F' && toUnit === '°C') {
-        return formatResult(decimalValue.minus(32).mul(5).div(9).toNumber());
+        return formatResult(decimalValue.minus(DECIMAL_THIRTY_TWO).mul(DECIMAL_FIVE).div(DECIMAL_NINE));
       } else if (fromUnit === '°F' && toUnit === 'K') {
-        return formatResult(decimalValue.minus(32).mul(5).div(9).plus(273.15).toNumber());
+        return formatResult(decimalValue.minus(DECIMAL_THIRTY_TWO).mul(DECIMAL_FIVE).div(DECIMAL_NINE).plus(DECIMAL_KELVIN_OFFSET));
       } else if (fromUnit === 'K' && toUnit === '°C') {
-        return formatResult(decimalValue.minus(273.15).toNumber());
+        return formatResult(decimalValue.minus(DECIMAL_KELVIN_OFFSET));
       } else if (fromUnit === 'K' && toUnit === '°F') {
-        return formatResult(decimalValue.minus(273.15).mul(9).div(5).plus(32).toNumber());
+        return formatResult(decimalValue.minus(DECIMAL_KELVIN_OFFSET).mul(DECIMAL_NINE).div(DECIMAL_FIVE).plus(DECIMAL_THIRTY_TWO));
       }
       return value;
     }
 
-    const fromFactor = conversionFactors[category]?.[fromUnit];
-    const toFactor = conversionFactors[category]?.[toUnit];
-    if (!fromFactor || !toFactor) return value;
+    const fromFactor = getConversionFactor(category, fromUnit);
+    const toFactor = getConversionFactor(category, toUnit);
 
-    const convertedValue = decimalValue
-      .mul(new Decimal(fromFactor))
-      .div(new Decimal(toFactor))
-      .toNumber();
-
-    return formatResult(convertedValue);
+    return formatResult(decimalValue.mul(fromFactor).div(toFactor));
   }, [formatResult]);
 
   // Aplica la preferencia de separador decimal del usuario al texto formateado
@@ -791,44 +881,50 @@ const EnergiaBernoulliCalc: React.FC = () => {
     return selectedDecimalSeparator === 'Coma' ? formattedNumber.replace('.', ',') : formattedNumber;
   }, [selectedDecimalSeparator]);
 
-  // Calcula la presión de vapor del agua para una temperatura dada usando la ecuación de Wagner
-  const calculateVaporPressure = useCallback((temp: number, unit: string): number => {
-    let tempC: number;
+  // Calcula la presión de vapor del agua para una temperatura dada (ecuación de Wagner)
+  const calculateVaporPressure = useCallback((temp: string, unit: string): Decimal => {
+    let tempC: Decimal;
 
+    const tempDecimal = new Decimal(temp.replace(',', '.'));
     if (unit === '°F') {
-      tempC = (temp - 32) * 5 / 9;
+      tempC = tempDecimal.minus(DECIMAL_THIRTY_TWO).mul(DECIMAL_FIVE).div(DECIMAL_NINE);
     } else if (unit === 'K') {
-      tempC = temp - 273.15;
+      tempC = tempDecimal.minus(DECIMAL_KELVIN_OFFSET);
     } else {
-      tempC = temp;
+      tempC = tempDecimal;
     }
 
-    if (tempC < 0 || tempC > 374) {
-      console.warn(`Temperatura fuera de rango (0-374°C): ${tempC}°C`);
+    if (tempC.lessThan(DECIMAL_TEMP_MIN_C) || tempC.greaterThan(DECIMAL_TEMP_MAX_C)) {
+      console.warn(`Temperatura fuera de rango (0-374°C): ${tempC.toFixed(2)}°C`);
     }
+    
+    const Tc = new Decimal('647.096');
+    const Pc = new Decimal('22064000');
+    const Tk = tempC.plus(DECIMAL_KELVIN_OFFSET);
+    const Tr = Tk.div(Tc);
+    const tau = DECIMAL_ONE.minus(Tr);
 
-    const Tc = 647.096;
-    const Pc = 22064000;
+    const a = [
+      new Decimal('-7.85951783'),
+      new Decimal('1.84408259'),
+      new Decimal('-11.7866497'),
+      new Decimal('22.6807411'),
+      new Decimal('-15.9618719'),
+      new Decimal('1.80122502'),
+    ];
 
-    const Tk = tempC + 273.15;
-    const Tr = Tk / Tc;
-    const tau = 1 - Tr;
+    const lnPrD = a[0].mul(tau)
+      .plus(a[1].mul(tau.pow(new Decimal('1.5'))))
+      .plus(a[2].mul(tau.pow(DECIMAL_THREE)))
+      .plus(a[3].mul(tau.pow(new Decimal('3.5'))))
+      .plus(a[4].mul(tau.pow(DECIMAL_FOUR)))
+      .plus(a[5].mul(tau.pow(new Decimal('7.5'))))
+      .div(Tr);
 
-    const a = [-7.85951783, 1.84408259, -11.7866497, 22.6807411, -15.9618719, 1.80122502];
-
-    const lnPr = (a[0] * tau +
-      a[1] * Math.pow(tau, 1.5) +
-      a[2] * Math.pow(tau, 3) +
-      a[3] * Math.pow(tau, 3.5) +
-      a[4] * Math.pow(tau, 4) +
-      a[5] * Math.pow(tau, 7.5)) / Tr;
-
-    const Pv = Pc * Math.exp(lnPr);
-
-    return Pv;
+    return Pc.mul(lnPrD.exp());
   }, []);
 
-  // Detecta cuál campo debe quedar bloqueado en modo ideal cuando hay exactamente 7 de 8 campos llenos
+  // Detecta el campo a bloquear en modo ideal cuando hay exactamente 7 de 8 campos válidos
   const updateLockedFieldIdeal = useCallback(() => {
     const inputs = [
       { id: 'P1', value: state.P1 },
@@ -842,12 +938,12 @@ const EnergiaBernoulliCalc: React.FC = () => {
     ];
 
     const validInputs = inputs.filter(({ value }) =>
-      value !== '' && !isNaN(parseFloat(value.replace(',', '.')))
+      value !== '' && isValidDecimalString(value)
     );
 
     if (validInputs.length === 7) {
       const emptyInput = inputs.find(({ value }) =>
-        value === '' || isNaN(parseFloat(value.replace(',', '.')))
+        value === '' || !isValidDecimalString(value)
       );
       setState((prev) => ({ ...prev, lockedField: emptyInput ? emptyInput.id : null }));
     } else {
@@ -855,7 +951,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state.P1, state.V1, state.z1, state.P2, state.V2, state.z2, state.alpha1, state.alpha2]);
 
-  // Detecta cuál campo debe quedar bloqueado en modo con pérdidas, considerando los campos opcionales activos
+  // Detecta el campo a bloquear en modo pérdidas considerando los campos opcionales activos
   const updateLockedFieldLosses = useCallback(() => {
     const baseFields = [
       { id: 'P1', value: state.P1 },
@@ -893,12 +989,12 @@ const EnergiaBernoulliCalc: React.FC = () => {
     const allRequiredFields = [...baseFields, ...conditionalFields, ...lossFields];
 
     const validInputs = allRequiredFields.filter(({ value }) =>
-      value && value.trim() !== '' && !isNaN(parseFloat(value.replace(',', '.')))
+      value && value.trim() !== '' && isValidDecimalString(value)
     );
 
     if (validInputs.length === allRequiredFields.length - 1) {
       const emptyInput = allRequiredFields.find(({ value }) =>
-        !value || value.trim() === '' || isNaN(parseFloat(value.replace(',', '.')))
+        !value || value.trim() === '' || !isValidDecimalString(value)
       );
       setState((prev) => ({ ...prev, lockedField: emptyInput ? emptyInput.id : null }));
     } else {
@@ -908,29 +1004,29 @@ const EnergiaBernoulliCalc: React.FC = () => {
     state.alpha1, state.alpha2, state.includeBomba, state.includeTurbina, state.hb, state.ht,
     state.lossInputType, state.hL, state.L, state.D1, state.f, state.K]);
 
-  // Calcula la pérdida de carga según si el usuario ingresó el valor directo o los parámetros de Darcy-Weisbach
+  // Calcula la pérdida de carga: valor directo o fórmula de Darcy-Weisbach según el modo
   const calculateHeadLoss = useCallback((
     siValues: { [key: string]: Decimal },
     getVal: (id: string, defaultValue: Decimal) => Decimal,
     twoG: Decimal
   ): Decimal => {
     if (state.lossInputType === 'direct') {
-      return getVal('hL', new Decimal(0));
+      return getVal('hL', DECIMAL_ZERO);
     } else {
-      const L = getVal('L', new Decimal(0));
-      const D1 = getVal('D1', new Decimal(1));
-      const f = getVal('f', new Decimal(0));
-      const K = getVal('K', new Decimal(0));
-      const V1 = getVal('V1', new Decimal(0));
+      const L = getVal('L', DECIMAL_ZERO);
+      const D1 = getVal('D1', DECIMAL_ONE);
+      const f = getVal('f', DECIMAL_ZERO);
+      const K = getVal('K', DECIMAL_ZERO);
+      const V1 = getVal('V1', DECIMAL_ZERO);
 
-      const vSquaredOver2g = V1.pow(2).div(twoG);
+      const vSquaredOver2g = V1.pow(DECIMAL_TWO).div(twoG);
       const frictionLoss = f.mul(L.div(D1)).mul(vSquaredOver2g);
       const minorLoss = K.mul(vSquaredOver2g);
       return frictionLoss.plus(minorLoss);
     }
   }, [state.lossInputType]);
 
-  // Despeja el parámetro faltante de la ecuación de Darcy-Weisbach (L, D1, f o K)
+  // Despeja el parámetro faltante de Darcy-Weisbach (L, D1, f o K)
   const calculateDarcyField = useCallback((
     missingField: string,
     siValues: { [key: string]: Decimal },
@@ -941,26 +1037,26 @@ const EnergiaBernoulliCalc: React.FC = () => {
     alpha2: Decimal,
     newState: Partial<CalculatorState>
   ): boolean => {
-    const leftSide = getVal('P1', new Decimal(0)).div(rhoG)
-      .plus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
-      .plus(getVal('z1', new Decimal(0)))
-      .plus(getVal('hb', new Decimal(0)));
+    const leftSide = getVal('P1', DECIMAL_ZERO).div(rhoG)
+      .plus(alpha1.mul(getVal('V1', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+      .plus(getVal('z1', DECIMAL_ZERO))
+      .plus(getVal('hb', DECIMAL_ZERO));
 
-    const rightSide = getVal('P2', new Decimal(0)).div(rhoG)
-      .plus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
-      .plus(getVal('z2', new Decimal(0)))
-      .plus(getVal('ht', new Decimal(0)));
+    const rightSide = getVal('P2', DECIMAL_ZERO).div(rhoG)
+      .plus(alpha2.mul(getVal('V2', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+      .plus(getVal('z2', DECIMAL_ZERO))
+      .plus(getVal('ht', DECIMAL_ZERO));
 
     const hL_total = leftSide.minus(rightSide);
 
     switch (missingField) {
       case 'L': {
-        const V1 = getVal('V1', new Decimal(0));
-        const D1 = getVal('D1', new Decimal(1));
-        const f = getVal('f', new Decimal(0));
-        const K = getVal('K', new Decimal(0));
+        const V1 = getVal('V1', DECIMAL_ZERO);
+        const D1 = getVal('D1', DECIMAL_ONE);
+        const f = getVal('f', DECIMAL_ZERO);
+        const K = getVal('K', DECIMAL_ZERO);
 
-        const vSquaredOver2g = V1.pow(2).div(twoG);
+        const vSquaredOver2g = V1.pow(DECIMAL_TWO).div(twoG);
         const minorLoss = K.mul(vSquaredOver2g);
 
         if (f.greaterThan(0) && !vSquaredOver2g.isZero()) {
@@ -968,8 +1064,8 @@ const EnergiaBernoulliCalc: React.FC = () => {
             .mul(D1)
             .div(f.mul(vSquaredOver2g));
 
-          const result = L_si.div(new Decimal(conversionFactors.length[state.LUnit] || 1));
-          newState.L = formatResult(result.toNumber());
+          const result = L_si.div(getConversionFactor('length', state.LUnit));
+          newState.L = formatResult(result);
           newState.isManualEditL = false;
           newState.unknownVariable = {
             name: 'L',
@@ -983,20 +1079,20 @@ const EnergiaBernoulliCalc: React.FC = () => {
       }
 
       case 'D1': {
-        const V1 = getVal('V1', new Decimal(0));
-        const L = getVal('L', new Decimal(0));
-        const f = getVal('f', new Decimal(0));
-        const K = getVal('K', new Decimal(0));
+        const V1 = getVal('V1', DECIMAL_ZERO);
+        const L = getVal('L', DECIMAL_ZERO);
+        const f = getVal('f', DECIMAL_ZERO);
+        const K = getVal('K', DECIMAL_ZERO);
 
-        const vSquaredOver2g = V1.pow(2).div(twoG);
+        const vSquaredOver2g = V1.pow(DECIMAL_TWO).div(twoG);
         const minorLoss = K.mul(vSquaredOver2g);
         const numerator = f.mul(L).mul(vSquaredOver2g);
         const denominator = hL_total.minus(minorLoss);
 
         if (denominator.greaterThan(0)) {
           const D_si = numerator.div(denominator);
-          const result = D_si.div(new Decimal(conversionFactors.length[state.D1Unit] || 1));
-          newState.D1 = formatResult(result.toNumber());
+          const result = D_si.div(getConversionFactor('length', state.D1Unit));
+          newState.D1 = formatResult(result);
           newState.isManualEditD1 = false;
           newState.unknownVariable = {
             name: 'D₁',
@@ -1010,19 +1106,19 @@ const EnergiaBernoulliCalc: React.FC = () => {
       }
 
       case 'f': {
-        const V1 = getVal('V1', new Decimal(0));
-        const L = getVal('L', new Decimal(0));
-        const D1 = getVal('D1', new Decimal(1));
-        const K = getVal('K', new Decimal(0));
+        const V1 = getVal('V1', DECIMAL_ZERO);
+        const L = getVal('L', DECIMAL_ZERO);
+        const D1 = getVal('D1', DECIMAL_ONE);
+        const K = getVal('K', DECIMAL_ZERO);
 
-        const vSquaredOver2g = V1.pow(2).div(twoG);
+        const vSquaredOver2g = V1.pow(DECIMAL_TWO).div(twoG);
         const minorLoss = K.mul(vSquaredOver2g);
         const numerator = hL_total.minus(minorLoss).mul(D1);
         const denominator = L.mul(vSquaredOver2g);
 
         if (!denominator.isZero()) {
           const f_si = numerator.div(denominator);
-          newState.f = formatResult(f_si.toNumber());
+          newState.f = formatResult(f_si);
           newState.isManualEditF = false;
           newState.unknownVariable = {
             name: 'f',
@@ -1036,18 +1132,18 @@ const EnergiaBernoulliCalc: React.FC = () => {
       }
 
       case 'K': {
-        const V1 = getVal('V1', new Decimal(0));
-        const L = getVal('L', new Decimal(0));
-        const D1 = getVal('D1', new Decimal(1));
-        const f = getVal('f', new Decimal(0));
+        const V1 = getVal('V1', DECIMAL_ZERO);
+        const L = getVal('L', DECIMAL_ZERO);
+        const D1 = getVal('D1', DECIMAL_ONE);
+        const f = getVal('f', DECIMAL_ZERO);
 
-        const vSquaredOver2g = V1.pow(2).div(twoG);
+        const vSquaredOver2g = V1.pow(DECIMAL_TWO).div(twoG);
         const frictionLoss = f.mul(L.div(D1)).mul(vSquaredOver2g);
         const numerator = hL_total.minus(frictionLoss);
 
         if (!vSquaredOver2g.isZero()) {
           const K_si = numerator.div(vSquaredOver2g);
-          newState.K = formatResult(K_si.toNumber());
+          newState.K = formatResult(K_si);
           newState.isManualEditK = false;
           newState.unknownVariable = {
             name: 'K',
@@ -1063,7 +1159,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     return false;
   }, [formatResult, t, state.LUnit, state.D1Unit]);
 
-  // Despeja el campo faltante general de la ecuación de energía: puede ser presión, velocidad, cota, hB, hT o alpha
+  // Despeja el campo faltante de la ecuación de energía: presión, velocidad, cota, hB, hT o alpha
   const calculateGeneralField = useCallback((
     missingField: string,
     siValues: { [key: string]: Decimal },
@@ -1074,30 +1170,30 @@ const EnergiaBernoulliCalc: React.FC = () => {
     alpha2: Decimal,
     newState: Partial<CalculatorState>,
     stateSnap: CalculatorState,
-    fmt: (num: number) => string,
+    fmt: (value: Decimal) => string,
     translate: any
   ): boolean => {
-    const leftSide = getVal('P1', new Decimal(0)).div(rhoG)
-      .plus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
-      .plus(getVal('z1', new Decimal(0)))
-      .plus(getVal('hb', new Decimal(0)));
+    const leftSide = getVal('P1', DECIMAL_ZERO).div(rhoG)
+      .plus(alpha1.mul(getVal('V1', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+      .plus(getVal('z1', DECIMAL_ZERO))
+      .plus(getVal('hb', DECIMAL_ZERO));
 
-    const rightSide = getVal('P2', new Decimal(0)).div(rhoG)
-      .plus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
-      .plus(getVal('z2', new Decimal(0)))
-      .plus(getVal('ht', new Decimal(0)))
+    const rightSide = getVal('P2', DECIMAL_ZERO).div(rhoG)
+      .plus(alpha2.mul(getVal('V2', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+      .plus(getVal('z2', DECIMAL_ZERO))
+      .plus(getVal('ht', DECIMAL_ZERO))
       .plus(calculateHeadLoss(siValues, getVal, twoG));
 
     switch (missingField) {
       case 'P1': {
         const rightMinusLeft = rightSide
-          .minus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
-          .minus(getVal('z1', new Decimal(0)))
-          .minus(getVal('hb', new Decimal(0)));
+          .minus(alpha1.mul(getVal('V1', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+          .minus(getVal('z1', DECIMAL_ZERO))
+          .minus(getVal('hb', DECIMAL_ZERO));
 
         const pressureSI = rightMinusLeft.mul(rhoG);
-        const result = pressureSI.div(new Decimal(conversionFactors.pressure[stateSnap.P1Unit] || 1));
-        newState.resultP1 = fmt(result.toNumber());
+        const result = pressureSI.div(getConversionFactor('pressure', stateSnap.P1Unit));
+        newState.resultP1 = fmt(result);
         newState.unknownVariable = {
           name: 'P₁',
           label: translate('energiaBernoulliCalc.labels.P1'),
@@ -1109,12 +1205,12 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'z1': {
         const elevationSI = rightSide
-          .minus(getVal('P1', new Decimal(0)).div(rhoG))
-          .minus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
-          .minus(getVal('hb', new Decimal(0)));
+          .minus(getVal('P1', DECIMAL_ZERO).div(rhoG))
+          .minus(alpha1.mul(getVal('V1', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+          .minus(getVal('hb', DECIMAL_ZERO));
 
-        const result = elevationSI.div(new Decimal(conversionFactors.length[stateSnap.z1Unit] || 1));
-        newState.resultZ1 = fmt(result.toNumber());
+        const result = elevationSI.div(getConversionFactor('length', stateSnap.z1Unit));
+        newState.resultZ1 = fmt(result);
         newState.unknownVariable = {
           name: 'z₁',
           label: translate('energiaBernoulliCalc.labels.z1'),
@@ -1126,14 +1222,14 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'V1': {
         const rightTerm = rightSide
-          .minus(getVal('P1', new Decimal(0)).div(rhoG))
-          .minus(getVal('z1', new Decimal(0)))
-          .minus(getVal('hb', new Decimal(0)));
+          .minus(getVal('P1', DECIMAL_ZERO).div(rhoG))
+          .minus(getVal('z1', DECIMAL_ZERO))
+          .minus(getVal('hb', DECIMAL_ZERO));
 
         if (rightTerm.greaterThanOrEqualTo(0)) {
           const velocitySI = rightTerm.mul(twoG).div(alpha1).sqrt();
-          const result = velocitySI.div(new Decimal(conversionFactors.velocity[stateSnap.V1Unit] || 1));
-          newState.resultV1 = fmt(result.toNumber());
+          const result = velocitySI.div(getConversionFactor('velocity', stateSnap.V1Unit));
+          newState.resultV1 = fmt(result);
           newState.unknownVariable = {
             name: 'V₁',
             label: translate('energiaBernoulliCalc.labels.V1'),
@@ -1147,12 +1243,12 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'hb': {
         const headSI = rightSide
-          .minus(getVal('P1', new Decimal(0)).div(rhoG))
-          .minus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
-          .minus(getVal('z1', new Decimal(0)));
+          .minus(getVal('P1', DECIMAL_ZERO).div(rhoG))
+          .minus(alpha1.mul(getVal('V1', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+          .minus(getVal('z1', DECIMAL_ZERO));
 
-        const result = headSI.div(new Decimal(conversionFactors.length[stateSnap.hbUnit] || 1));
-        newState.hb = fmt(result.toNumber());
+        const result = headSI.div(getConversionFactor('length', stateSnap.hbUnit));
+        newState.hb = fmt(result);
         newState.isManualEditHb = false;
         newState.unknownVariable = {
           name: 'hB',
@@ -1165,14 +1261,14 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'P2': {
         const leftMinusRight = leftSide
-          .minus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
-          .minus(getVal('z2', new Decimal(0)))
-          .minus(getVal('ht', new Decimal(0)))
+          .minus(alpha2.mul(getVal('V2', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+          .minus(getVal('z2', DECIMAL_ZERO))
+          .minus(getVal('ht', DECIMAL_ZERO))
           .minus(calculateHeadLoss(siValues, getVal, twoG));
 
         const pressureSI = leftMinusRight.mul(rhoG);
-        const result = pressureSI.div(new Decimal(conversionFactors.pressure[stateSnap.P2Unit] || 1));
-        newState.resultP2 = fmt(result.toNumber());
+        const result = pressureSI.div(getConversionFactor('pressure', stateSnap.P2Unit));
+        newState.resultP2 = fmt(result);
         newState.unknownVariable = {
           name: 'P₂',
           label: translate('energiaBernoulliCalc.labels.P2'),
@@ -1184,13 +1280,13 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'z2': {
         const elevationSI = leftSide
-          .minus(getVal('P2', new Decimal(0)).div(rhoG))
-          .minus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
-          .minus(getVal('ht', new Decimal(0)))
+          .minus(getVal('P2', DECIMAL_ZERO).div(rhoG))
+          .minus(alpha2.mul(getVal('V2', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+          .minus(getVal('ht', DECIMAL_ZERO))
           .minus(calculateHeadLoss(siValues, getVal, twoG));
 
-        const result = elevationSI.div(new Decimal(conversionFactors.length[stateSnap.z2Unit] || 1));
-        newState.resultZ2 = fmt(result.toNumber());
+        const result = elevationSI.div(getConversionFactor('length', stateSnap.z2Unit));
+        newState.resultZ2 = fmt(result);
         newState.unknownVariable = {
           name: 'z₂',
           label: translate('energiaBernoulliCalc.labels.z2'),
@@ -1202,15 +1298,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'V2': {
         const leftMinusRight = leftSide
-          .minus(getVal('P2', new Decimal(0)).div(rhoG))
-          .minus(getVal('z2', new Decimal(0)))
-          .minus(getVal('ht', new Decimal(0)))
+          .minus(getVal('P2', DECIMAL_ZERO).div(rhoG))
+          .minus(getVal('z2', DECIMAL_ZERO))
+          .minus(getVal('ht', DECIMAL_ZERO))
           .minus(calculateHeadLoss(siValues, getVal, twoG));
 
         if (leftMinusRight.greaterThanOrEqualTo(0)) {
           const velocitySI = leftMinusRight.mul(twoG).div(alpha2).sqrt();
-          const result = velocitySI.div(new Decimal(conversionFactors.velocity[stateSnap.V2Unit] || 1));
-          newState.resultV2 = fmt(result.toNumber());
+          const result = velocitySI.div(getConversionFactor('velocity', stateSnap.V2Unit));
+          newState.resultV2 = fmt(result);
           newState.unknownVariable = {
             name: 'V₂',
             label: translate('energiaBernoulliCalc.labels.V2'),
@@ -1224,13 +1320,13 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
       case 'ht': {
         const headSI = leftSide
-          .minus(getVal('P2', new Decimal(0)).div(rhoG))
-          .minus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
-          .minus(getVal('z2', new Decimal(0)))
+          .minus(getVal('P2', DECIMAL_ZERO).div(rhoG))
+          .minus(alpha2.mul(getVal('V2', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+          .minus(getVal('z2', DECIMAL_ZERO))
           .minus(calculateHeadLoss(siValues, getVal, twoG));
 
-        const result = headSI.div(new Decimal(conversionFactors.length[stateSnap.htUnit] || 1));
-        newState.ht = fmt(result.toNumber());
+        const result = headSI.div(getConversionFactor('length', stateSnap.htUnit));
+        newState.ht = fmt(result);
         newState.isManualEditHt = false;
         newState.unknownVariable = {
           name: 'hT',
@@ -1245,14 +1341,14 @@ const EnergiaBernoulliCalc: React.FC = () => {
       case 'alpha2':
         if (missingField === 'alpha1') {
           const rightTerm = rightSide
-            .minus(getVal('P1', new Decimal(0)).div(rhoG))
-            .minus(getVal('z1', new Decimal(0)))
-            .minus(getVal('hb', new Decimal(0)));
+            .minus(getVal('P1', DECIMAL_ZERO).div(rhoG))
+            .minus(getVal('z1', DECIMAL_ZERO))
+            .minus(getVal('hb', DECIMAL_ZERO));
 
-          const V1 = getVal('V1', new Decimal(0));
+          const V1 = getVal('V1', DECIMAL_ZERO);
           if (rightTerm.greaterThan(0) && !V1.isZero()) {
-            const alpha1_calc = rightTerm.mul(twoG).div(V1.pow(2));
-            const formattedResult = fmt(alpha1_calc.toNumber());
+            const alpha1_calc = rightTerm.mul(twoG).div(V1.pow(DECIMAL_TWO));
+            const formattedResult = fmt(alpha1_calc);
             newState.alpha1 = formattedResult;
             newState.isManualEditAlpha1 = false;
             newState.unknownVariable = {
@@ -1265,15 +1361,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
           }
         } else {
           const leftTerm = leftSide
-            .minus(getVal('P2', new Decimal(0)).div(rhoG))
-            .minus(getVal('z2', new Decimal(0)))
-            .minus(getVal('ht', new Decimal(0)))
+            .minus(getVal('P2', DECIMAL_ZERO).div(rhoG))
+            .minus(getVal('z2', DECIMAL_ZERO))
+            .minus(getVal('ht', DECIMAL_ZERO))
             .minus(calculateHeadLoss(siValues, getVal, twoG));
 
-          const V2 = getVal('V2', new Decimal(0));
+          const V2 = getVal('V2', DECIMAL_ZERO);
           if (leftTerm.greaterThan(0) && !V2.isZero()) {
-            const alpha2_calc = leftTerm.mul(twoG).div(V2.pow(2));
-            const formattedResult = fmt(alpha2_calc.toNumber());
+            const alpha2_calc = leftTerm.mul(twoG).div(V2.pow(DECIMAL_TWO));
+            const formattedResult = fmt(alpha2_calc);
             newState.alpha2 = formattedResult;
             newState.isManualEditAlpha2 = false;
             newState.unknownVariable = {
@@ -1290,7 +1386,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     return false;
   }, [calculateHeadLoss]);
 
-  // Ejecuta el cálculo de Bernoulli ideal: identifica el único campo vacío y lo resuelve algebraicamente
+  // Calcula Bernoulli ideal: identifica el único campo vacío y lo resuelve algebraicamente
   const calculateIdealBernoulli = useCallback(() => {
     const allFields = [
       { id: 'P1', value: state.P1, unit: state.P1Unit, category: 'pressure', resultField: 'resultP1' },
@@ -1306,20 +1402,22 @@ const EnergiaBernoulliCalc: React.FC = () => {
     const fieldsInSI = allFields.map(field => {
       if (field.id === 'alpha1' || field.id === 'alpha2') {
         const rawValue = field.value.replace(',', '.');
-        if (rawValue === '' || isNaN(parseFloat(rawValue))) {
+        if (rawValue === '' || !isValidDecimalString(rawValue)) {
           return { ...field, siValue: null, isValid: false };
         }
         return { ...field, siValue: new Decimal(rawValue), isValid: true };
       }
     
       const rawValue = field.value.replace(',', '.');
-      if (rawValue === '' || isNaN(parseFloat(rawValue))) {
+      if (rawValue === '' || !isValidDecimalString(rawValue)) {
         return { ...field, siValue: null, isValid: false };
       }
     
       const numValue = new Decimal(rawValue);
-      const factor = conversionFactors[field.category]?.[field.unit] || 1;
-      const factorDecimal = new Decimal(factor);
+      const factorDecimal = getConversionFactor(
+        field.category as 'length' | 'velocity' | 'area' | 'pressure' | 'density' | 'acceleration' | 'temperature' | 'specificWeight',
+        field.unit
+      );
       return { ...field, siValue: numValue.mul(factorDecimal), isValid: true };
     });
   
@@ -1327,22 +1425,22 @@ const EnergiaBernoulliCalc: React.FC = () => {
     const missingFields = fieldsInSI.filter(f => !f.isValid).map(f => f.id);
     const validCount = validFields.length;
   
-    let gammaDecimal = new Decimal(9810);
-    if (state.gamma && !isNaN(parseFloat(state.gamma.replace(',', '.')))) {
-      gammaDecimal = new Decimal(state.gamma.replace(',', '.'))
-        .mul(new Decimal(conversionFactors.pressure[state.gammaUnit] || 1));
+    let gammaDecimal = DECIMAL_DEFAULT_GAMMA;
+    if (state.gamma && isValidDecimalString(state.gamma)) {
+      const gammaFactor = getConversionFactor('specificWeight', state.gammaUnit);
+      gammaDecimal = new Decimal(state.gamma.replace(',', '.')).mul(gammaFactor);
     }
   
-    let gDecimal = new Decimal(9.81);
-    if (state.g && !isNaN(parseFloat(state.g.replace(',', '.')))) {
+    let gDecimal = DECIMAL_DEFAULT_G;
+    if (state.g && isValidDecimalString(state.g)) {
       gDecimal = new Decimal(state.g.replace(',', '.'))
-        .mul(new Decimal(conversionFactors.acceleration[state.gUnit] || 1));
+        .mul(getConversionFactor('acceleration', state.gUnit));
     }
   
     if (validCount !== 7) {
       setState((prev) => ({
         ...prev,
-        resultTotalEnergy: 0,
+        resultTotalEnergy: '',
         resultP1: '',
         resultV1: '',
         resultZ1: '',
@@ -1365,11 +1463,11 @@ const EnergiaBernoulliCalc: React.FC = () => {
   
     const newState: Partial<CalculatorState> = {};
   
-    const alpha1 = siValues['alpha1'] !== undefined ? siValues['alpha1'] : new Decimal(1);
-    const alpha2 = siValues['alpha2'] !== undefined ? siValues['alpha2'] : new Decimal(1);
+    const alpha1 = siValues['alpha1'] !== undefined ? siValues['alpha1'] : DECIMAL_ONE;
+    const alpha2 = siValues['alpha2'] !== undefined ? siValues['alpha2'] : DECIMAL_ONE;
 
-    // Se pre-calcula 2g una sola vez para reutilizarlo en todos los casos del switch
-    const twoG = new Decimal(2).mul(gDecimal);
+    // 2g pre-calculado para reutilizar en todos los casos
+    const twoG = DECIMAL_TWO.mul(gDecimal);
   
     switch (missingField) {
       case 'P1': {
@@ -1377,16 +1475,16 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (siValues['P2'] === undefined || siValues['V2'] === undefined || siValues['z2'] === undefined) break;
       
         const E2 = siValues['P2'].div(gammaDecimal)
-          .plus(alpha2.mul(siValues['V2'].pow(2)).div(twoG))
+          .plus(alpha2.mul(siValues['V2'].pow(DECIMAL_TWO)).div(twoG))
           .plus(siValues['z2']);
       
         const headTerm = E2
-          .minus(alpha1.mul(siValues['V1'].pow(2)).div(twoG))
+          .minus(alpha1.mul(siValues['V1'].pow(DECIMAL_TWO)).div(twoG))
           .minus(siValues['z1']);
       
         const pressureSI = headTerm.mul(gammaDecimal);
-        const result = pressureSI.div(new Decimal(conversionFactors.pressure[state.P1Unit] || 1));
-        const formattedResult = formatResult(result.toNumber());
+        const result = pressureSI.div(getConversionFactor('pressure', state.P1Unit));
+        const formattedResult = formatResult(result);
         newState.resultP1 = formattedResult;
       
         siValues['P1'] = pressureSI;
@@ -1405,7 +1503,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (siValues['P2'] === undefined || siValues['V2'] === undefined || siValues['z2'] === undefined) break;
       
         const E2 = siValues['P2'].div(gammaDecimal)
-          .plus(alpha2.mul(siValues['V2'].pow(2)).div(twoG))
+          .plus(alpha2.mul(siValues['V2'].pow(DECIMAL_TWO)).div(twoG))
           .plus(siValues['z2']);
       
         const headTerm = E2
@@ -1418,8 +1516,8 @@ const EnergiaBernoulliCalc: React.FC = () => {
             .div(alpha1)
             .sqrt();
         
-          const result = velocitySI.div(new Decimal(conversionFactors.velocity[state.V1Unit] || 1));
-          const formattedResult = formatResult(result.toNumber());
+          const result = velocitySI.div(getConversionFactor('velocity', state.V1Unit));
+          const formattedResult = formatResult(result);
           newState.resultV1 = formattedResult;
         
           siValues['V1'] = velocitySI;
@@ -1439,15 +1537,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (siValues['P2'] === undefined || siValues['V2'] === undefined || siValues['z2'] === undefined) break;
       
         const E2 = siValues['P2'].div(gammaDecimal)
-          .plus(alpha2.mul(siValues['V2'].pow(2)).div(twoG))
+          .plus(alpha2.mul(siValues['V2'].pow(DECIMAL_TWO)).div(twoG))
           .plus(siValues['z2']);
       
         const elevationSI = E2
           .minus(siValues['P1'].div(gammaDecimal))
-          .minus(alpha1.mul(siValues['V1'].pow(2)).div(twoG));
+          .minus(alpha1.mul(siValues['V1'].pow(DECIMAL_TWO)).div(twoG));
       
-        const result = elevationSI.div(new Decimal(conversionFactors.length[state.z1Unit] || 1));
-        const formattedResult = formatResult(result.toNumber());
+        const result = elevationSI.div(getConversionFactor('length', state.z1Unit));
+        const formattedResult = formatResult(result);
         newState.resultZ1 = formattedResult;
       
         siValues['z1'] = elevationSI;
@@ -1466,16 +1564,16 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (siValues['P1'] === undefined || siValues['V1'] === undefined || siValues['z1'] === undefined) break;
       
         const E1 = siValues['P1'].div(gammaDecimal)
-          .plus(alpha1.mul(siValues['V1'].pow(2)).div(twoG))
+          .plus(alpha1.mul(siValues['V1'].pow(DECIMAL_TWO)).div(twoG))
           .plus(siValues['z1']);
       
         const headTerm = E1
-          .minus(alpha2.mul(siValues['V2'].pow(2)).div(twoG))
+          .minus(alpha2.mul(siValues['V2'].pow(DECIMAL_TWO)).div(twoG))
           .minus(siValues['z2']);
       
         const pressureSI = headTerm.mul(gammaDecimal);
-        const result = pressureSI.div(new Decimal(conversionFactors.pressure[state.P2Unit] || 1));
-        const formattedResult = formatResult(result.toNumber());
+        const result = pressureSI.div(getConversionFactor('pressure', state.P2Unit));
+        const formattedResult = formatResult(result);
         newState.resultP2 = formattedResult;
       
         siValues['P2'] = pressureSI;
@@ -1494,7 +1592,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (siValues['P1'] === undefined || siValues['V1'] === undefined || siValues['z1'] === undefined) break;
       
         const E1 = siValues['P1'].div(gammaDecimal)
-          .plus(alpha1.mul(siValues['V1'].pow(2)).div(twoG))
+          .plus(alpha1.mul(siValues['V1'].pow(DECIMAL_TWO)).div(twoG))
           .plus(siValues['z1']);
       
         const headTerm = E1
@@ -1507,8 +1605,8 @@ const EnergiaBernoulliCalc: React.FC = () => {
             .div(alpha2)
             .sqrt();
         
-          const result = velocitySI.div(new Decimal(conversionFactors.velocity[state.V2Unit] || 1));
-          const formattedResult = formatResult(result.toNumber());
+          const result = velocitySI.div(getConversionFactor('velocity', state.V2Unit));
+          const formattedResult = formatResult(result);
           newState.resultV2 = formattedResult;
         
           siValues['V2'] = velocitySI;
@@ -1528,15 +1626,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (siValues['P1'] === undefined || siValues['V1'] === undefined || siValues['z1'] === undefined) break;
       
         const E1 = siValues['P1'].div(gammaDecimal)
-          .plus(alpha1.mul(siValues['V1'].pow(2)).div(twoG))
+          .plus(alpha1.mul(siValues['V1'].pow(DECIMAL_TWO)).div(twoG))
           .plus(siValues['z1']);
       
         const elevationSI = E1
           .minus(siValues['P2'].div(gammaDecimal))
-          .minus(alpha2.mul(siValues['V2'].pow(2)).div(twoG));
+          .minus(alpha2.mul(siValues['V2'].pow(DECIMAL_TWO)).div(twoG));
       
-        const result = elevationSI.div(new Decimal(conversionFactors.length[state.z2Unit] || 1));
-        const formattedResult = formatResult(result.toNumber());
+        const result = elevationSI.div(getConversionFactor('length', state.z2Unit));
+        const formattedResult = formatResult(result);
         newState.resultZ2 = formattedResult;
       
         siValues['z2'] = elevationSI;
@@ -1555,7 +1653,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (siValues['P2'] === undefined || siValues['V2'] === undefined || siValues['z2'] === undefined) break;
       
         const E2 = siValues['P2'].div(gammaDecimal)
-          .plus(alpha2.mul(siValues['V2'].pow(2)).div(twoG))
+          .plus(alpha2.mul(siValues['V2'].pow(DECIMAL_TWO)).div(twoG))
           .plus(siValues['z2']);
       
         const energyTerm = E2
@@ -1565,9 +1663,9 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (energyTerm.greaterThan(0) && !siValues['V1'].isZero()) {
           const alpha1_calc = energyTerm
             .mul(twoG)
-            .div(siValues['V1'].pow(2));
+            .div(siValues['V1'].pow(DECIMAL_TWO));
         
-          const formattedResult = formatResult(alpha1_calc.toNumber());
+            const formattedResult = formatResult(alpha1_calc);
           newState.alpha1 = formattedResult;
           newState.isManualEditAlpha1 = false;
         
@@ -1588,7 +1686,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (siValues['P1'] === undefined || siValues['V1'] === undefined || siValues['z1'] === undefined) break;
       
         const E1 = siValues['P1'].div(gammaDecimal)
-          .plus(alpha1.mul(siValues['V1'].pow(2)).div(twoG))
+          .plus(alpha1.mul(siValues['V1'].pow(DECIMAL_TWO)).div(twoG))
           .plus(siValues['z1']);
       
         const energyTerm = E1
@@ -1598,9 +1696,9 @@ const EnergiaBernoulliCalc: React.FC = () => {
         if (energyTerm.greaterThan(0) && !siValues['V2'].isZero()) {
           const alpha2_calc = energyTerm
             .mul(twoG)
-            .div(siValues['V2'].pow(2));
+            .div(siValues['V2'].pow(DECIMAL_TWO));
         
-          const formattedResult = formatResult(alpha2_calc.toNumber());
+          const formattedResult = formatResult(alpha2_calc);
           newState.resultAlpha2 = formattedResult;
           newState.alpha2 = formattedResult;
           newState.isManualEditAlpha2 = false;
@@ -1618,7 +1716,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
       }
     }
   
-    // Una vez resuelto el campo faltante, se calcula la diferencia de energía entre puntos 1 y 2
+    // Calcula la diferencia de energía entre puntos 1 y 2 con todos los valores disponibles
     const hasAllP1 = siValues['P1'] !== undefined;
     const hasAllV1 = siValues['V1'] !== undefined;
     const hasAllz1 = siValues['z1'] !== undefined;
@@ -1628,19 +1726,19 @@ const EnergiaBernoulliCalc: React.FC = () => {
   
     if (hasAllP1 && hasAllV1 && hasAllz1 && hasAllP2 && hasAllV2 && hasAllz2) {
       const E1 = siValues['P1'].div(gammaDecimal)
-        .plus(alpha1.mul(siValues['V1'].pow(2)).div(twoG))
+        .plus(alpha1.mul(siValues['V1'].pow(DECIMAL_TWO)).div(twoG))
         .plus(siValues['z1']);
     
       const E2 = siValues['P2'].div(gammaDecimal)
-        .plus(alpha2.mul(siValues['V2'].pow(2)).div(twoG))
+        .plus(alpha2.mul(siValues['V2'].pow(DECIMAL_TWO)).div(twoG))
         .plus(siValues['z2']);
     
       const energyDifference = E1.minus(E2);
     
-      newState.resultTotalEnergy = energyDifference.toNumber();
-    } else {
-      newState.resultTotalEnergy = 0;
-    }
+      newState.resultTotalEnergy = formatResult(energyDifference);
+      } else {
+        newState.resultTotalEnergy = '';
+      }
   
     if (!missingField) {
       newState.unknownVariable = null;
@@ -1679,7 +1777,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     updateLockedFieldIdeal, updateLockedFieldLosses
   ]);
 
-  // Retorna la lista de campos que se requieren para el modo con pérdidas según la configuración actual
+  // Retorna los campos requeridos para el modo pérdidas según la configuración activa
   const getRequiredFieldsForLosses = useCallback((stateSnap: CalculatorState) => {
     const baseFields = [
       { id: 'P1', config: { category: 'pressure', unit: stateSnap.P1Unit } },
@@ -1714,16 +1812,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
     return [...baseFields, ...conditionalFields, ...lossFields];
   }, []);
 
-  // Ejecuta el cálculo de energía con pérdidas, bomba y turbina, resolviendo el único campo vacío
+  // Calcula con pérdidas, bomba y turbina, resolviendo el único campo vacío
   const calculateWithLosses = useCallback(() => {
     const requiredFieldIds = getRequiredFieldsForLosses(state);
 
     const fieldsInSI = requiredFieldIds.map(field => {
-      const config = fieldConfigs[field.id] || { category: 'none', unit: '' };
-      if (!config) return { ...field, siValue: null, isValid: false };
+      const config = field.config;
 
       const rawValue = (state as any)[field.id]?.replace(',', '.');
-      if (!rawValue || rawValue === '' || isNaN(parseFloat(rawValue))) {
+      if (!rawValue || rawValue === '' || !isValidDecimalString(rawValue)) {
         return { ...field, siValue: null, isValid: false };
       }
 
@@ -1732,8 +1829,10 @@ const EnergiaBernoulliCalc: React.FC = () => {
         return { ...field, siValue: numValue, isValid: true };
       }
 
-      const factor = conversionFactors[config.category]?.[config.unit];
-      const factorDecimal = factor ? new Decimal(factor) : new Decimal(1);
+      const factorDecimal = getConversionFactor(
+        config.category as 'length' | 'velocity' | 'area' | 'pressure' | 'density' | 'acceleration' | 'temperature' | 'specificWeight',
+        config.unit!
+      );
       return {
         ...field,
         siValue: numValue.mul(factorDecimal),
@@ -1747,7 +1846,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     if (validFields.length !== requiredFieldIds.length - 1) {
       setState(prev => ({
         ...prev,
-        resultTotalEnergy: 0,
+        resultTotalEnergy: '',
         resultP1: '', resultV1: '', resultZ1: '',
         resultP2: '', resultV2: '', resultZ2: '',
         invalidFields: missingFields,
@@ -1765,23 +1864,23 @@ const EnergiaBernoulliCalc: React.FC = () => {
     const getVal = (id: string, defaultValue: Decimal): Decimal =>
       siValues[id] !== undefined ? siValues[id] : defaultValue;
 
-    const rho = getVal('rho', new Decimal(1000));
-    const g = getVal('g', new Decimal(9.81));
+    const rho = getVal('rho', new Decimal('1000'));
+    const g = getVal('g', DECIMAL_DEFAULT_G_LOSSES);
     const rhoG = rho.mul(g);
-    const alpha1 = getVal('alpha1', new Decimal(1));
-    const alpha2 = getVal('alpha2', new Decimal(1));
-    const twoG = new Decimal(2).mul(g);
+    const alpha1 = getVal('alpha1', DECIMAL_ONE);
+    const alpha2 = getVal('alpha2', DECIMAL_ONE);
+    const twoG = DECIMAL_TWO.mul(g);
 
-    // Se calcula la diferencia de energía antes de resolver el campo desconocido
-    const leftSide = getVal('P1', new Decimal(0)).div(rhoG)
-      .plus(alpha1.mul(getVal('V1', new Decimal(0)).pow(2)).div(twoG))
-      .plus(getVal('z1', new Decimal(0)))
-      .plus(getVal('hb', new Decimal(0)));
+    // Diferencia de energía antes de resolver el campo desconocido
+    const leftSide = getVal('P1', DECIMAL_ZERO).div(rhoG)
+      .plus(alpha1.mul(getVal('V1', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+      .plus(getVal('z1', DECIMAL_ZERO))
+      .plus(getVal('hb', DECIMAL_ZERO));
 
-    const rightSide = getVal('P2', new Decimal(0)).div(rhoG)
-      .plus(alpha2.mul(getVal('V2', new Decimal(0)).pow(2)).div(twoG))
-      .plus(getVal('z2', new Decimal(0)))
-      .plus(getVal('ht', new Decimal(0)))
+    const rightSide = getVal('P2', DECIMAL_ZERO).div(rhoG)
+      .plus(alpha2.mul(getVal('V2', DECIMAL_ZERO).pow(DECIMAL_TWO)).div(twoG))
+      .plus(getVal('z2', DECIMAL_ZERO))
+      .plus(getVal('ht', DECIMAL_ZERO))
       .plus(calculateHeadLoss(siValues, getVal, twoG));
 
     const energyDifference = leftSide.minus(rightSide);
@@ -1802,8 +1901,8 @@ const EnergiaBernoulliCalc: React.FC = () => {
         calculated = true;
       } else if (missingField === 'hL' && state.lossInputType === 'direct') {
         const hL_si = calculateHeadLoss(siValues, getVal, twoG);
-        const result = hL_si.div(new Decimal(conversionFactors.length[state.hLUnit] || 1));
-        newState.hL = formatResult(result.toNumber());
+        const result = hL_si.div(getConversionFactor('length', state.hLUnit));
+        newState.hL = formatResult(result);
         newState.isManualEditHL = false;
         newState.unknownVariable = {
           name: 'hL',
@@ -1833,7 +1932,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
       setState(prev => ({
         ...prev,
         ...newState,
-        resultTotalEnergy: energyDifference.toNumber(),
+        resultTotalEnergy: formatResult(energyDifference),
         invalidFields: [],
         autoCalculatedField: missingField,
         isManualEditP1: missingField === 'P1' ? false : prev.isManualEditP1,
@@ -1864,7 +1963,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state, formatResult, t, calculateHeadLoss, calculateDarcyField, calculateGeneralField]);
 
-  // Calcula el NPSHa y el margen de seguridad contra la cavitación para el sistema configurado
+  // Calcula el NPSHa y el margen de cavitación para el sistema configurado
   const calculateCavitation = useCallback(() => {
     try {
       let requiredIds: string[] = ['g'];
@@ -1890,7 +1989,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
       const missing = requiredIds.filter((id) => {
         const raw = (state as any)[id] as string;
         const val = raw?.replace(',', '.');
-        return !val || val.trim() === '' || isNaN(parseFloat(val));
+        return !val || val.trim() === '' || !isValidDecimalString(val);
       });
 
       if (missing.length > 0) {
@@ -1905,15 +2004,19 @@ const EnergiaBernoulliCalc: React.FC = () => {
         return;
       }
 
-      const getDecimalValue = (id: string, category: string, defaultUnit: string): Decimal => {
+      const getDecimalValue = (
+        id: string,
+        category: 'length' | 'velocity' | 'area' | 'pressure' | 'density' | 'acceleration' | 'temperature' | 'specificWeight' | 'none',
+        defaultUnit: string
+      ): Decimal => {
         const rawValue = (state as any)[id]?.replace(',', '.') || '0';
         const unit = (state as any)[`${id}Unit`] || defaultUnit;
         const value = new Decimal(rawValue);
 
         if (category === 'none' || !unit) return value;
 
-        const factor = conversionFactors[category]?.[unit];
-        return factor ? value.mul(new Decimal(factor)) : value;
+        const factor = getConversionFactor(category, unit);
+        return value.mul(factor);
       };
 
       const g = getDecimalValue('g', 'acceleration', 'm/s²');
@@ -1933,17 +2036,14 @@ const EnergiaBernoulliCalc: React.FC = () => {
       let PvCalculado = false;
 
       if (state.useTempForPv) {
-        const temp = parseFloat(state.temperatura.replace(',', '.'));
-        const tempUnit = state.temperaturaUnit;
-        const PvNumber = calculateVaporPressure(temp, tempUnit);
-        Pv = new Decimal(PvNumber);
+        Pv = calculateVaporPressure(state.temperatura, state.temperaturaUnit);
         PvCalculado = true;
       } else {
         Pv = getDecimalValue('Pv', 'pressure', 'Pa');
       }
 
       let NPSHa: Decimal;
-      let Pabs: Decimal = new Decimal(0);
+      let Pabs: Decimal = DECIMAL_ZERO;
 
       if (state.cavitationSystemType === 'closed') {
         const Ps = getDecimalValue('Ps', 'pressure', 'Pa');
@@ -1951,7 +2051,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
         Pabs = Ps;
 
-        const velocityHead = Vs.pow(2).div(new Decimal(2).mul(g));
+        const velocityHead = Vs.pow(DECIMAL_TWO).div(DECIMAL_TWO.mul(g));
         NPSHa = Ps.div(gamma).plus(velocityHead).minus(Pv.div(gamma));
 
       } else {
@@ -1977,19 +2077,16 @@ const EnergiaBernoulliCalc: React.FC = () => {
         });
       }
 
-      const safetyMargin = new Decimal(0.5);
-      const cavitationMargin = NPSHa.minus(safetyMargin);
-
       setState((prev) => ({
         ...prev,
         invalidFields: [],
         autoCalculatedField: null,
-        resultNPSHa: formatResult(NPSHa.toNumber()),
-        resultCavitationMargin: formatResult(cavitationMargin.toNumber()),
-        resultPabs: formatResult(Pabs.toNumber()),
-        resultGamma: gammaCalculado ? formatResult(gamma.toNumber()) : '',
-        resultPv: PvCalculado ? formatResult(Pv.toNumber()) : '',
-        resultTotalEnergy: cavitationMargin.toNumber(),
+        resultNPSHa: formatResult(NPSHa),
+        resultCavitationMargin: '',
+        resultPabs: formatResult(Pabs),
+        resultGamma: gammaCalculado ? formatResult(gamma) : '',
+        resultPv: PvCalculado ? formatResult(Pv) : '',
+        resultTotalEnergy: '',
       }));
 
     } catch (error) {
@@ -2002,7 +2099,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state, formatResult, calculateVaporPressure, t]);
 
-  // Lanza el cálculo correspondiente según el modo activo
+  // Lanza el cálculo correspondiente al modo activo
   const handleCalculate = useCallback(() => {
     switch (state.mode) {
       case 'ideal':
@@ -2017,7 +2114,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state.mode, calculateIdealBernoulli, calculateWithLosses, calculateCavitation]);
 
-  // Limpia todos los campos y resultados manteniendo el modo de cálculo actual
+  // Limpia todos los campos y resultados manteniendo el modo activo
   const handleClear = useCallback(() => {
     const currentMode = state.mode;
     setState({
@@ -2028,11 +2125,10 @@ const EnergiaBernoulliCalc: React.FC = () => {
     });
   }, [state.mode]);
 
-  // Construye el texto resumen de todos los datos y resultados y lo copia al portapapeles
+  // Construye un resumen de datos y resultados y lo copia al portapapeles
   const handleCopy = useCallback(() => {
     let textToCopy = '';
-    const mainValue = state.resultTotalEnergy;
-    const formattedMain = isNaN(mainValue) ? '0' : formatResult(mainValue);
+    const formattedMain = state.resultTotalEnergy || '0';
 
     let modeText = '';
     switch (state.mode) {
@@ -2049,7 +2145,9 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
     if (state.mode === 'cavitation') {
       textToCopy += `${t('energiaBernoulliCalc.npsha')}: ${state.resultNPSHa} m\n`;
-      textToCopy += `${t('energiaBernoulliCalc.cavitationMargin')}: ${formattedMain} m\n`;
+      if (state.resultCavitationMargin) {
+        textToCopy += `${t('energiaBernoulliCalc.cavitationMargin')}: ${state.resultCavitationMargin} m\n`;
+      }
       textToCopy += `${t('energiaBernoulliCalc.pabs')}: ${state.resultPabs} Pa\n`;
 
       if (state.resultGamma) {
@@ -2126,10 +2224,10 @@ const EnergiaBernoulliCalc: React.FC = () => {
     Toast.show({ type: 'success', text1: t('common.success'), text2: t('energiaBernoulliCalc.toasts.copied') });
   }, [state, formatResult, t]);
 
-  // Guarda el cálculo actual en el historial de la base de datos local
+  // Guarda el cálculo actual en el historial local de la base de datos
   const handleSaveHistory = useCallback(async () => {
     const noResults = !state.unknownVariable?.value &&
-      state.resultTotalEnergy === 0 &&
+      state.resultTotalEnergy === '' &&
       !state.resultP1 && !state.resultP2 &&
       !state.resultV1 && !state.resultV2 &&
       !state.resultZ1 && !state.resultZ2 &&
@@ -2214,9 +2312,9 @@ const EnergiaBernoulliCalc: React.FC = () => {
       let resultToSave: string;
 
       if (state.mode === 'cavitation') {
-        resultToSave = state.resultNPSHa || formatResult(state.resultTotalEnergy);
+        resultToSave = state.resultNPSHa || '0';
       } else {
-        resultToSave = formatResult(state.resultTotalEnergy);
+        resultToSave = state.resultTotalEnergy || '0';
       }
 
       await saveCalculation(db, `EnergiaBernoulli_${state.mode}`, JSON.stringify(inputs), resultToSave);
@@ -2229,44 +2327,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
   }, [state, formatResult, t]);
 
   // Navega a la pantalla de selección de unidades para el campo indicado
-  const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string) => {
-    navigation.navigate('OptionsScreenEnergiaBernoulli', { category, onSelectOption, selectedOption });
+  const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string, fieldLabel?: string) => {
+    navigation.navigate('OptionsScreenEnergiaBernoulli', { category, onSelectOption, selectedOption, fieldLabel });
   }, [navigation]);
 
-  // ── Handlers del teclado custom ──────────────────────────────────────────────
+  // ── Handlers del teclado personalizado ──────────────────────────────────────
   const getActiveValue = useCallback((): string => {
     const id = activeInputIdRef.current;
     if (!id) return '';
-    const s = stateRef.current;
-    // Mapa de fieldId a propiedad del estado
-    const map: Record<string, string> = {
-      P1: s.P1,
-      P2: s.P2,
-      z1: s.z1,
-      z2: s.z2,
-      V1: s.V1,
-      V2: s.V2,
-      D1: s.D1,
-      D2: s.D2,
-      rho: s.rho,
-      gamma: s.gamma,
-      g: s.g,
-      hb: s.hb,
-      ht: s.ht,
-      hL: s.hL,
-      L: s.L,
-      f: s.f,
-      K: s.K,
-      Ps: s.Ps,
-      Vs: s.Vs,
-      Patm: s.Patm,
-      z0: s.z0,
-      zs: s.zs,
-      hfs: s.hfs,
-      temperatura: s.temperatura,
-      Pv: s.Pv,
-    };
-    return map[id] ?? '';
+    return (stateRef.current as any)[id] ?? '';
   }, []);
 
   const handleKeyboardKey = useCallback((key: string) => {
@@ -2300,7 +2369,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     if (!handler) return;
     const val = getActiveValue();
     if (val === '' || val === '.') return;
-    handler((parseFloat(val) * 10).toString());
+    handler(new Decimal(val).mul(10).toString());
   }, []);
 
   const handleKeyboardDivide10 = useCallback(() => {
@@ -2310,7 +2379,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     if (!handler) return;
     const val = getActiveValue();
     if (val === '' || val === '.') return;
-    handler((parseFloat(val) / 10).toString());
+    handler(new Decimal(val).div(10).toString());
   }, []);
 
   const handleKeyboardSubmit = useCallback(() => {
@@ -2318,7 +2387,64 @@ const EnergiaBernoulliCalc: React.FC = () => {
   }, [setActiveInputId]);
   // ─────────────────────────────────────────────────────────────────────────────
 
-  // Renderiza un campo de entrada completo con etiqueta, indicador de estado y botón de unidades
+  useEffect(() => {
+    inputHandlersRef.current['alpha1'] = (text: string) => {
+      setState((prev) => ({
+        ...prev,
+        alpha1: text,
+        isManualEditAlpha1: true,
+        invalidFields: prev.invalidFields.filter((f) => f !== 'alpha1'),
+        autoCalculatedField:
+          prev.autoCalculatedField === 'alpha1' ? null : prev.autoCalculatedField,
+      }));
+    };
+    inputHandlersRef.current['alpha2'] = (text: string) => {
+      setState((prev) => ({
+        ...prev,
+        alpha2: text,
+        isManualEditAlpha2: true,
+        invalidFields: prev.invalidFields.filter((f) => f !== 'alpha2'),
+        autoCalculatedField:
+          prev.autoCalculatedField === 'alpha2' ? null : prev.autoCalculatedField,
+      }));
+    };
+  }, []);
+
+  // Mapa de etiqueta de campo a su unidad activa, memoizado para no reconstruirse en cada render
+  const unitMap = React.useMemo((): { [key: string]: string } => ({
+    'P₁': state.P1Unit,
+    'P₂': state.P2Unit,
+    'z₁': state.z1Unit,
+    'z₂': state.z2Unit,
+    'V₁': state.V1Unit,
+    'V₂': state.V2Unit,
+    'D₁': state.D1Unit,
+    'D₂': state.D2Unit,
+    'ρ': state.rhoUnit,
+    'γ': state.gammaUnit,
+    'g': state.gUnit,
+    'hB': state.hbUnit,
+    'hT': state.htUnit,
+    'hL': state.hLUnit,
+    'L': state.LUnit,
+    'T': state.temperaturaUnit,
+    'Pv': state.PvUnit,
+    'P_s': state.PsUnit,
+    'V_s': state.VsUnit,
+    'P_atm': state.PatmUnit,
+    'z₀': state.z0Unit,
+    'z_s': state.zsUnit,
+    'h_fs': state.hfsUnit,
+  }), [
+    state.P1Unit, state.P2Unit, state.z1Unit, state.z2Unit,
+    state.V1Unit, state.V2Unit, state.D1Unit, state.D2Unit,
+    state.rhoUnit, state.gammaUnit, state.gUnit,
+    state.hbUnit, state.htUnit, state.hLUnit, state.LUnit,
+    state.temperaturaUnit, state.PvUnit, state.PsUnit, state.VsUnit,
+    state.PatmUnit, state.z0Unit, state.zsUnit, state.hfsUnit,
+  ]);
+
+  // Renderiza un campo de entrada con etiqueta, indicador de estado y botón de unidades
   const renderInput = useCallback((
     label: string,
     value: string,
@@ -2329,39 +2455,13 @@ const EnergiaBernoulliCalc: React.FC = () => {
     displayLabel?: string,
     unitProp?: string,
   ) => {
-    const unitMap: { [key: string]: string } = {
-      'P₁': state.P1Unit,
-      'P₂': state.P2Unit,
-      'z₁': state.z1Unit,
-      'z₂': state.z2Unit,
-      'V₁': state.V1Unit,
-      'V₂': state.V2Unit,
-      'D₁': state.D1Unit,
-      'D₂': state.D2Unit,
-      'ρ': state.rhoUnit,
-      'γ': state.gammaUnit,
-      'g': state.gUnit,
-      'hB': state.hbUnit,
-      'hT': state.htUnit,
-      'hL': state.hLUnit,
-      'L': state.LUnit,
-      'T': state.temperaturaUnit,
-      'Pv': state.PvUnit,
-      'P_s': state.PsUnit,
-      'V_s': state.VsUnit,
-      'P_atm': state.PatmUnit,
-      'z₀': state.z0Unit,
-      'z_s': state.zsUnit,
-      'h_fs': state.hfsUnit,
-    };
-
     const unit = unitProp || unitMap[label] || '';
     const shownLabel = displayLabel || label;
 
     const isFieldLocked = fieldId && state.lockedField === fieldId;
     const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
 
-    // Limita la cantidad de decimales visibles a 5 sin romper el separador decimal del usuario
+    // Formatea el valor visible limitando decimales sin romper el separador del usuario
     const formatDisplayValue = (val: string): string => {
       if (!val || val === '') return val;
         
@@ -2379,33 +2479,34 @@ const EnergiaBernoulliCalc: React.FC = () => {
     
       const normalizedVal = val.replace(',', '.');
       
-      // Verificar si el usuario escribió específicamente "0.0"
       if (normalizedVal === '0.0') {
         return selectedDecimalSeparator === 'Coma' ? '0,0' : '0.0';
       }
     
-      const num = parseFloat(normalizedVal);
-      if (isNaN(num)) return val;
-    
-      // Detectar cuántos decimales escribió el usuario
+      let decNum: Decimal;
+      try {
+        decNum = new Decimal(normalizedVal);
+      } catch {
+        return val;
+      }
+      
       const decimalPart = normalizedVal.includes('.') ? normalizedVal.split('.')[1] : '';
       const userDecimalCount = decimalPart.length;
       
-      // Si el usuario no escribió decimales, formatear como entero
       if (userDecimalCount === 0) {
-        return selectedDecimalSeparator === 'Coma' 
-          ? num.toString().replace('.', ',') 
-          : num.toString();
+        const formatted0 = decNum.toFixed(0);
+        return selectedDecimalSeparator === 'Coma'
+          ? formatted0.replace('.', ',')
+          : formatted0;
       }
       
-      // Si el usuario escribió decimales, mantener exactamente esa cantidad
-      const formatted = num.toFixed(userDecimalCount);
-      return selectedDecimalSeparator === 'Coma' 
-        ? formatted.replace('.', ',') 
+      const formatted = decNum.toFixed(userDecimalCount);
+      return selectedDecimalSeparator === 'Coma'
+        ? formatted.replace('.', ',')
         : formatted;
     };
 
-    // Registrar el handler completo del campo en el ref para que el teclado lo use
+    // Registra el handler del campo para que el teclado lo use
     if (fieldId) {
       inputHandlersRef.current[fieldId] = (text: string) => {
         onChange(text);
@@ -2550,7 +2651,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
                   case 'h_fs': updateUnit('hfs', 'prevHfsUnit'); break;
                   default: break;
                 }
-              }, unit);
+              }, unit, label);
             }}
           >
             <View style={[styles.innerWhiteContainer2, { backgroundColor: themeColors.card }]}>
@@ -2561,9 +2662,9 @@ const EnergiaBernoulliCalc: React.FC = () => {
         </View>
       </View>
     );
-  }, [state, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor, selectedDecimalSeparator, setActiveInputId]);
+  }, [state, unitMap, convertValue, navigateToOptions, themeColors, currentTheme, fontSizeFactor, selectedDecimalSeparator, setActiveInputId]);
 
-  // Mide el ancho y posición de cada botón del selector de tipo de pérdida para la animación
+  // Mide ancho y posición de los botones del selector de tipo de pérdida para la animación
   const onLayoutDirect = useCallback((e: LayoutChangeEvent) => {
     const { x, width } = e.nativeEvent.layout;
     setLossButtonPositions((prev) => ({ ...prev, direct: x }));
@@ -2576,7 +2677,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     setLossButtonMetrics((prev) => ({ ...prev, darcy: width }));
   }, []);
 
-  // Selector animado que permite elegir entre ingreso de pérdida directa (hL) o por Darcy-Weisbach
+  // Selector animado entre pérdida directa (hL) y parámetros de Darcy-Weisbach
   const renderLossTypeSelector = useCallback(() => (
     <View style={styles.inputWrapper}>
       <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
@@ -2619,7 +2720,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     </View>
   ), [themeColors, t, fontSizeFactor, state.lossInputType, lossButtonMetrics, lossButtonPositions, animatedLossValue, animatedLossScale, onLayoutDirect, onLayoutDarcy]);
 
-  // Mide el ancho y posición de cada botón del selector de sistema en cavitación para la animación
+  // Mide ancho y posición de los botones del selector de sistema en cavitación para la animación
   const onLayoutClosed = useCallback((e: LayoutChangeEvent) => {
     const { x, width } = e.nativeEvent.layout;
     setCavitationButtonPositions((prev) => ({ ...prev, closed: x }));
@@ -2632,7 +2733,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     setCavitationButtonMetrics((prev) => ({ ...prev, open: width }));
   }, []);
 
-  // Selector animado que permite elegir entre sistema cerrado y sistema abierto en el modo cavitación
+  // Selector animado entre sistema cerrado y abierto en el modo cavitación
   const renderSystemTypeSelector = useCallback(() => (
     <View style={styles.inputWrapper}>
       <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
@@ -2675,7 +2776,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     </View>
   ), [themeColors, t, fontSizeFactor, state.cavitationSystemType, cavitationButtonMetrics, cavitationButtonPositions, animatedCavitationValue, animatedCavitationScale]);
 
-  // Muestra los campos de entrada para el modo Bernoulli ideal: presiones, cotas, velocidades y coeficientes alpha
+  // Campos de entrada del modo Bernoulli ideal: presiones, cotas, velocidades y coeficientes alpha
   const renderIdealInputs = useCallback(() => (
     <>
       <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
@@ -2683,15 +2784,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
       </Text>
       {renderInput('P₁', state.P1, (text) => setState((prev) => ({ ...prev, P1: text })),
         (val) => setState((prev) => ({ ...prev, isManualEditP1: val })),
-        'P1', state.isManualEditP1 ? state.P1 : state.resultP1, t('energiaBernoulliCalc.labels.P1'))}
+        'P1', state.isManualEditP1 ? state.P1 : state.resultP1, `${t('energiaBernoulliCalc.labels.P1') || 'Presión'} (P₁)`)}
 
       {renderInput('z₁', state.z1, (text) => setState((prev) => ({ ...prev, z1: text })),
         (val) => setState((prev) => ({ ...prev, isManualEditz1: val })),
-        'z1', state.isManualEditz1 ? state.z1 : state.resultZ1, t('energiaBernoulliCalc.labels.z1'))}
+        'z1', state.isManualEditz1 ? state.z1 : state.resultZ1, `${t('energiaBernoulliCalc.labels.z1') || 'Altura'} (z₁)`)}
 
       {renderInput('V₁', state.V1, (text) => setState((prev) => ({ ...prev, V1: text })),
         (val) => setState((prev) => ({ ...prev, isManualEditV1: val })),
-        'V1', state.isManualEditV1 ? state.V1 : state.resultV1, t('energiaBernoulliCalc.labels.V1'))}
+        'V1', state.isManualEditV1 ? state.V1 : state.resultV1, `${t('energiaBernoulliCalc.labels.V1') || 'Velocidad'} (V₁)`)}
 
       <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
 
@@ -2700,25 +2801,28 @@ const EnergiaBernoulliCalc: React.FC = () => {
       </Text>
       {renderInput('P₂', state.P2, (text) => setState((prev) => ({ ...prev, P2: text })),
         (val) => setState((prev) => ({ ...prev, isManualEditP2: val })),
-        'P2', state.isManualEditP2 ? state.P2 : state.resultP2, t('energiaBernoulliCalc.labels.P2'))}
+        'P2', state.isManualEditP2 ? state.P2 : state.resultP2, `${t('energiaBernoulliCalc.labels.P2') || 'Presión'} (P₂)`)}
 
       {renderInput('z₂', state.z2, (text) => setState((prev) => ({ ...prev, z2: text })),
         (val) => setState((prev) => ({ ...prev, isManualEditz2: val })),
-        'z2', state.isManualEditz2 ? state.z2 : state.resultZ2, t('energiaBernoulliCalc.labels.z2'))}
+        'z2', state.isManualEditz2 ? state.z2 : state.resultZ2, `${t('energiaBernoulliCalc.labels.z2') || 'Altura'} (z₂)`)}
 
       {renderInput('V₂', state.V2, (text) => setState((prev) => ({ ...prev, V2: text })),
         (val) => setState((prev) => ({ ...prev, isManualEditV2: val })),
-        'V2', state.isManualEditV2 ? state.V2 : state.resultV2, t('energiaBernoulliCalc.labels.V2'))}
+        'V2', state.isManualEditV2 ? state.V2 : state.resultV2, `${t('energiaBernoulliCalc.labels.V2') || 'Velocidad'} (V₂)`)}
 
       <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
 
       <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
         {t('energiaBernoulliCalc.fluidProps')}
       </Text>
-      {renderInput('γ', state.gamma, (text) => setState((prev) => ({ ...prev, gamma: text })), () => {}, 'gamma', undefined, t('energiaBernoulliCalc.labels.gamma'))}
-      {renderInput('g', state.g, (text) => setState((prev) => ({ ...prev, g: text })), () => {}, 'g', undefined, t('energiaBernoulliCalc.labels.g'))}
+      {renderInput('γ', state.gamma, (text) => setState((prev) => ({ ...prev, gamma: text })), () => {}, 'gamma', undefined, `${t('energiaBernoulliCalc.labels.gamma') || 'Peso específico'} (γ)`)}
+      {renderInput('g', state.g, (text) => setState((prev) => ({ ...prev, g: text })), () => {}, 'g', undefined, `${t('energiaBernoulliCalc.labels.g') || 'Gravedad'} (g)`)}
 
-      <View style={styles.inputWrapper}>
+      <View
+        ref={(r) => { inputRefs.current['alpha1'] = r; }}
+        style={styles.inputWrapper}
+      >
         <View style={styles.labelRow}>
           <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
             {t('energiaBernoulliCalc.labels.alpha1')}
@@ -2763,7 +2867,10 @@ const EnergiaBernoulliCalc: React.FC = () => {
         </View>
       </View>
 
-      <View style={styles.inputWrapper}>
+      <View
+        ref={(r) => { inputRefs.current['alpha2'] = r; }}
+        style={styles.inputWrapper}
+      >
         <View style={styles.labelRow}>
           <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
             {t('energiaBernoulliCalc.labels.alpha2')}
@@ -2810,7 +2917,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     </>
   ), [renderInput, state.P1, state.P2, state.z1, state.z2, state.V1, state.V2, state.gamma, state.g, state.alpha1, state.alpha2, state.isManualEditP1, state.isManualEditP2, state.isManualEditz1, state.isManualEditz2, state.isManualEditV1, state.isManualEditV2, state.resultP1, state.resultP2, state.resultZ1, state.resultZ2, themeColors, t, fontSizeFactor, currentTheme, setActiveInputId]);
 
-  // Muestra los campos del modo con pérdidas, extendiendo el modo ideal con bomba, turbina y pérdidas
+  // Campos del modo pérdidas: extiende el modo ideal con bomba, turbina y pérdidas
   const renderLossesInputs = useCallback(() => (
     <>
       {renderIdealInputs()}
@@ -2835,8 +2942,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         (text) => setState((prev) => ({ ...prev, hb: text })),
         (val) => setState((prev) => ({ ...prev, isManualEditHb: val })),
         'hb', state.isManualEditHb ? state.hb : undefined,
-        t('energiaBernoulliCalc.labels.hb')
-      )}
+        `${t('energiaBernoulliCalc.labels.hb') || 'Altura de bomba'} (hᴮ)`)}
 
       <View style={styles.checkboxRow}>
         <Checkbox
@@ -2852,8 +2958,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         (text) => setState((prev) => ({ ...prev, ht: text })),
         (val) => setState((prev) => ({ ...prev, isManualEditHt: val })),
         'ht', state.isManualEditHt ? state.ht : undefined,
-        t('energiaBernoulliCalc.labels.ht')
-      )}
+        `${t('energiaBernoulliCalc.labels.ht') || 'Altura de turbina'} (hᵀ)`)}
 
       <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
 
@@ -2868,18 +2973,17 @@ const EnergiaBernoulliCalc: React.FC = () => {
           (text) => setState((prev) => ({ ...prev, hL: text })),
           (val) => setState((prev) => ({ ...prev, isManualEditHL: val })),
           'hL', state.isManualEditHL ? state.hL : undefined,
-          t('energiaBernoulliCalc.labels.hL')
-        )
+          `${t('energiaBernoulliCalc.labels.hL') || 'Pérdida de carga'} (hᴸ)`)
       ) : (
         <>
           {renderInput('L', state.L, (text) => setState((prev) => ({ ...prev, L: text })),
             (val) => setState((prev) => ({ ...prev, isManualEditL: val })),
             'L', state.autoCalculatedField === 'L' && !state.isManualEditL ? state.L : undefined,
-            t('energiaBernoulliCalc.labels.L'))}
+            `${t('energiaBernoulliCalc.labels.L') || 'Longitud'} (L)`)}
           {renderInput('D₁', state.D1, (text) => setState((prev) => ({ ...prev, D1: text })),
             (val) => setState((prev) => ({ ...prev, isManualEditD1: val })),
             'D1', state.autoCalculatedField === 'D1' && !state.isManualEditD1 ? state.D1 : undefined,
-            t('energiaBernoulliCalc.labels.D1'))}
+            `${t('energiaBernoulliCalc.labels.D1') || 'Diámetro'} (D)`)}
           <View style={styles.inputWrapper}>
             <View style={styles.labelRow}>
               <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
@@ -2951,7 +3055,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     </>
   ), [renderIdealInputs, renderInput, renderLossTypeSelector, state.includeBomba, state.includeTurbina, state.hb, state.ht, state.hL, state.L, state.D1, state.f, state.K, state.isManualEditHb, state.isManualEditHt, state.isManualEditHL, state.lossInputType, themeColors, t, fontSizeFactor, currentTheme, setActiveInputId]);
 
-  // Muestra los campos de entrada específicos del análisis de cavitación según el tipo de sistema
+  // Campos de entrada del análisis de cavitación según el tipo de sistema
   const renderCavitationInputs = useCallback(() => (
     <>
       {renderSystemTypeSelector()}
@@ -2968,14 +3072,14 @@ const EnergiaBernoulliCalc: React.FC = () => {
             (text) => setState((prev) => ({ ...prev, Ps: text })),
             (val) => setState((prev) => ({ ...prev, isManualEditPs: val })),
             'Ps', state.isManualEditPs ? state.Ps : undefined,
-            t('energiaBernoulliCalc.labels.Ps') || 'Presión en succión',
+            `${t('energiaBernoulliCalc.labels.Ps') || 'Presión en succión'} (Pˢ)`,
             state.PsUnit)}
 
           {renderInput('V_s', state.Vs,
             (text) => setState((prev) => ({ ...prev, Vs: text })),
             (val) => setState((prev) => ({ ...prev, isManualEditVs: val })),
             'Vs', state.isManualEditVs ? state.Vs : undefined,
-            t('energiaBernoulliCalc.labels.Vs') || 'Velocidad en succión',
+            `${t('energiaBernoulliCalc.labels.Vs') || 'Velocidad en succión'} (Vˢ)`,
             state.VsUnit)}
         </>
       ) : (
@@ -2988,28 +3092,28 @@ const EnergiaBernoulliCalc: React.FC = () => {
             (text) => setState((prev) => ({ ...prev, Patm: text })),
             (val) => setState((prev) => ({ ...prev, isManualEditPatm: val })),
             'Patm', state.isManualEditPatm ? state.Patm : undefined,
-            t('energiaBernoulliCalc.labels.Patm') || 'Presión atmosférica',
+            `${t('energiaBernoulliCalc.labels.Patm') || 'Presión atmosférica'} (Pᵃᵗᵐ)`,
             state.PatmUnit)}
 
           {renderInput('z₀', state.z0,
             (text) => setState((prev) => ({ ...prev, z0: text })),
             (val) => setState((prev) => ({ ...prev, isManualEditz0: val })),
             'z0', state.isManualEditz0 ? state.z0 : undefined,
-            t('energiaBernoulliCalc.labels.z0') || 'Nivel del líquido',
+            `${t('energiaBernoulliCalc.labels.z0') || 'Nivel del líquido'} (z₀)`,
             state.z0Unit)}
 
           {renderInput('z_s', state.zs,
             (text) => setState((prev) => ({ ...prev, zs: text })),
             (val) => setState((prev) => ({ ...prev, isManualEditzs: val })),
             'zs', state.isManualEditzs ? state.zs : undefined,
-            t('energiaBernoulliCalc.labels.zs') || 'Elevación en succión',
+            `${t('energiaBernoulliCalc.labels.zs') || 'Elevación en succión'} (zˢ)`,
             state.zsUnit)}
 
           {renderInput('h_fs', state.hfs,
             (text) => setState((prev) => ({ ...prev, hfs: text })),
             (val) => setState((prev) => ({ ...prev, isManualEdithfs: val })),
             'hfs', state.isManualEdithfs ? state.hfs : undefined,
-            t('energiaBernoulliCalc.labels.hfs') || 'Pérdida en succión',
+            `${t('energiaBernoulliCalc.labels.hfs') || 'Pérdida en succión'} (hᶠˢ)`,
             state.hfsUnit)}
         </>
       )}
@@ -3035,18 +3139,18 @@ const EnergiaBernoulliCalc: React.FC = () => {
         renderInput('ρ', state.rho,
           (text) => setState((prev) => ({ ...prev, rho: text })),
           () => {}, 'rho', undefined,
-          t('energiaBernoulliCalc.labels.rho') || 'Densidad', state.rhoUnit)
+          `${t('energiaBernoulliCalc.labels.rho') || 'Densidad'} (ρ)`, state.rhoUnit)
       ) : (
         renderInput('γ', state.gamma,
           (text) => setState((prev) => ({ ...prev, gamma: text })),
           () => {}, 'gamma', undefined,
-          t('energiaBernoulliCalc.labels.gamma'), state.gammaUnit)
+          `${t('energiaBernoulliCalc.labels.gamma') || 'Peso específico'} (γ)`, state.gammaUnit)
       )}
 
       {renderInput('g', state.g,
         (text) => setState((prev) => ({ ...prev, g: text })),
         () => {}, 'g', undefined,
-        t('energiaBernoulliCalc.labels.g'), state.gUnit)}
+        `${t('energiaBernoulliCalc.labels.g') || 'Gravedad'} (g)`, state.gUnit)}
 
       <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
 
@@ -3069,17 +3173,17 @@ const EnergiaBernoulliCalc: React.FC = () => {
         renderInput('T', state.temperatura,
           (text) => setState((prev) => ({ ...prev, temperatura: text })),
           () => {}, 'temperatura', undefined,
-          t('energiaBernoulliCalc.labels.temperatura'), state.temperaturaUnit)
+          `${t('energiaBernoulliCalc.labels.temperatura') || 'Temperatura'} (T)`, state.temperaturaUnit)
       ) : (
         renderInput('P_v', state.Pv,
           (text) => setState((prev) => ({ ...prev, Pv: text })),
           () => {}, 'Pv', undefined,
-          t('energiaBernoulliCalc.labels.Pv'), state.PvUnit)
+          `${t('energiaBernoulliCalc.labels.Pv') || 'Presión de vapor'} (Pv)`, state.PvUnit)
       )}
     </>
   ), [renderInput, renderSystemTypeSelector, state.cavitationSystemType, state.Ps, state.Vs, state.Patm, state.z0, state.zs, state.hfs, state.useRhoForGamma, state.rho, state.gamma, state.g, state.useTempForPv, state.temperatura, state.Pv, state.isManualEditPs, state.isManualEditVs, state.isManualEditPatm, state.isManualEditz0, state.isManualEditzs, state.isManualEdithfs, themeColors, t, fontSizeFactor, currentTheme]);
 
-  // Mide el ancho y posición de cada botón del selector de modo principal para la animación
+  // Mide ancho y posición de los botones del selector de modo principal para la animación
   const onLayoutIdeal = useCallback((e: LayoutChangeEvent) => {
     const { x, width } = e.nativeEvent.layout;
     setButtonPositions((prev) => ({ ...prev, ideal: x }));
@@ -3098,7 +3202,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     setButtonMetrics((prev) => ({ ...prev, cavitation: width }));
   }, []);
 
-  // Genera el texto de la etiqueta del panel de resultado según el modo y el estado del cálculo
+  // Genera la etiqueta del panel de resultado según el modo y el estado del cálculo
   const getMainResultLabel = useCallback(() => {
     if (state.unknownVariable) {
       const unit = state.unknownVariable.unit ? ` (${state.unknownVariable.unit})` : '';
@@ -3113,11 +3217,11 @@ const EnergiaBernoulliCalc: React.FC = () => {
           return t('energiaBernoulliCalc.npsha') || 'NPSHa';
         }
 
-        const margin = parseFloat(state.resultCavitationMargin || '0');
+        const margin = new Decimal(state.resultCavitationMargin || '0');
 
-        if (margin > 0.5) {
+        if (margin.greaterThan(new Decimal('0.5'))) {
           return `${t('energiaBernoulliCalc.npsha') || 'NPSHa'} - ${t('energiaBernoulliCalc.safe') || 'Seguro'}`;
-        } else if (margin > 0) {
+        } else if (margin.greaterThan(new Decimal('0'))) {
           return `${t('energiaBernoulliCalc.npsha') || 'NPSHa'} - ${t('energiaBernoulliCalc.lowMargin') || 'Margen bajo'}`;
         } else {
           return `${t('energiaBernoulliCalc.npsha') || 'NPSHa'} - ${t('energiaBernoulliCalc.cavitationRisk') || '¡RIESGO!'}`;
@@ -3128,7 +3232,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     }
   }, [state.mode, state.unknownVariable, state.resultNPSHa, state.resultCavitationMargin, t]);
 
-  // Indica si la etiqueta del resultado debe mostrarse como un placeholder porque no hay nada calculado
+  // Indica si la etiqueta del resultado debe mostrarse como placeholder por falta de cálculo
   const shouldShowPlaceholderLabel = useCallback(() => {
     if (state.unknownVariable) {
       return false;
@@ -3136,10 +3240,10 @@ const EnergiaBernoulliCalc: React.FC = () => {
     if (state.mode === 'ideal') {
       return true;
     }
-    return state.resultTotalEnergy === 0 && !state.resultNPSHa;
+    return state.resultTotalEnergy === '' && !state.resultNPSHa;
   }, [state.mode, state.unknownVariable, state.resultTotalEnergy, state.resultNPSHa]);
 
-  // Retorna el valor numérico principal a mostrar en el panel de resultados
+  // Retorna el valor numérico principal para mostrar en el panel de resultados
   const getMainResultValue = useCallback(() => {
     if (state.unknownVariable) {
       return state.unknownVariable.value || '0';
@@ -3149,9 +3253,9 @@ const EnergiaBernoulliCalc: React.FC = () => {
       case 'cavitation':
         return state.resultNPSHa || '0';
       default:
-        return formatResult(state.resultTotalEnergy) || '0';
+        return state.resultTotalEnergy || '0';
     }
-  }, [state.mode, state.unknownVariable, state.resultNPSHa, state.resultTotalEnergy, formatResult]);
+  }, [state.mode, state.unknownVariable, state.resultNPSHa, state.resultTotalEnergy]);
 
   const isKeyboardOpen = !!activeInputId;
 
@@ -3164,7 +3268,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         keyboardShouldPersistTaps="handled"
         contentInset={{ bottom: isKeyboardOpen ? 280 : 0 }}
       >
-        {/* Cabecera con botón de retroceso, favorito y acceso a la teoría */}
+        {/* Cabecera: retroceso, favorito y acceso a la teoría */}
         <View style={styles.headerContainer}>
           <View style={styles.iconWrapper}>
             <Pressable style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={() => navigation.goBack()}>
@@ -3203,7 +3307,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
           <Text style={[styles.title, { fontSize: 30 * fontSizeFactor }]}>{t('energiaBernoulliCalc.title')}</Text>
         </View>
 
-        {/* Panel principal de resultado con imagen de fondo */}
+        {/* Panel principal de resultado */}
         <View style={styles.resultsMain}>
           <View style={styles.resultsContainerMain}>
             <Pressable style={styles.resultsContainer} onPress={handleSaveHistory}>
@@ -3245,7 +3349,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
                         { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 30 * fontSizeFactor }
                       ]}
                     >
-                      {getMainResultValue() === '0' ? '一' : adjustDecimalSeparator(formatNumber(parseFloat(getMainResultValue())))}
+                      {getMainResultValue() === '0' ? '一' : adjustDecimalSeparator(formatDecimalWithPrecision(new Decimal(getMainResultValue())))}
                     </Text>
                   </View>
                 </View>
@@ -3274,7 +3378,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
           ))}
         </View>
 
-        {/* Sección de campos de entrada con selector de modo y formulario dinámico */}
+        {/* Sección de entradas con selector de modo y formulario dinámico */}
         <View
           style={[
             styles.inputsSection,
@@ -3365,7 +3469,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* ── Teclado custom ── renderizado fuera del ScrollView para quedar siempre visible en el fondo */}
+      {/* Teclado personalizado fuera del ScrollView para quedar siempre visible */}
       {isKeyboardOpen && (
         <View style={styles.customKeyboardWrapper}>
           <CustomKeyboardPanel
@@ -3797,7 +3901,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
     backgroundColor: 'transparent',
   },
-  // ── Teclado custom ──────────────────────────────────────────────────────────
+  // ── Teclado personalizado ────────────────────────────────────────────────────
   customKeyboardWrapper: {
     position: 'absolute',
     bottom: 0,
@@ -3833,3 +3937,4 @@ const styles = StyleSheet.create({
 });
 
 export default EnergiaBernoulliCalc;
+

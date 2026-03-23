@@ -1,22 +1,22 @@
 import React, { useMemo, useContext } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image} from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { LanguageContext } from '../../contexts/LanguageContext';
 import { FontSizeContext } from '../../contexts/FontSizeContext';
 import { Pressable } from 'react-native';
 import Icon2 from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
 
 const ProfileScreen = () => {
+  const navigation = useNavigation();
   const { currentTheme } = useTheme();
   const { t } = useContext(LanguageContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
 
   const handleLogoutPress = () => {
-    Toast.show({
-      type: 'info',
-      text1: 'Sin funcionalidad :(',
-    });
+    // Navegar a la pantalla WelcomeScreen
+    navigation.navigate('WelcomeScreen' as never);
   };
 
   const themeColors = useMemo(() => {
@@ -49,10 +49,25 @@ const ProfileScreen = () => {
   return (
     <View style={[styles.screen, { backgroundColor: themeColors.background }]}>
       <View style={styles.headerContainer}>
+        {/* Logo a la izquierda */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={
+              currentTheme === 'dark'
+                ? require('../../assets/icon/iconwhite.webp')
+                : require('../../assets/icon/iconblack.webp')
+            }
+            style={styles.headerIcon}
+            resizeMode="contain"
+          />
+        </View>
+          
+        {/* Botón de logout a la derecha */}
         <View style={styles.rightIconsContainer}>
           <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
             <Pressable
               style={[styles.iconContainer, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+              onPress={handleLogoutPress}
             >
               <Icon2 name="log-out" size={20} color={themeColors.icon} />
             </Pressable>
@@ -147,7 +162,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     minHeight: 45,
@@ -177,6 +192,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  headerIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 6,
   },
 });
 

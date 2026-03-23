@@ -20,8 +20,15 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from "@d11/react-native-fast-image";
 
-import { getDBConnection, createTable, saveCalculation } from '../../../src/services/database';
-import { createFavoritesTable, isFavorite, addFavorite, removeFavorite } from '../../../src/services/database';
+import {
+  getDBConnection,
+  createTable,
+  saveCalculation,
+  createFavoritesTable,
+  isFavorite,
+  addFavorite,
+  removeFavorite,
+} from '../../../src/services/database';
 
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LanguageContext } from '../../../contexts/LanguageContext';
@@ -29,29 +36,30 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 
-const logoLight = require('../../../assets/icon/iconblack.webp');
-const logoDark = require('../../../assets/icon/iconwhite.webp');
-
 import Decimal from 'decimal.js';
 
-Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
+Decimal.set({ precision: 20, rounding: Decimal.ROUND_HALF_EVEN });
 
-// Tipos de navegación
+const logoLight = require('../../../assets/icon/iconblack.webp');
+const logoDark = require('../../../assets/icon/iconwhite.webp');
+const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
+
+// Valor de PI calculado con la precisión configurada en Decimal
+const DECIMAL_PI = new Decimal('3.14159265358979323846');
+
+// Tipos de navegación disponibles para esta pantalla
 type RootStackParamList = {
-  OptionsScreen: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
+  OptionsScreen: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string; fieldLabel?: string };
   HistoryScreenContinuidad: undefined;
   ContinuidadTheory: undefined;
 };
 
-// Imagen de fondo para el contenedor de resultados
-const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
-
-// Tipos para los modos de cálculo y secciones
+// Tipos internos para modos, secciones y llenado
 type CalculatorMode = 'caudal' | 'continuidad';
 type SectionType = 'Circular' | 'Cuadrada' | 'Rectangular';
 type FillType = 'Total' | 'Parcial';
 
-// Estado de la calculadora
+// Estructura completa del estado de la calculadora
 interface CalculatorState {
   mode: CalculatorMode;
   sectionType: SectionType;
@@ -98,8 +106,6 @@ interface CalculatorState {
   lockedField: string | null;
   invalidFields: string[];
   autoCalculatedField: 'A1' | 'V1' | 'A2' | 'V2' | null;
-  
-  // NUEVO: Variable desconocida para mostrar en el resultado principal
   unknownVariable: {
     name: string;
     label: string;
@@ -108,7 +114,7 @@ interface CalculatorState {
   } | null;
 }
 
-// Métricas internas de los botones
+// Tipos para dimensiones y posiciones de los botones del selector de modo
 interface ButtonMetrics {
   caudal: number;
   continuidad: number;
@@ -118,7 +124,7 @@ interface ButtonPositions {
   continuidad: number;
 }
 
-// Factores de conversión
+// Factores de conversión al sistema internacional por categoría de unidad
 const conversionFactors: { [key: string]: { [key: string]: number } } = {
   length: {
     'm': 1,
@@ -153,7 +159,7 @@ const conversionFactors: { [key: string]: { [key: string]: number } } = {
   },
 };
 
-// Configuración del Toast (textos se traducen al usarlos)
+// Configuración visual de los toasts de éxito y error
 const toastConfig = {
   success: (props: BaseToastProps) => (
     <BaseToast
@@ -175,6 +181,7 @@ const toastConfig = {
   ),
 };
 
+// Estado inicial de la calculadora, utilizado tanto al montar el componente como al limpiar
 const initialState = (): CalculatorState => ({
   mode: 'caudal',
   sectionType: 'Circular',
@@ -224,27 +231,22 @@ const initialState = (): CalculatorState => ({
   unknownVariable: null,
 });
 
-// Componente principal
+// Componente principal de la calculadora de continuidad y caudal
 const ContinuidadCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber } = useContext(PrecisionDecimalContext);
   const { selectedDecimalSeparator } = useContext(DecimalSeparatorContext);
   const { fontSizeFactor } = useContext(FontSizeContext);
-
-  // Tema actual
   const { currentTheme } = useTheme();
   const { t, selectedLanguage } = useContext(LanguageContext);
-
-  // ── Custom keyboard ──────────────────────────────────────────────────────────
   const { activeInputId, setActiveInputId } = useKeyboard();
 
-  // Ref con el estado actual para evitar closures obsoletas en los handlers del teclado
+  // Ref que mantiene el estado actualizado para los handlers del teclado personalizado,
+  // evitando cierres obsoletos
   const stateRef = useRef<CalculatorState>(initialState());
-
-  // Ref que mapea cada fieldId al handler completo de cambio de valor
   const inputHandlersRef = useRef<Record<string, (text: string) => void>>({});
-  // ─────────────────────────────────────────────────────────────────────────────
 
+  // Paleta de colores derivada del tema activo
   const themeColors = React.useMemo(() => {
     if (currentTheme === 'dark') {
       return {
@@ -270,7 +272,6 @@ const ContinuidadCalc: React.FC = () => {
     };
   }, [currentTheme]);
 
-  // Lazy init del estado
   const [state, setState] = useState<CalculatorState>(initialState);
 
   useEffect(() => {
@@ -293,6 +294,7 @@ const ContinuidadCalc: React.FC = () => {
     activeInputIdRef.current = activeInputId;
   }, [activeInputId]);
 
+  // Desplaza el scroll para que el input activo quede visible sobre el teclado
   useEffect(() => {
     if (!activeInputId) return;
     const viewRef = inputRefs.current[activeInputId];
@@ -312,19 +314,18 @@ const ContinuidadCalc: React.FC = () => {
     }, 150);
   }, [activeInputId]);
 
-  // Animaciones
+  // Valores de animación para el selector deslizante de modo y para el corazón de favoritos
   const animatedValue = useRef(new Animated.Value(0)).current;
   const animatedScale = useRef(new Animated.Value(1)).current;
-
   const heartScale = useRef(new Animated.Value(1)).current;
 
-  // Posición y tamaño de botones (medidos vía onLayout)
   const [buttonMetrics, setButtonMetrics] = useState<ButtonMetrics>({ caudal: 0, continuidad: 0 });
   const [buttonPositions, setButtonPositions] = useState<ButtonPositions>({ caudal: 0, continuidad: 0 });
 
-  // DB cache (abre/crea tabla una vez)
+  // Inicialización de la base de datos y carga del estado inicial de favoritos
   const dbRef = useRef<any>(null);
   const [isFav, setIsFav] = useState(false);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -334,8 +335,6 @@ const ContinuidadCalc: React.FC = () => {
         await createTable(db);
         await createFavoritesTable(db);
         dbRef.current = db;
-      
-        // Cargar estado inicial del corazón
         const fav = await isFavorite(db, 'ContinuidadCalc');
         if (mounted) setIsFav(fav);
       } catch {}
@@ -351,10 +350,8 @@ const ContinuidadCalc: React.FC = () => {
         await createFavoritesTable(db);
         dbRef.current = db;
       }
-    
       const route = 'ContinuidadCalc';
       const label = t('continuidadCalc.title') || 'Calculadora de Continuidad';
-    
       const currentlyFav = await isFavorite(db, route);
       if (currentlyFav) {
         await removeFavorite(db, route);
@@ -365,7 +362,7 @@ const ContinuidadCalc: React.FC = () => {
         setIsFav(true);
         Toast.show({ type: 'success', text1: t('favorites.success'), text2: t('favorites.successDesc') });
       }
-    } catch (e) {
+    } catch {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('common.genericError') });
     }
   }, [t]);
@@ -377,17 +374,12 @@ const ContinuidadCalc: React.FC = () => {
     ]).start();
   }, [heartScale]);
 
-  // Animación selector
+  // Animación del selector de modo que desliza y escala el indicador activo
   useEffect(() => {
     if (buttonMetrics.caudal > 0 && buttonMetrics.continuidad > 0) {
       const targetX = state.mode === 'caudal' ? buttonPositions.caudal : buttonPositions.continuidad;
       Animated.parallel([
-        Animated.spring(animatedValue, {
-          toValue: targetX,
-          useNativeDriver: true,
-          bounciness: 5,
-          speed: 5,
-        }),
+        Animated.spring(animatedValue, { toValue: targetX, useNativeDriver: true, bounciness: 5, speed: 5 }),
         Animated.sequence([
           Animated.spring(animatedScale, { toValue: 1.15, useNativeDriver: true, bounciness: 5, speed: 50 }),
           Animated.spring(animatedScale, { toValue: 1, useNativeDriver: true, bounciness: 5, speed: 50 }),
@@ -397,6 +389,7 @@ const ContinuidadCalc: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.mode, buttonMetrics, buttonPositions]);
 
+  // Recalcula el campo bloqueado en continuidad cada vez que cambian los inputs relevantes
   useEffect(() => {
     if (state.mode === 'continuidad') {
       updateLockedField();
@@ -404,14 +397,16 @@ const ContinuidadCalc: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.mode, state.A1, state.v1, state.A2, state.v2]);
 
-  // Helpers
+  // Formatea un número como string eliminando ceros decimales innecesarios,
+  // manteniendo hasta 15 posiciones decimales de precisión
   const formatResult = useCallback((num: number): string => {
     if (isNaN(num) || !isFinite(num)) return '';
-    const decimalNum = new Decimal(num);
-    const fixed = decimalNum.toFixed(15);
+    const fixed = new Decimal(num).toFixed(15);
     return fixed.replace(/\.?0+$/, '');
   }, []);
 
+  // Convierte un valor entre unidades de la misma categoría usando Decimal
+  // para mantener la precisión máxima configurada en todo momento
   const convertValue = useCallback((
     value: string,
     fromUnit: string,
@@ -420,25 +415,21 @@ const ContinuidadCalc: React.FC = () => {
   ): string => {
     const cleanValue = value.replace(',', '.');
     if (cleanValue === '' || isNaN(parseFloat(cleanValue))) return value;
-  
-    const decimalValue = new Decimal(cleanValue);
     const fromFactor = conversionFactors[category][fromUnit];
     const toFactor = conversionFactors[category][toUnit];
-    
     if (!fromFactor || !toFactor) return value;
-    
-    const convertedValue = decimalValue
+    const result = new Decimal(cleanValue)
       .mul(new Decimal(fromFactor))
-      .div(new Decimal(toFactor))
-      .toNumber();
-      
-    return formatResult(convertedValue);
-  }, [formatResult]);
+      .div(new Decimal(toFactor));
+    const fixed = result.toFixed(15);
+    return fixed.replace(/\.?0+$/, '');
+  }, []);
 
   const adjustDecimalSeparator = useCallback((formattedNumber: string): string => {
     return selectedDecimalSeparator === 'Coma' ? formattedNumber.replace('.', ',') : formattedNumber;
   }, [selectedDecimalSeparator]);
 
+  // Lógica de cálculo del caudal a partir de la sección transversal y la velocidad
   const calculateCaudal = useCallback(() => {
     const requiredIds: string[] = ['velocityCaudal'];
     if (state.sectionType === 'Circular') requiredIds.push('diameter');
@@ -451,7 +442,7 @@ const ContinuidadCalc: React.FC = () => {
       const val = raw?.replace(',', '.');
       return !val || isNaN(parseFloat(val));
     });
-  
+
     if (missing.length > 0) {
       setState((prev) => ({
         ...prev,
@@ -461,32 +452,30 @@ const ContinuidadCalc: React.FC = () => {
         unknownVariable: null,
       }));
       return;
-    } else {
-      setState((prev) => ({ ...prev, invalidFields: [], autoCalculatedField: null }));
     }
-  
+
+    setState((prev) => ({ ...prev, invalidFields: [], autoCalculatedField: null }));
+
     const vel = new Decimal(state.velocityCaudal.replace(',', '.'))
       .mul(new Decimal(conversionFactors.velocity[state.velocityCaudalUnit]));
-  
+
     let area = new Decimal(0);
-  
+
     switch (state.sectionType) {
       case 'Circular': {
         const d = new Decimal(state.diameter.replace(',', '.'))
           .mul(new Decimal(conversionFactors.length[state.diameterUnit]));
         const R = d.div(2);
         if (state.fillType === 'Total') {
-          area = new Decimal(Math.PI).mul(R).mul(R);
+          area = DECIMAL_PI.mul(R).mul(R);
         } else {
           const h = new Decimal(state.fillHeight.replace(',', '.'))
             .mul(new Decimal(conversionFactors.length[state.fillHeightUnit]));
           const h_clamped = Decimal.max(Decimal.min(h, d), 0);
           const theta = new Decimal(2).mul(
-            Decimal.acos(
-              R.minus(h_clamped).div(R).toNumber()
-            )
+            Decimal.acos(R.minus(h_clamped).div(R))
           );
-          area = R.pow(2).div(2).mul(theta.minus(Decimal.sin(theta.toNumber())));
+          area = R.pow(2).div(2).mul(theta.minus(Decimal.sin(theta)));
         }
         break;
       }
@@ -519,49 +508,36 @@ const ContinuidadCalc: React.FC = () => {
         break;
       }
     }
-  
-    const caudal = area.mul(vel);
 
-    setState((prev) => ({ 
-      ...prev, 
-      resultCaudal: caudal.toNumber(),
-      unknownVariable: null,
-    }));
+    const caudal = area.mul(vel);
+    setState((prev) => ({ ...prev, resultCaudal: caudal.toNumber(), unknownVariable: null }));
   }, [state]);
 
+  // Lógica de cálculo de continuidad que deduce la variable desconocida
+  // a partir de las tres restantes usando la ecuación A1·v1 = A2·v2
   const calculateContinuity = useCallback(() => {
-    // Convertir a Decimal.js con factores de conversión
-    const a1 = state.A1 
-      ? new Decimal(state.A1.replace(',', '.'))
-          .mul(new Decimal(conversionFactors.area[state.A1Unit])) 
+    const a1 = state.A1
+      ? new Decimal(state.A1.replace(',', '.')).mul(new Decimal(conversionFactors.area[state.A1Unit]))
       : new Decimal(NaN);
-    const vv1 = state.v1 
-      ? new Decimal(state.v1.replace(',', '.'))
-          .mul(new Decimal(conversionFactors.velocity[state.v1Unit])) 
+    const vv1 = state.v1
+      ? new Decimal(state.v1.replace(',', '.')).mul(new Decimal(conversionFactors.velocity[state.v1Unit]))
       : new Decimal(NaN);
-    const a2 = state.A2 
-      ? new Decimal(state.A2.replace(',', '.'))
-          .mul(new Decimal(conversionFactors.area[state.A2Unit])) 
+    const a2 = state.A2
+      ? new Decimal(state.A2.replace(',', '.')).mul(new Decimal(conversionFactors.area[state.A2Unit]))
       : new Decimal(NaN);
-    const vv2 = state.v2 
-      ? new Decimal(state.v2.replace(',', '.'))
-          .mul(new Decimal(conversionFactors.velocity[state.v2Unit])) 
+    const vv2 = state.v2
+      ? new Decimal(state.v2.replace(',', '.')).mul(new Decimal(conversionFactors.velocity[state.v2Unit]))
       : new Decimal(NaN);
 
-    const valids = [
-      !a1.isNaN(), 
-      !vv1.isNaN(), 
-      !a2.isNaN(), 
-      !vv2.isNaN()
-    ];
+    const valids = [!a1.isNaN(), !vv1.isNaN(), !a2.isNaN(), !vv2.isNaN()];
     const validCount = valids.filter(Boolean).length;
-  
+
     const emptyIds: string[] = [];
     if (a1.isNaN()) emptyIds.push('A1');
     if (vv1.isNaN()) emptyIds.push('V1');
     if (a2.isNaN()) emptyIds.push('A2');
     if (vv2.isNaN()) emptyIds.push('V2');
-  
+
     if (validCount !== 3) {
       setState((prev) => ({
         ...prev,
@@ -576,53 +552,44 @@ const ContinuidadCalc: React.FC = () => {
       }));
       return;
     }
-  
+
     let missing: 'A1' | 'V1' | 'A2' | 'V2' | null = null;
     if (a1.isNaN()) missing = 'A1';
     else if (vv1.isNaN()) missing = 'V1';
     else if (a2.isNaN()) missing = 'A2';
     else if (vv2.isNaN()) missing = 'V2';
-  
+
     let newQ = new Decimal(0);
     if (!a1.isNaN() && !vv1.isNaN()) newQ = a1.mul(vv1);
     else if (!a2.isNaN() && !vv2.isNaN()) newQ = a2.mul(vv2);
-  
-    const newState: Partial<CalculatorState> = { 
+
+    const newState: Partial<CalculatorState> = {
       resultCaudal: newQ.toNumber(),
-      unknownVariable: null
+      unknownVariable: null,
     };
-  
-    // Mapeo de etiquetas para traducción
+
     const labelMap = {
       'A1': t('continuidadCalc.labels.A1') || 'Área (A₁)',
       'V1': t('continuidadCalc.labels.v1') || 'Velocidad (v₁)',
       'A2': t('continuidadCalc.labels.A2') || 'Área (A₂)',
       'V2': t('continuidadCalc.labels.v2') || 'Velocidad (v₂)',
     };
-  
     const unitMap = {
       'A1': state.A1Unit,
       'V1': state.v1Unit,
       'A2': state.A2Unit,
       'V2': state.v2Unit,
     };
-  
+
     switch (missing) {
       case 'A1': {
         if (vv1.isZero()) break;
         const calc_si = a2.mul(vv2).div(vv1);
         if (!calc_si.isNaN() && calc_si.isFinite()) {
-          const resultInTargetUnit = calc_si
-            .div(new Decimal(conversionFactors.area[state.A1Unit]))
-            .toNumber();
+          const resultInTargetUnit = calc_si.div(new Decimal(conversionFactors.area[state.A1Unit])).toNumber();
           const formattedResult = formatResult(resultInTargetUnit);
           newState.resultA1 = formattedResult;
-          newState.unknownVariable = {
-            name: 'A₁',
-            label: labelMap['A1'],
-            unit: unitMap['A1'],
-            value: formattedResult
-          };
+          newState.unknownVariable = { name: 'A₁', label: labelMap['A1'], unit: unitMap['A1'], value: formattedResult };
         }
         break;
       }
@@ -630,17 +597,10 @@ const ContinuidadCalc: React.FC = () => {
         if (a1.isZero()) break;
         const calc_si = a2.mul(vv2).div(a1);
         if (!calc_si.isNaN() && calc_si.isFinite()) {
-          const resultInTargetUnit = calc_si
-            .div(new Decimal(conversionFactors.velocity[state.v1Unit]))
-            .toNumber();
+          const resultInTargetUnit = calc_si.div(new Decimal(conversionFactors.velocity[state.v1Unit])).toNumber();
           const formattedResult = formatResult(resultInTargetUnit);
           newState.resultV1 = formattedResult;
-          newState.unknownVariable = {
-            name: 'v₁',
-            label: labelMap['V1'],
-            unit: unitMap['V1'],
-            value: formattedResult
-          };
+          newState.unknownVariable = { name: 'v₁', label: labelMap['V1'], unit: unitMap['V1'], value: formattedResult };
         }
         break;
       }
@@ -648,17 +608,10 @@ const ContinuidadCalc: React.FC = () => {
         if (vv2.isZero()) break;
         const calc_si = a1.mul(vv1).div(vv2);
         if (!calc_si.isNaN() && calc_si.isFinite()) {
-          const resultInTargetUnit = calc_si
-            .div(new Decimal(conversionFactors.area[state.A2Unit]))
-            .toNumber();
+          const resultInTargetUnit = calc_si.div(new Decimal(conversionFactors.area[state.A2Unit])).toNumber();
           const formattedResult = formatResult(resultInTargetUnit);
           newState.resultA2 = formattedResult;
-          newState.unknownVariable = {
-            name: 'A₂',
-            label: labelMap['A2'],
-            unit: unitMap['A2'],
-            value: formattedResult
-          };
+          newState.unknownVariable = { name: 'A₂', label: labelMap['A2'], unit: unitMap['A2'], value: formattedResult };
         }
         break;
       }
@@ -666,34 +619,23 @@ const ContinuidadCalc: React.FC = () => {
         if (a2.isZero()) break;
         const calc_si = a1.mul(vv1).div(a2);
         if (!calc_si.isNaN() && calc_si.isFinite()) {
-          const resultInTargetUnit = calc_si
-            .div(new Decimal(conversionFactors.velocity[state.v2Unit]))
-            .toNumber();
+          const resultInTargetUnit = calc_si.div(new Decimal(conversionFactors.velocity[state.v2Unit])).toNumber();
           const formattedResult = formatResult(resultInTargetUnit);
           newState.resultV2 = formattedResult;
-          newState.unknownVariable = {
-            name: 'v₂',
-            label: labelMap['V2'],
-            unit: unitMap['V2'],
-            value: formattedResult
-          };
+          newState.unknownVariable = { name: 'v₂', label: labelMap['V2'], unit: unitMap['V2'], value: formattedResult };
         }
         break;
       }
     }
-  
-    setState((prev) => ({
-      ...prev,
-      ...newState,
-      invalidFields: [],
-      autoCalculatedField: missing,
-    }));
+
+    setState((prev) => ({ ...prev, ...newState, invalidFields: [], autoCalculatedField: missing }));
   }, [state, formatResult, t]);
 
   const handleCalculate = useCallback(() => {
     state.mode === 'caudal' ? calculateCaudal() : calculateContinuity();
   }, [state.mode, calculateCaudal, calculateContinuity]);
 
+  // Limpia todos los campos del formulario conservando el modo de cálculo activo
   const handleClear = useCallback(() => {
     setState((prev) => ({
       ...prev,
@@ -741,13 +683,15 @@ const ContinuidadCalc: React.FC = () => {
       lockedField: null,
       invalidFields: [],
       autoCalculatedField: null,
+      unknownVariable: null,
     }));
   }, []);
 
+  // Copia al portapapeles un resumen del cálculo actual con sus valores y unidades
   const handleCopy = useCallback(() => {
-    let textToCopy = '';
     const caudalValue = state.resultCaudal;
     const formattedCaudal = isNaN(caudalValue) ? '0' : formatResult(caudalValue);
+    let textToCopy = '';
 
     if (state.mode === 'caudal') {
       if (state.resultCaudal === 0 || isNaN(state.resultCaudal)) {
@@ -776,12 +720,10 @@ const ContinuidadCalc: React.FC = () => {
     } else {
       const resultValue = state.resultA1 || state.resultV1 || state.resultA2 || state.resultV2;
       const inputValue = state.A1 || state.v1 || state.A2 || state.v2;
-
       if (!resultValue && !inputValue) {
         Toast.show({ type: 'error', text1: t('common.error'), text2: t('continuidadCalc.toasts.noContinuityToCopy') });
         return;
       }
-
       textToCopy += `${t('continuidadCalc.flow')}: ${formattedCaudal} m³/s\n`;
       textToCopy += `${t('continuidadCalc.section1')}\n`;
       textToCopy += `  ${t('continuidadCalc.labels.A1')}: ${state.isManualEditA1 ? state.A1 : state.resultA1} ${state.A1Unit}\n`;
@@ -795,6 +737,7 @@ const ContinuidadCalc: React.FC = () => {
     Toast.show({ type: 'success', text1: t('common.success'), text2: t('continuidadCalc.toasts.copied') });
   }, [state, formatResult, t]);
 
+  // Guarda el cálculo actual en el historial de la base de datos local
   const handleSaveHistory = useCallback(async () => {
     const noResults =
       (state.mode === 'caudal' && state.resultCaudal === 0) ||
@@ -844,24 +787,32 @@ const ContinuidadCalc: React.FC = () => {
         let finalA2 = state.isManualEditA2 ? state.A2 : state.resultA2 || state.A2;
         let finalV2 = state.isManualEditV2 ? state.v2 : state.resultV2 || state.v2;
 
+        const toSI = (raw: string | null, factor: number): number => {
+          if (!raw) return NaN;
+          const clean = raw.replace(',', '.');
+          const parsed = parseFloat(clean);
+          if (isNaN(parsed)) return NaN;
+          return new Decimal(clean).mul(new Decimal(factor)).toNumber();
+        };
+
         const validFields = [
-          finalA1 ? parseFloat(finalA1.replace(',', '.')) * conversionFactors.area[state.A1Unit] : NaN,
-          finalV1 ? parseFloat(finalV1.replace(',', '.')) * conversionFactors.velocity[state.v1Unit] : NaN,
-          finalA2 ? parseFloat(finalA2.replace(',', '.')) * conversionFactors.area[state.A2Unit] : NaN,
-          finalV2 ? parseFloat(finalV2.replace(',', '.')) * conversionFactors.velocity[state.v2Unit] : NaN,
+          toSI(finalA1, conversionFactors.area[state.A1Unit]),
+          toSI(finalV1, conversionFactors.velocity[state.v1Unit]),
+          toSI(finalA2, conversionFactors.area[state.A2Unit]),
+          toSI(finalV2, conversionFactors.velocity[state.v2Unit]),
         ];
         const validCount = validFields.filter((v) => !isNaN(v)).length;
 
         if (validCount >= 2 && state.resultCaudal !== 0) {
-          const Q = state.resultCaudal;
+          const Q = new Decimal(state.resultCaudal);
           if (isNaN(validFields[0]) && !isNaN(validFields[1]) && !isNaN(validFields[2]) && !isNaN(validFields[3])) {
-            finalA1 = formatResult(Q / (validFields[1] * conversionFactors.area[state.A1Unit]));
+            finalA1 = formatResult(Q.div(new Decimal(validFields[1]).mul(new Decimal(conversionFactors.area[state.A1Unit]))).toNumber());
           } else if (isNaN(validFields[1]) && !isNaN(validFields[0]) && !isNaN(validFields[2]) && !isNaN(validFields[3])) {
-            finalV1 = formatResult(Q / (validFields[0] * conversionFactors.velocity[state.v1Unit]));
+            finalV1 = formatResult(Q.div(new Decimal(validFields[0]).mul(new Decimal(conversionFactors.velocity[state.v1Unit]))).toNumber());
           } else if (isNaN(validFields[2]) && !isNaN(validFields[0]) && !isNaN(validFields[1]) && !isNaN(validFields[3])) {
-            finalA2 = formatResult(Q / (validFields[3] * conversionFactors.area[state.A2Unit]));
+            finalA2 = formatResult(Q.div(new Decimal(validFields[3]).mul(new Decimal(conversionFactors.area[state.A2Unit]))).toNumber());
           } else if (isNaN(validFields[3]) && !isNaN(validFields[0]) && !isNaN(validFields[1]) && !isNaN(validFields[2])) {
-            finalV2 = formatResult(Q / (validFields[2] * conversionFactors.velocity[state.v2Unit]));
+            finalV2 = formatResult(Q.div(new Decimal(validFields[2]).mul(new Decimal(conversionFactors.velocity[state.v2Unit]))).toNumber());
           }
         }
 
@@ -884,8 +835,9 @@ const ContinuidadCalc: React.FC = () => {
       console.error('Error al guardar el historial:', error);
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('continuidadCalc.toasts.saveError') });
     }
-  }, [state, formatNumber, formatResult, t]);
+  }, [state, formatResult, t]);
 
+  // Determina qué campo debe bloquearse en modo continuidad cuando ya hay tres valores ingresados
   const updateLockedField = useCallback(() => {
     const inputs = [
       { id: 'A1', value: state.A1 },
@@ -902,10 +854,11 @@ const ContinuidadCalc: React.FC = () => {
     }
   }, [state.A1, state.v1, state.A2, state.v2]);
 
-  const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string) => {
-    navigation.navigate('OptionsScreen', { category, onSelectOption, selectedOption });
+  const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string, fieldLabel?: string) => {
+    navigation.navigate('OptionsScreen', { category, onSelectOption, selectedOption, fieldLabel });
   }, [navigation]);
 
+  // Traduce el valor interno de tipo de sección a la clave de idioma correspondiente
   const translateSectionValue = (value: SectionType, tp: typeof t) => {
     switch (value) {
       case 'Circular': return tp('continuidadCalc.options.sectionType.circular');
@@ -914,6 +867,8 @@ const ContinuidadCalc: React.FC = () => {
       default: return value;
     }
   };
+
+  // Traduce el valor interno de tipo de llenado a la clave de idioma correspondiente
   const translateFillValue = (value: FillType, tp: typeof t) => {
     switch (value) {
       case 'Total': return tp('continuidadCalc.options.fillType.total');
@@ -933,27 +888,20 @@ const ContinuidadCalc: React.FC = () => {
     if (state.unknownVariable) {
       return state.unknownVariable.value || '0';
     }
-  
     return formatResult(state.resultCaudal) || '0';
   }, [state.unknownVariable, state.resultCaudal, formatResult]);
 
-  // Indica si debe mostrar placeholder
   const shouldShowPlaceholderLabel = useCallback(() => {
-    if (state.unknownVariable) {
-      return false;
-    }
-    if (state.mode === 'caudal') {
-      return state.resultCaudal === 0;
-    }
-    return state.resultCaudal === 0 && !state.unknownVariable;
-  }, [state.mode, state.unknownVariable, state.resultCaudal]);
+    if (state.unknownVariable) return false;
+    return state.resultCaudal === 0;
+  }, [state.unknownVariable, state.resultCaudal]);
 
-  // ── Handlers del teclado custom ──────────────────────────────────────────────
+  // Handlers del teclado personalizado: cada uno obtiene el valor actual del campo activo
+  // desde el ref para evitar cierres obsoletos y delega al handler registrado del campo
   const getActiveValue = useCallback((): string => {
     const id = activeInputIdRef.current;
     if (!id) return '';
     const s = stateRef.current;
-    // Mapa de fieldId a propiedad del estado
     const map: Record<string, string> = {
       diameter: s.diameter,
       side: s.side,
@@ -1000,7 +948,9 @@ const ContinuidadCalc: React.FC = () => {
     if (!handler) return;
     const val = getActiveValue();
     if (val === '' || val === '.') return;
-    handler((parseFloat(val) * 10).toString());
+    const clean = val.replace(',', '.');
+    const result = new Decimal(clean).mul(10).toFixed(15).replace(/\.?0+$/, '');
+    handler(result);
   }, []);
 
   const handleKeyboardDivide10 = useCallback(() => {
@@ -1010,14 +960,16 @@ const ContinuidadCalc: React.FC = () => {
     if (!handler) return;
     const val = getActiveValue();
     if (val === '' || val === '.') return;
-    handler((parseFloat(val) / 10).toString());
+    const clean = val.replace(',', '.');
+    const result = new Decimal(clean).div(10).toFixed(15).replace(/\.?0+$/, '');
+    handler(result);
   }, []);
 
   const handleKeyboardSubmit = useCallback(() => {
     setActiveInputId(null);
   }, [setActiveInputId]);
-  // ─────────────────────────────────────────────────────────────────────────────
 
+  // Renderiza un campo de entrada con su etiqueta, indicador de estado y selector de unidad
   const renderInput = useCallback((
     label: string,
     value: string,
@@ -1041,13 +993,9 @@ const ContinuidadCalc: React.FC = () => {
     };
     const unit = unitMap[label] || '';
     const shownLabel = displayLabel || label;
-
-    const isFieldLocked =
-      state.mode === 'continuidad' && fieldId && state.lockedField === fieldId;
-        
+    const isFieldLocked = state.mode === 'continuidad' && fieldId && state.lockedField === fieldId;
     const inputContainerBg = isFieldLocked ? themeColors.blockInput : themeColors.card;
 
-    // Registrar el handler completo del campo en el ref para que el teclado lo use
     if (fieldId) {
       inputHandlersRef.current[fieldId] = (text: string) => {
         onChange(text);
@@ -1060,8 +1008,7 @@ const ContinuidadCalc: React.FC = () => {
           const next: Partial<CalculatorState> = {};
           if (fieldId) {
             next.invalidFields = prev.invalidFields.filter((f) => f !== fieldId);
-            next.autoCalculatedField =
-              prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField;
+            next.autoCalculatedField = prev.autoCalculatedField === fieldId ? null : prev.autoCalculatedField;
           }
           return { ...prev, ...next };
         });
@@ -1074,46 +1021,30 @@ const ContinuidadCalc: React.FC = () => {
         style={styles.inputWrapper}
       >
         <View style={styles.labelRow}>
-          <Text
-            style={[
-              styles.inputLabel,
-              { color: themeColors.text, fontSize: 16 * fontSizeFactor }
-            ]}
-          >
+          <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
             {shownLabel}
           </Text>
-        {(() => {
-          const id = fieldId || label;
-          const hasUserValue = (value?.trim()?.length ?? 0) > 0;
-          const isInvalid = state.invalidFields.includes(id);
-          const isAuto =
-            state.mode === 'continuidad' &&
-            (id === state.autoCalculatedField) &&
-            !hasUserValue &&
-            !!(resultValue && resultValue !== '');
-        
-          let dotColor = 'rgb(200,200,200)';
-          if (isInvalid) dotColor = 'rgb(254, 12, 12)';
-          else if (isAuto) dotColor = 'rgba(62, 136, 255, 1)';
-          else if (hasUserValue) dotColor = 'rgb(194, 254, 12)';
-        
-          return <View style={[styles.valueDot, { backgroundColor: dotColor }]} />;
-        })()}
+          {(() => {
+            const id = fieldId || label;
+            const hasUserValue = (value?.trim()?.length ?? 0) > 0;
+            const isInvalid = state.invalidFields.includes(id);
+            const isAuto =
+              state.mode === 'continuidad' &&
+              id === state.autoCalculatedField &&
+              !hasUserValue &&
+              !!(resultValue && resultValue !== '');
 
+            let dotColor = 'rgb(200,200,200)';
+            if (isInvalid) dotColor = 'rgb(254, 12, 12)';
+            else if (isAuto) dotColor = 'rgba(62, 136, 255, 1)';
+            else if (hasUserValue) dotColor = 'rgb(194, 254, 12)';
+
+            return <View style={[styles.valueDot, { backgroundColor: dotColor }]} />;
+          })()}
         </View>
         <View style={styles.redContainer}>
-          <View
-            style={[
-              styles.Container,
-              { experimental_backgroundImage: themeColors.gradient }
-            ]}
-          >
+          <View style={[styles.Container, { experimental_backgroundImage: themeColors.gradient }]}>
             <View style={[styles.innerWhiteContainer, { backgroundColor: inputContainerBg }]}>
-              {/*
-                Presionar el área activa el teclado custom.
-                El TextInput es no-editable para bloquear el teclado nativo;
-                pointerEvents="none" evita que capture el toque (lo captura el Pressable).
-              */}
               <Pressable
                 onPress={() => {
                   if (isFieldLocked || !fieldId) return;
@@ -1132,10 +1063,7 @@ const ContinuidadCalc: React.FC = () => {
             </View>
           </View>
           <Pressable
-            style={[
-              styles.Container2,
-              { experimental_backgroundImage: themeColors.gradient }
-            ]}
+            style={[styles.Container2, { experimental_backgroundImage: themeColors.gradient }]}
             onPress={() => {
               const category =
                 ['Diámetro', 'Lado', 'Ancho', 'Alto', 'Altura de lámina'].includes(label)
@@ -1160,15 +1088,15 @@ const ContinuidadCalc: React.FC = () => {
                   }
                   setState((prev) => {
                     let updatedUnknown = prev.unknownVariable;
-                    if (updatedUnknown && 
-                        ((field === 'A1' && updatedUnknown.name === 'A₁') ||
-                         (field === 'v1' && updatedUnknown.name === 'v₁') ||
-                         (field === 'A2' && updatedUnknown.name === 'A₂') ||
-                         (field === 'v2' && updatedUnknown.name === 'v₂'))) {
+                    if (updatedUnknown &&
+                      ((field === 'A1' && updatedUnknown.name === 'A₁') ||
+                       (field === 'v1' && updatedUnknown.name === 'v₁') ||
+                       (field === 'A2' && updatedUnknown.name === 'A₂') ||
+                       (field === 'v2' && updatedUnknown.name === 'v₂'))) {
                       updatedUnknown = {
                         ...updatedUnknown,
                         unit: option,
-                        value: convertedResultValue || updatedUnknown.value
+                        value: convertedResultValue || updatedUnknown.value,
                       };
                     }
                     return {
@@ -1194,7 +1122,7 @@ const ContinuidadCalc: React.FC = () => {
                   case 'Área de la sección (A₂)': updateUnit('A2', 'prevA2Unit', 'resultA2'); break;
                   case 'Velocidad en la sección (v₂)': updateUnit('v2', 'prevV2Unit', 'resultV2'); break;
                 }
-              }, unit);
+              }, unit, label);
             }}
           >
             <View style={[styles.innerWhiteContainer2, { backgroundColor: themeColors.card }]}>
@@ -1207,6 +1135,7 @@ const ContinuidadCalc: React.FC = () => {
     );
   }, [state, convertValue, navigateToOptions, updateLockedField, themeColors, currentTheme, fontSizeFactor, setActiveInputId]);
 
+  // Renderiza un selector de opción (tipo de sección o tipo de llenado)
   const renderPickerContainer = useCallback((
     internalType: 'sectionType' | 'fillType',
     labelDisplay: string,
@@ -1216,13 +1145,8 @@ const ContinuidadCalc: React.FC = () => {
     <View style={styles.inputWrapper}>
       <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>{labelDisplay}</Text>
       <Pressable
-        style={[
-          styles.pickerPressable,
-          { experimental_backgroundImage: themeColors.gradient }
-        ]}
-        onPress={() => {
-          navigateToOptions(internalType, onSelect, value);
-        }}
+        style={[styles.pickerPressable, { experimental_backgroundImage: themeColors.gradient }]}
+        onPress={() => { navigateToOptions(internalType, onSelect, value); }}
       >
         <View style={[styles.innerWhiteContainer2, { backgroundColor: themeColors.card }]}>
           <Text style={[styles.textOptions, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
@@ -1234,6 +1158,7 @@ const ContinuidadCalc: React.FC = () => {
     </View>
   ), [navigateToOptions, themeColors, t, fontSizeFactor]);
 
+  // Conjunto de inputs para el modo caudal: sección, velocidad y tipo de llenado
   const renderCaudalInputs = useCallback(() => (
     <>
       <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>{t('continuidadCalc.section')}</Text>
@@ -1252,7 +1177,7 @@ const ContinuidadCalc: React.FC = () => {
         () => {},
         'diameter',
         undefined,
-        t('continuidadCalc.labels.diameter')
+        `${t('continuidadCalc.labels.diameter') || 'Diámetro'} (D)`
       )}
 
       {state.sectionType === 'Cuadrada' && renderInput(
@@ -1262,7 +1187,7 @@ const ContinuidadCalc: React.FC = () => {
         () => {},
         'side',
         undefined,
-        t('continuidadCalc.labels.side')
+        `${t('continuidadCalc.labels.side') || 'Lado'} (a)`
       )}
 
       {state.sectionType === 'Rectangular' && (
@@ -1274,7 +1199,7 @@ const ContinuidadCalc: React.FC = () => {
             () => {},
             'rectWidth',
             undefined,
-            t('continuidadCalc.labels.width')
+            `${t('continuidadCalc.labels.width') || 'Ancho'} (b)`
           )}
           {renderInput(
             'Alto',
@@ -1283,7 +1208,7 @@ const ContinuidadCalc: React.FC = () => {
             () => {},
             'rectHeight',
             undefined,
-            t('continuidadCalc.labels.height')
+            `${t('continuidadCalc.labels.height') || 'Alto'} (h)`
           )}
         </>
       )}
@@ -1298,7 +1223,7 @@ const ContinuidadCalc: React.FC = () => {
         () => {},
         'velocityCaudal',
         undefined,
-        t('continuidadCalc.labels.velocity')
+        `${t('continuidadCalc.labels.velocity') || 'Velocidad'} (V)`
       )}
 
       {renderPickerContainer(
@@ -1315,29 +1240,63 @@ const ContinuidadCalc: React.FC = () => {
         () => {},
         'fillHeight',
         undefined,
-        t('continuidadCalc.labels.fillHeight')
+        `${t('continuidadCalc.labels.fillHeight') || 'Altura de lámina'} (y)`
       )}
     </>
   ), [renderPickerContainer, renderInput, state.sectionType, state.fillType, state.diameter, state.side, state.rectWidth, state.rectHeight, state.velocityCaudal, state.fillHeight, themeColors, t, fontSizeFactor]);
 
+  // Conjunto de inputs para el modo continuidad: dos secciones con área y velocidad cada una
   const renderContinuityInputs = useCallback(() => (
     <>
       <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>{t('continuidadCalc.section1')}</Text>
-      {renderInput('Área de la sección (A₁)', state.A1, (text) => setState((prev) => ({ ...prev, A1: text })), (value) => setState((prev) => ({ ...prev, isManualEditA1: value })), 'A1', state.isManualEditA1 ? state.A1 : state.resultA1, t('continuidadCalc.labels.A1'))}
-      {renderInput('Velocidad en la sección (v₁)', state.v1, (text) => setState((prev) => ({ ...prev, v1: text })), (value) => setState((prev) => ({ ...prev, isManualEditV1: value })), 'V1', state.isManualEditV1 ? state.v1 : state.resultV1, t('continuidadCalc.labels.v1'))}
+      {renderInput(
+        'Área de la sección (A₁)', 
+        state.A1, 
+        (text) => setState((prev) => ({ ...prev, A1: text })), 
+        (value) => setState((prev) => ({ ...prev, isManualEditA1: value })), 
+        'A1', 
+        state.isManualEditA1 ? state.A1 : state.resultA1, 
+        `${t('continuidadCalc.labels.A1') || 'Área de la sección'} (A₁)`
+      )}
+      {renderInput(
+        'Velocidad en la sección (v₁)', 
+        state.v1, 
+        (text) => setState((prev) => ({ ...prev, v1: text })), 
+        (value) => setState((prev) => ({ ...prev, isManualEditV1: value })), 
+        'V1', 
+        state.isManualEditV1 ? state.v1 : state.resultV1, 
+        `${t('continuidadCalc.labels.v1') || 'Velocidad en la sección'} (v₁)`
+      )}
       <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />
       <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>{t('continuidadCalc.section2')}</Text>
-      {renderInput('Área de la sección (A₂)', state.A2, (text) => setState((prev) => ({ ...prev, A2: text })), (value) => setState((prev) => ({ ...prev, isManualEditA2: value })), 'A2', state.isManualEditA2 ? state.A2 : state.resultA2, t('continuidadCalc.labels.A2'))}
-      {renderInput('Velocidad en la sección (v₂)', state.v2, (text) => setState((prev) => ({ ...prev, v2: text })), (value) => setState((prev) => ({ ...prev, isManualEditV2: value })), 'V2', state.isManualEditV2 ? state.v2 : state.resultV2, t('continuidadCalc.labels.v2'))}
+      {renderInput(
+        'Área de la sección (A₂)', 
+        state.A2, 
+        (text) => setState((prev) => ({ ...prev, A2: text })), 
+        (value) => setState((prev) => ({ ...prev, isManualEditA2: value })), 
+        'A2', 
+        state.isManualEditA2 ? state.A2 : state.resultA2, 
+        `${t('continuidadCalc.labels.A2') || 'Área de la sección'} (A₂)`
+      )}
+      {renderInput(
+        'Velocidad en la sección (v₂)', 
+        state.v2, 
+        (text) => setState((prev) => ({ ...prev, v2: text })), 
+        (value) => setState((prev) => ({ ...prev, isManualEditV2: value })), 
+        'V2', 
+        state.isManualEditV2 ? state.v2 : state.resultV2, 
+        `${t('continuidadCalc.labels.v2') || 'Velocidad en la sección'} (v₂)`
+      )}
     </>
   ), [renderInput, state.A1, state.v1, state.A2, state.v2, state.isManualEditA1, state.isManualEditV1, state.isManualEditA2, state.isManualEditV2, state.resultA1, state.resultV1, state.resultA2, state.resultV2, themeColors, t, fontSizeFactor]);
 
-  // onLayout handlers
+  // Captura las dimensiones y posición de cada botón del selector para la animación
   const onLayoutCaudal = useCallback((e: LayoutChangeEvent) => {
     const { x, width } = e.nativeEvent.layout;
     setButtonPositions((prev) => ({ ...prev, caudal: x }));
     setButtonMetrics((prev) => ({ ...prev, caudal: width }));
   }, []);
+
   const onLayoutContinuidad = useCallback((e: LayoutChangeEvent) => {
     const { x, width } = e.nativeEvent.layout;
     setButtonPositions((prev) => ({ ...prev, continuidad: x }));
@@ -1417,9 +1376,9 @@ const ContinuidadCalc: React.FC = () => {
                     <Text
                       style={[
                         styles.flowLabel,
-                        { 
-                          color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', 
-                          fontSize: 16 * fontSizeFactor 
+                        {
+                          color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)',
+                          fontSize: 16 * fontSizeFactor
                         }
                       ]}
                     >
@@ -1430,9 +1389,9 @@ const ContinuidadCalc: React.FC = () => {
                     <Text
                       style={[
                         styles.flowValue,
-                        { 
-                          color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', 
-                          fontSize: 30 * fontSizeFactor 
+                        {
+                          color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)',
+                          fontSize: 30 * fontSizeFactor
                         }
                       ]}
                     >
@@ -1469,7 +1428,7 @@ const ContinuidadCalc: React.FC = () => {
         <View
           style={[
             styles.inputsSection,
-            { 
+            {
               backgroundColor: themeColors.card,
               paddingBottom: isKeyboardOpen ? 330 : 70,
             }
@@ -1494,7 +1453,7 @@ const ContinuidadCalc: React.FC = () => {
               style={[styles.button, state.mode === 'caudal' ? styles.selectedButton : styles.unselectedButton]}
               onPress={() => setState((prev) => ({ ...prev, mode: 'caudal' }))}
             >
-              <Text style={[styles.buttonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]} >{t('continuidadCalc.mode.flow')}</Text>
+              <Text style={[styles.buttonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>{t('continuidadCalc.mode.flow')}</Text>
             </Pressable>
 
             <Pressable
@@ -1502,7 +1461,7 @@ const ContinuidadCalc: React.FC = () => {
               style={[styles.button, state.mode === 'continuidad' ? styles.selectedButton : styles.unselectedButton]}
               onPress={() => setState((prev) => ({ ...prev, mode: 'continuidad' }))}
             >
-              <Text style={[styles.buttonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]} >{t('continuidadCalc.mode.continuity')}</Text>
+              <Text style={[styles.buttonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>{t('continuidadCalc.mode.continuity')}</Text>
             </Pressable>
           </View>
 
@@ -1514,7 +1473,9 @@ const ContinuidadCalc: React.FC = () => {
             <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 10 }]} />
             <View style={styles.descriptionContainer}>
               <Text style={[styles.descriptionText, { color: themeColors.text, opacity: 0.6, fontSize: 14 * fontSizeFactor }]}>
-                {t('continuidadCalc.infoText')}
+              {state.mode === 'caudal' 
+                ? t('continuidadCalc.infoTextCaudal') 
+                : t('continuidadCalc.infoTextContinuidad')}
               </Text>
             </View>
           </View>
@@ -1528,7 +1489,6 @@ const ContinuidadCalc: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* ── Teclado custom ── renderizado fuera del ScrollView para quedar siempre visible en el fondo */}
       {isKeyboardOpen && (
         <View style={styles.customKeyboardWrapper}>
           <CustomKeyboardPanel
@@ -1548,9 +1508,9 @@ const ContinuidadCalc: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0, 0, 0, 1)' 
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 1)'
   },
   labelRow: {
     flexDirection: 'row',
@@ -1566,109 +1526,109 @@ const styles = StyleSheet.create({
     marginLeft: 0,
     marginBottom: 1,
   },
-  mainContainer: { 
-    flex: 1, 
-    paddingVertical: 0, 
-    backgroundColor: 'rgb(0, 0, 0)' 
+  mainContainer: {
+    flex: 1,
+    paddingVertical: 0,
+    backgroundColor: 'rgb(0, 0, 0)'
   },
-  headerContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    minHeight: 45, 
-    backgroundColor: 'transparent', 
-    marginTop: 30, 
-    paddingHorizontal: 20 
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 45,
+    backgroundColor: 'transparent',
+    marginTop: 30,
+    paddingHorizontal: 20
   },
-  iconWrapper: { 
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%', 
-    width: 60, 
-    height: 40, 
-    borderRadius: 30, 
-    padding: 1 
+  iconWrapper: {
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+    width: 60,
+    height: 40,
+    borderRadius: 30,
+    padding: 1
   },
-  iconWrapper2: { 
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%', 
-    width: 40, 
-    height: 40, 
-    borderRadius: 30, 
-    padding: 1 
+  iconWrapper2: {
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+    width: 40,
+    height: 40,
+    borderRadius: 30,
+    padding: 1
   },
-  iconContainer: { 
-    backgroundColor: 'rgb(20, 20, 20)', 
-    borderRadius: 30, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    flex: 1 
+  iconContainer: {
+    backgroundColor: 'rgb(20, 20, 20)',
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1
   },
-  rightIconsContainer: { 
-    flexDirection: 'row', 
-    gap: 5, 
-    justifyContent: 'space-between' 
+  rightIconsContainer: {
+    flexDirection: 'row',
+    gap: 5,
+    justifyContent: 'space-between'
   },
-  titlesContainer: { 
-    backgroundColor: 'transparent', 
-    marginVertical: 10, 
-    paddingHorizontal: 20 
+  titlesContainer: {
+    backgroundColor: 'transparent',
+    marginVertical: 10,
+    paddingHorizontal: 20
   },
-  subtitle: { 
-    color: 'rgb(255, 255, 255)', 
-    fontSize: 18, 
+  subtitle: {
+    color: 'rgb(255, 255, 255)',
+    fontSize: 18,
     fontFamily: 'SFUIDisplay-Bold'
-   },
-  title: { 
-    color: 'rgb(255, 255, 255)', 
-    fontSize: 30, 
-    fontFamily: 'SFUIDisplay-Bold', 
+  },
+  title: {
+    color: 'rgb(255, 255, 255)',
+    fontSize: 30,
+    fontFamily: 'SFUIDisplay-Bold',
     lineHeight: 30,
     marginBottom: 10,
   },
-  resultsMain: { 
-    paddingHorizontal: 20 
+  resultsMain: {
+    paddingHorizontal: 20
   },
-  resultsContainerMain: { 
-    padding: 1, 
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%', 
-    borderRadius: 25 
+  resultsContainerMain: {
+    padding: 1,
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+    borderRadius: 25
   },
-  resultsContainer: { 
-    backgroundColor: 'rgb(20, 20, 20)', 
-    borderRadius: 24, 
-    overflow: 'hidden' 
+  resultsContainer: {
+    backgroundColor: 'rgb(20, 20, 20)',
+    borderRadius: 24,
+    overflow: 'hidden'
   },
-  saveButton: { 
-    backgroundColor: 'transparent', 
-    width: '100%', 
-    paddingVertical: 5, 
-    paddingHorizontal: 20, 
-    borderRadius: 6, 
-    alignSelf: 'flex-start', 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center' 
+  saveButton: {
+    backgroundColor: 'transparent',
+    width: '100%',
+    paddingVertical: 5,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
-  saveButtonText: { 
-    color: 'rgba(255, 255, 255, 0.4)', 
-    fontFamily: 'SFUIDisplay-Medium', 
-    fontSize: 14 
+  saveButtonText: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontFamily: 'SFUIDisplay-Medium',
+    fontSize: 14
   },
-  plusIcon: { 
-    marginLeft: 'auto' 
+  plusIcon: {
+    marginLeft: 'auto'
   },
-  imageContainer: { 
-    backgroundColor: 'transparent', 
-    padding: 0, 
-    borderTopLeftRadius: 25, 
-    borderTopRightRadius: 25, 
-    borderBottomLeftRadius: 23, 
-    borderBottomRightRadius: 23, 
-    overflow: 'hidden' 
+  imageContainer: {
+    backgroundColor: 'transparent',
+    padding: 0,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    borderBottomLeftRadius: 23,
+    borderBottomRightRadius: 23,
+    overflow: 'hidden'
   },
-  flowContainer: { 
-    alignItems: 'baseline', 
-    padding: 0, 
-    justifyContent: 'center', 
-    position: 'relative' 
+  flowContainer: {
+    alignItems: 'baseline',
+    padding: 0,
+    justifyContent: 'center',
+    position: 'relative'
   },
   caudalLabel: {
     backgroundColor: 'rgba(142, 142, 142, 0.02)',
@@ -1683,208 +1643,207 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
   },
-  flowLabel: { 
-    fontSize: 14, 
-    fontFamily: 'SFUIDisplay-Semibold' 
+  flowLabel: {
+    fontSize: 14,
+    fontFamily: 'SFUIDisplay-Semibold'
   },
-  flowValueContainer: { 
-    backgroundColor: 'transparent', 
-    marginHorizontal: 20, 
-    marginVertical: 0 
+  flowValueContainer: {
+    backgroundColor: 'transparent',
+    marginHorizontal: 20,
+    marginVertical: 0
   },
-  flowValue: { 
-    fontSize: 40, 
-    fontFamily: 'SFUIDisplay-Heavy' 
+  flowValue: {
+    fontSize: 40,
+    fontFamily: 'SFUIDisplay-Heavy'
   },
-  buttonsContainer: { 
-    flexDirection: 'row', 
-    marginTop: 20, 
-    marginBottom: 15, 
-    backgroundColor: 'transparent', 
-    gap: 20, 
-    alignItems: 'center', 
-    justifyContent: 'center' 
+  buttonsContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+    marginBottom: 15,
+    backgroundColor: 'transparent',
+    gap: 20,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  actionWrapper: { 
-    alignItems: 'center', 
-    backgroundColor: 'transparent' 
+  actionWrapper: {
+    alignItems: 'center',
+    backgroundColor: 'transparent'
   },
-  actionButtonMain: { 
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%', 
-    padding: 1, 
-    height: 60, 
-    width: 60, 
-    borderRadius: 30 
+  actionButtonMain: {
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+    padding: 1,
+    height: 60,
+    width: 60,
+    borderRadius: 30
   },
-  actionButton: { 
-    backgroundColor: 'rgb(20, 20, 20)', 
-    borderRadius: 30, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    flex: 1 
+  actionButton: {
+    backgroundColor: 'rgb(20, 20, 20)',
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1
   },
-  actionButtonText: { 
-    marginTop: 2, 
-    fontSize: 14, 
-    color: 'rgba(255, 255, 255, 1)', 
-    fontFamily: 'SFUIDisplay-Medium' 
+  actionButtonText: {
+    marginTop: 2,
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 1)',
+    fontFamily: 'SFUIDisplay-Medium'
   },
-  inputsSection: { 
-    flex: 1, 
-    backgroundColor: 'rgba(255, 255, 255, 1)', 
-    paddingHorizontal: 20, 
-    paddingTop: 20, 
+  inputsSection: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+    paddingHorizontal: 20,
+    paddingTop: 20,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
   },
-  buttonContainer: { 
-    flexDirection: 'row', 
-    width: '100%', 
-    justifyContent: 'space-between', 
-    position: 'relative', 
-    height: 50, 
-    marginBottom: 16 
+  buttonContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    position: 'relative',
+    height: 50,
+    marginBottom: 16
   },
-  button: { 
-    flex: 1, 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    paddingVertical: 15, 
-    borderRadius: 25, 
-    marginHorizontal: 5, 
-    height: 50, 
-    zIndex: 2 
+  button: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 25,
+    marginHorizontal: 5,
+    height: 50,
+    zIndex: 2
   },
-  selectedButton: { 
-    backgroundColor: 'transparent' 
+  selectedButton: {
+    backgroundColor: 'transparent'
   },
-  unselectedButton: { 
-    backgroundColor: 'transparent' 
+  unselectedButton: {
+    backgroundColor: 'transparent'
   },
-  buttonText: { 
-    color: 'rgb(0,0,0)', 
-    fontSize: 16, 
-    fontFamily: 'SFUIDisplay-Medium', 
-    zIndex: 1 
+  buttonText: {
+    color: 'rgb(0,0,0)',
+    fontSize: 16,
+    fontFamily: 'SFUIDisplay-Medium',
+    zIndex: 1
   },
-  overlay: { 
-    position: 'absolute', 
-    height: 50, 
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)', 
-    borderRadius: 25, 
-    zIndex: 0, 
-    padding: 1 
+  overlay: {
+    position: 'absolute',
+    height: 50,
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    borderRadius: 25,
+    zIndex: 0,
+    padding: 1
   },
-  overlayInner: { 
-    flex: 1, 
-    backgroundColor: 'white', 
-    borderRadius: 25 
+  overlayInner: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 25
   },
-  inputsContainer: { 
-    backgroundColor: 'transparent' 
+  inputsContainer: {
+    backgroundColor: 'transparent'
   },
-  inputWrapper: { 
-    marginBottom: 10, 
-    backgroundColor: 'transparent' 
+  inputWrapper: {
+    marginBottom: 10,
+    backgroundColor: 'transparent'
   },
-  inputLabel: { 
-    color: 'rgb(0, 0, 0)', 
-    marginBottom: 2, 
-    fontFamily: 'SFUIDisplay-Medium', 
-    fontSize: 16 
+  inputLabel: {
+    color: 'rgb(0, 0, 0)',
+    marginBottom: 2,
+    fontFamily: 'SFUIDisplay-Medium',
+    fontSize: 16
   },
-  redContainer: { 
-    backgroundColor: 'rgba(0, 0, 0, 0)', 
-    paddingHorizontal: 0, 
-    width: '100%', 
-    gap: 10, 
-    flexDirection: 'row' 
+  redContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0)',
+    paddingHorizontal: 0,
+    width: '100%',
+    gap: 10,
+    flexDirection: 'row'
   },
-  Container: { 
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)', 
-    justifyContent: 'center', 
-    height: 50, 
-    overflow: 'hidden', 
-    borderRadius: 25, 
-    padding: 1, 
-    width: '68%' 
+  Container: {
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    justifyContent: 'center',
+    height: 50,
+    overflow: 'hidden',
+    borderRadius: 25,
+    padding: 1,
+    width: '68%'
   },
-  Container2: { 
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)', 
-    justifyContent: 'center', 
-    height: 50, 
-    overflow: 'hidden', 
-    borderRadius: 25, 
-    padding: 1, 
-    flex: 1 
+  Container2: {
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    justifyContent: 'center',
+    height: 50,
+    overflow: 'hidden',
+    borderRadius: 25,
+    padding: 1,
+    flex: 1
   },
-  innerWhiteContainer: { 
-    backgroundColor: 'white', 
-    width: '100%', 
-    height: '100%', 
-    justifyContent: 'center', 
-    borderRadius: 25 
+  innerWhiteContainer: {
+    backgroundColor: 'white',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    borderRadius: 25
   },
-  innerWhiteContainer2: { 
-    backgroundColor: 'white', 
-    width: '100%', 
-    height: '100%', 
-    justifyContent: 'center', 
-    borderRadius: 25, 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingRight: 13, 
-    paddingLeft: 20 
+  innerWhiteContainer2: {
+    backgroundColor: 'white',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    borderRadius: 25,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 13,
+    paddingLeft: 20
   },
-  input: { 
-    height: 50, 
-    backgroundColor: 'rgba(255, 143, 143, 0)', 
-    paddingHorizontal: 20, 
-    fontFamily: 'SFUIDisplay-Medium', 
-    marginTop: 2.75, 
-    fontSize: 16, 
-    color: 'rgba(0, 0, 0, 1)' 
+  input: {
+    height: 50,
+    backgroundColor: 'rgba(255, 143, 143, 0)',
+    paddingHorizontal: 20,
+    fontFamily: 'SFUIDisplay-Medium',
+    marginTop: 2.75,
+    fontSize: 16,
+    color: 'rgba(0, 0, 0, 1)'
   },
-  pickerPressable: { 
-    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)', 
-    height: 50, 
-    overflow: 'hidden', 
-    borderRadius: 25, 
-    padding: 1 
+  pickerPressable: {
+    experimental_backgroundImage: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    height: 50,
+    overflow: 'hidden',
+    borderRadius: 25,
+    padding: 1
   },
-  sectionSubtitle: { 
-    fontSize: 20, 
-    fontFamily: 'SFUIDisplay-Bold', 
-    color: 'rgb(0, 0, 0)', 
-    marginTop: 5, 
-    marginBottom: 5 
+  sectionSubtitle: {
+    fontSize: 20,
+    fontFamily: 'SFUIDisplay-Bold',
+    color: 'rgb(0, 0, 0)',
+    marginTop: 5,
+    marginBottom: 5
   },
-  separator: { 
-    height: 1, 
-    backgroundColor: 'rgb(235, 235, 235)', 
-    marginVertical: 10 
+  separator: {
+    height: 1,
+    backgroundColor: 'rgb(235, 235, 235)',
+    marginVertical: 10
   },
-  separator2: { 
-    height: 1, 
-    backgroundColor: 'rgb(235, 235, 235)', 
-    marginBottom: 10 
+  separator2: {
+    height: 1,
+    backgroundColor: 'rgb(235, 235, 235)',
+    marginBottom: 10
   },
-  text: { 
-    fontFamily: 'SFUIDisplay-Medium', 
-    fontSize: 16, 
-    color: 'rgba(0, 0, 0, 1)', 
-    marginTop: 2.75 
+  text: {
+    fontFamily: 'SFUIDisplay-Medium',
+    fontSize: 16,
+    color: 'rgba(0, 0, 0, 1)',
+    marginTop: 2.75
   },
-  textOptions: { 
-    fontFamily: 'SFUIDisplay-Regular', 
-    fontSize: 16, 
-    color: 'rgba(0, 0, 0, 1)', 
-    marginTop: 2.75 
+  textOptions: {
+    fontFamily: 'SFUIDisplay-Regular',
+    fontSize: 16,
+    color: 'rgba(0, 0, 0, 1)',
+    marginTop: 2.75
   },
-  icon: { 
-    marginLeft: 'auto' 
+  icon: {
+    marginLeft: 'auto'
   },
-  // ── Teclado custom ──────────────────────────────────────────────────────────
   customKeyboardWrapper: {
     position: 'absolute',
     bottom: 0,

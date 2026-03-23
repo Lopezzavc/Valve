@@ -95,8 +95,6 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
   const mode = item.calculation_type.split('_')[1];
   let inputString = '';
 
-  // Ya NO mostramos la variable incógnita aquí, ahora va en las secciones
-
   if (mode === 'ideal' || mode === 'losses') {
     inputString += `${t('energiaBernoulliCalc.section1') || 'Sección 1'}:\n`;
     inputString += `  ${t('energiaBernoulliCalc.labels.P1')}: ${parsedInputs.P1 ?? 'N/A'} ${parsedInputs.P1Unit ?? ''}\n`;
@@ -106,7 +104,7 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
       inputString += `  α₁: ${parsedInputs.alpha1}\n`;
     }
 
-    inputString += `\n${t('energiaBernoulliCalc.section2') || 'Sección 2'}:\n`;
+    inputString += `${t('energiaBernoulliCalc.section2') || 'Sección 2'}:\n`;
     inputString += `  ${t('energiaBernoulliCalc.labels.P2')}: ${parsedInputs.P2 ?? 'N/A'} ${parsedInputs.P2Unit ?? ''}\n`;
     inputString += `  ${t('energiaBernoulliCalc.labels.z2')}: ${parsedInputs.z2 ?? 'N/A'} ${parsedInputs.z2Unit ?? ''}\n`;
     inputString += `  ${t('energiaBernoulliCalc.labels.V2')}: ${parsedInputs.V2 ?? 'N/A'} ${parsedInputs.V2Unit ?? ''}\n`;
@@ -114,13 +112,13 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
       inputString += `  α₂: ${parsedInputs.alpha2}\n`;
     }
 
-    inputString += `\n${t('energiaBernoulliCalc.fluidProps') || 'Propiedades del fluido'}:\n`;
+    inputString += `${t('energiaBernoulliCalc.fluidProps') || 'Propiedades del fluido'}:\n`;
     inputString += `  ${t('energiaBernoulliCalc.labels.gamma')}: ${parsedInputs.gamma ?? 'N/A'} ${parsedInputs.gammaUnit ?? ''}\n`;
     inputString += `  ${t('energiaBernoulliCalc.labels.g')}: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
 
     if (mode === 'losses') {
       if (parsedInputs.hb || parsedInputs.ht) {
-        inputString += `\n${t('energiaBernoulliCalc.pumpTurbine') || 'Bomba/Turbina'}:\n`;
+        inputString += `${t('energiaBernoulliCalc.pumpTurbine') || 'Bomba/Turbina'}:\n`;
         if (parsedInputs.hb) {
           inputString += `  ${t('energiaBernoulliCalc.labels.hb')}: ${parsedInputs.hb} ${parsedInputs.hbUnit ?? ''}\n`;
         }
@@ -129,7 +127,7 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
         }
       }
 
-      inputString += `\n${t('energiaBernoulliCalc.losses') || 'Pérdidas'}:\n`;
+      inputString += `${t('energiaBernoulliCalc.losses') || 'Pérdidas'}:\n`;
       if (parsedInputs.lossInputType === 'direct') {
         inputString += `  ${t('energiaBernoulliCalc.labels.hL')}: ${parsedInputs.hL ?? 'N/A'} ${parsedInputs.hLUnit ?? ''}\n`;
       } else {
@@ -141,22 +139,21 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
     }
 
   } else if (mode === 'cavitation') {
-    // El código para cavitación se mantiene igual
     inputString += `${t('energiaBernoulliCalc.systemType') || 'Tipo de sistema'}: ${parsedInputs.cavitationSystemType === 'closed' ? (t('energiaBernoulliCalc.closed') || 'Cerrado') : (t('energiaBernoulliCalc.open') || 'Abierto')}\n`;
 
     if (parsedInputs.cavitationSystemType === 'closed') {
-      inputString += `\n${t('energiaBernoulliCalc.closedSystem') || 'Sistema Cerrado'}:\n`;
+      inputString += `${t('energiaBernoulliCalc.closedSystem') || 'Sistema Cerrado'}:\n`;
       inputString += `  ${t('energiaBernoulliCalc.labels.Ps')}: ${parsedInputs.Ps ?? 'N/A'} ${parsedInputs.PsUnit ?? ''}\n`;
       inputString += `  ${t('energiaBernoulliCalc.labels.Vs')}: ${parsedInputs.Vs ?? 'N/A'} ${parsedInputs.VsUnit ?? ''}\n`;
     } else {
-      inputString += `\n${t('energiaBernoulliCalc.openSystem') || 'Sistema Abierto'}:\n`;
+      inputString += `${t('energiaBernoulliCalc.openSystem') || 'Sistema Abierto'}:\n`;
       inputString += `  ${t('energiaBernoulliCalc.labels.Patm')}: ${parsedInputs.Patm ?? 'N/A'} ${parsedInputs.PatmUnit ?? ''}\n`;
       inputString += `  ${t('energiaBernoulliCalc.labels.z0')}: ${parsedInputs.z0 ?? 'N/A'} ${parsedInputs.z0Unit ?? ''}\n`;
       inputString += `  ${t('energiaBernoulliCalc.labels.zs')}: ${parsedInputs.zs ?? 'N/A'} ${parsedInputs.zsUnit ?? ''}\n`;
       inputString += `  ${t('energiaBernoulliCalc.labels.hfs')}: ${parsedInputs.hfs ?? 'N/A'} ${parsedInputs.hfsUnit ?? ''}\n`;
     }
 
-    inputString += `\n${t('energiaBernoulliCalc.fluidProps') || 'Propiedades del fluido'}:\n`;
+    inputString += `${t('energiaBernoulliCalc.fluidProps') || 'Propiedades del fluido'}:\n`;
     if (parsedInputs.useRhoForGamma) {
       inputString += `  ${t('energiaBernoulliCalc.labels.rho')}: ${parsedInputs.rho ?? 'N/A'} ${parsedInputs.rhoUnit ?? ''}\n`;
     } else {
@@ -164,7 +161,7 @@ const buildInputsString = (item: HistoryItem, parsedInputs: ParsedInputs, t: (k:
     }
     inputString += `  ${t('energiaBernoulliCalc.labels.g')}: ${parsedInputs.g ?? 'N/A'} ${parsedInputs.gUnit ?? ''}\n`;
 
-    inputString += `\n${t('energiaBernoulliCalc.vaporPressure') || 'Presión de Vapor'}:\n`;
+    inputString += `${t('energiaBernoulliCalc.vaporPressure') || 'Presión de Vapor'}:\n`;
     if (parsedInputs.useTempForPv) {
       inputString += `  ${t('energiaBernoulliCalc.labels.temperatura')}: ${parsedInputs.temperatura ?? 'N/A'} ${parsedInputs.temperaturaUnit ?? ''}\n`;
     } else {

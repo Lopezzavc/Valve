@@ -22,7 +22,7 @@ export const calculatorsDef: CalcDef[] = [
     titleKey: 'calc.cardTitle3',
     descKey: 'calc.cardDesc3',
     color: '#15BFAE',
-    progress: 4,
+    progress: 5,
   },
   {
     desc: '',
@@ -32,7 +32,7 @@ export const calculatorsDef: CalcDef[] = [
     titleKey: 'froude.title',
     descKey: 'froude.desc',
     color: '#15BFAE',
-    progress: 4,
+    progress: 5,
   },
   {
     desc: '',
@@ -42,7 +42,7 @@ export const calculatorsDef: CalcDef[] = [
     titleKey: 'calc.cardTitle1',
     descKey: 'calc.cardDesc1',
     color: '#15BFAE',
-    progress: 4,
+    progress: 5,
   },
   {
     desc: '',
