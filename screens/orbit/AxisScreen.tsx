@@ -7,6 +7,8 @@ import { WebView } from 'react-native-webview';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/Feather';
+import MaskedView from '@react-native-masked-view/masked-view';
+import FastImage from '@d11/react-native-fast-image';
 import { useTheme } from '../../contexts/ThemeContext';
 import { LanguageContext } from '../../contexts/LanguageContext';
 import { FontSizeContext } from '../../contexts/FontSizeContext';
@@ -17,6 +19,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Decimal from 'decimal.js';
 
 const STORAGE_KEY = 'axis_screen_state';
+const logoLight = require('../../assets/icon/iconblack.webp');
+const logoDark = require('../../assets/icon/iconwhite.webp');
 
 Decimal.set({
   precision: 50,
@@ -376,6 +380,7 @@ function activateView(faceIdx) {
         activeCamera=ortho; is2DMode=true; currentHideAxis=def.hide; currentStep=0;
         setAxisVisibility(def.hide);
         controls=makeControls(ortho,true); controls.target.copy(centroid); controls.update();
+        setUI2D(true);
         transitioning=false;
     }
     requestAnimationFrame(doTransition);
@@ -387,7 +392,29 @@ function resetTo3D() {
     activeCamera=perspCam; is2DMode=false; currentHideAxis=null; currentStep=0;
     showAllAxes(); controls=makeControls(perspCam,false);
     controls.target.copy(centroid); controls.update();
+    setUI2D(false);
 }
+function rotate90(sign) {
+    if (!is2DMode) return;
+    const axis = new THREE.Vector3();
+    activeCamera.getWorldDirection(axis);
+    const q = new THREE.Quaternion().setFromAxisAngle(axis, sign * Math.PI / 2);
+
+    activeCamera.up.applyQuaternion(q).normalize();
+    activeCamera.position.applyQuaternion(q);
+    controls.target.applyQuaternion(q);
+
+    activeCamera.lookAt(controls.target);
+    activeCamera.updateMatrixWorld();
+    controls.update();
+}
+function setUI2D(show) {
+    if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIEW_MODE_CHANGE', is2DMode: show }));
+    }
+}
+window.rn_rotate2D = function(sign) { rotate90(sign); };
+window.rn_resetTo3D = function() { resetTo3D(); };
 
 function getEffectiveDist() {
     if (is2DMode && activeCamera.isOrthographicCamera)
@@ -1235,12 +1262,25 @@ const AxisScreen: React.FC = () => {
       cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
+  const theoryButtonColors = useMemo(() => {
+    if (currentTheme === 'dark') {
+      return {
+        gradient: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
+      };
+    }
+    return {
+      gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
+    };
+  }, [currentTheme]);
 
   // ── Estado ────────────────────────────────────────────────────────────────────
   const [mode,          setMode]          = useState<NetworkMode>('nodes');
   const [nodes,         setNodes]         = useState<NodeEntry[]>([]);
   const [connections,   setConnections]   = useState<ConnectionEntry[]>([]);
   const [scrollEnabled, setScrollEnabled] = useState(true);
+  const [is2DViewMode,  setIs2DViewMode]  = useState(false);
 
   const [calcResult,               setCalcResult]               = useState<HydraulicCalcResult | null>(null);
   const [modoVisualNodo,           setModoVisualNodo]           = useState<'P' | 'H' | 'none'>('P');
@@ -1251,6 +1291,7 @@ const AxisScreen: React.FC = () => {
   // ── Animación del selector de modo ───────────────────────────────────────────
   const animatedValue = useRef(new Animated.Value(0)).current;
   const animatedScale = useRef(new Animated.Value(1)).current;
+  const controls2DAnim = useRef(new Animated.Value(0)).current;
 
   const [buttonMetrics,   setButtonMetrics]   = useState<{ nodes: number; connections: number }>({ nodes: 0, connections: 0 });
   const [buttonPositions, setButtonPositions] = useState<{ nodes: number; connections: number }>({ nodes: 0, connections: 0 });
@@ -1270,6 +1311,18 @@ const AxisScreen: React.FC = () => {
       ]).start();
     }
   }, [mode, buttonMetrics, buttonPositions]);
+
+  useEffect(() => {
+    Animated.timing(controls2DAnim, {
+      toValue: is2DViewMode ? 1 : 0,
+      duration: 260,
+      useNativeDriver: false,
+    }).start();
+  }, [controls2DAnim, is2DViewMode]);
+
+  useEffect(() => {
+    setIs2DViewMode(false);
+  }, [currentTheme]);
 
   // ── Sincronizar refs ──────────────────────────────────────────────────────────
   useEffect(() => { nodesRef.current = nodes; }, [nodes]);
@@ -1374,6 +1427,23 @@ const AxisScreen: React.FC = () => {
     webViewRef.current?.injectJavaScript(js);
   }, []);
 
+  const handleWebViewLoad = useCallback(() => {
+    setIs2DViewMode(false);
+    injectRebuild(nodesRef.current, connectionsRef.current);
+  }, [injectRebuild]);
+
+  const handleRotate2DLeft = useCallback(() => {
+    webViewRef.current?.injectJavaScript('try { window.rn_rotate2D && window.rn_rotate2D(+1); } catch(e){} true;');
+  }, []);
+
+  const handleRotate2DRight = useCallback(() => {
+    webViewRef.current?.injectJavaScript('try { window.rn_rotate2D && window.rn_rotate2D(-1); } catch(e){} true;');
+  }, []);
+
+  const handleReturnTo3D = useCallback(() => {
+    webViewRef.current?.injectJavaScript('try { window.rn_resetTo3D && window.rn_resetTo3D(); } catch(e){} true;');
+  }, []);
+
   const handleCalcular = useCallback(() => {
     try {
       const result = calcularRedHidraulica(nodesRef.current, connectionsRef.current);
@@ -1426,6 +1496,10 @@ const AxisScreen: React.FC = () => {
   const handleWebViewMessage = useCallback((event: any) => {
     try {
       const msg = JSON.parse(event.nativeEvent.data);
+      if (msg.type === 'VIEW_MODE_CHANGE') {
+        setIs2DViewMode(Boolean(msg.is2DMode));
+        return;
+      }
       if (msg.type === 'LENGTHS_UPDATE') {
         setConnections(prev => {
           let changed = false;
@@ -2053,7 +2127,7 @@ const AxisScreen: React.FC = () => {
         >
           <WebView
             key={currentTheme}
-            onLoad={() => injectRebuild(nodesRef.current, connectionsRef.current)}
+            onLoad={handleWebViewLoad}
             ref={webViewRef}
             source={{ html: getCartesian3DHTML(currentTheme === 'dark') }}
             style={styles.webView}
@@ -2068,6 +2142,47 @@ const AxisScreen: React.FC = () => {
         </View>
 
         {/* ── Contenedor de inputs ── */}
+        <Animated.View
+          pointerEvents={is2DViewMode ? 'auto' : 'none'}
+          style={[
+            styles.view2DControlsAnimatedContainer,
+            {
+              height: controls2DAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 46] }),
+              opacity: controls2DAnim,
+              marginTop: controls2DAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 10] }),
+              transform: [
+                { translateY: controls2DAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) },
+              ],
+            },
+          ]}
+        >
+          <View style={styles.controlsRow}>
+            <Pressable style={styles.simpleButtonContainer} onPress={handleRotate2DLeft}>
+              <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: theoryButtonColors.cardGradient }]} />
+              <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
+                <View style={[styles.buttonGradient, { experimental_backgroundImage: theoryButtonColors.gradient }]} />
+              </MaskedView>
+              <Icon name="rotate-ccw" size={20} color={themeColors.icon} style={styles.buttonIcon} />
+            </Pressable>
+
+            <Pressable style={styles.simpleButtonContainer} onPress={handleRotate2DRight}>
+              <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: theoryButtonColors.cardGradient }]} />
+              <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
+                <View style={[styles.buttonGradient, { experimental_backgroundImage: theoryButtonColors.gradient }]} />
+              </MaskedView>
+              <Icon name="rotate-cw" size={20} color={themeColors.icon} style={styles.buttonIcon} />
+            </Pressable>
+
+            <Pressable style={styles.simpleButtonContainer2} onPress={handleReturnTo3D}>
+              <View style={[styles.buttonBackground2, { backgroundColor: 'transparent', experimental_backgroundImage: theoryButtonColors.cardGradient }]} />
+              <MaskedView style={styles.maskedButton2} maskElement={<View style={styles.transparentButtonMask2} />}>
+                <View style={[styles.buttonGradient2, { experimental_backgroundImage: theoryButtonColors.gradient }]} />
+              </MaskedView>
+              <Icon name="box" size={20} color={themeColors.icon} style={styles.buttonIcon} />
+            </Pressable>
+          </View>
+        </Animated.View>
+
         <View style={[styles.inputsSection, { backgroundColor: themeColors.card, paddingBottom: isKeyboardOpen ? 330 : 70 }]}>
 
           {/* Selector de modo animado */}
@@ -2369,6 +2484,23 @@ const AxisScreen: React.FC = () => {
               })()}
             </View>
           )}
+
+          <View>
+            <View style={[styles.separator2, { backgroundColor: themeColors.separator, marginVertical: 10 }]} />
+            <View style={styles.descriptionContainer}>
+              <Text style={[styles.descriptionText, { color: themeColors.text, opacity: 0.6, fontSize: 14 * fontSizeFactor }]}>
+                {t('axis.infoText')}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.logoContainer}>
+          <FastImage
+            source={currentTheme === 'dark' ? logoDark : logoLight}
+            style={styles.logoImage}
+            resizeMode={FastImage.resizeMode.contain}
+          />
         </View>
       </ScrollView>
 
@@ -2456,7 +2588,7 @@ const styles = StyleSheet.create({
   },
   cartesianContainer: {
     width: '100%',
-    aspectRatio: 3 / 2.5,
+    aspectRatio: 1.8 / 2.5,
     paddingHorizontal: 0,
     marginTop: 10,
     overflow: 'hidden',
@@ -2464,6 +2596,98 @@ const styles = StyleSheet.create({
   webView: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  view2DControlsAnimatedContainer: {
+    overflow: 'hidden',
+  },
+  controlsRow: {
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 0,
+  },
+  simpleButtonContainer: {
+    width: 46,
+    height: 46,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.35,
+  },
+  buttonBackground: {
+    width: 46,
+    height: 46,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    position: 'absolute',
+    borderRadius: 25,
+  },
+  transparentButtonMask: {
+    width: 46,
+    height: 46,
+    backgroundColor: 'transparent',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 1)',
+  },
+  expandedButtonMask: {
+    borderColor: 'rgb(194, 254, 12)',
+  },
+  maskedButton: {
+    width: 46,
+    height: 46,
+  },
+  buttonGradient: {
+    width: 46,
+    height: 46,
+    experimental_backgroundImage:
+      'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    borderRadius: 25,
+  },
+  simpleButtonContainer2: {
+    width: 69,
+    height: 46,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonDisabled2: {
+    opacity: 0.35,
+  },
+  buttonBackground2: {
+    width: 69,
+    height: 46,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    position: 'absolute',
+    borderRadius: 25,
+  },
+  transparentButtonMask2: {
+    width: 69,
+    height: 46,
+    backgroundColor: 'transparent',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 1)',
+  },
+  expandedButtonMask2: {
+    borderColor: 'rgb(194, 254, 12)',
+  },
+  maskedButton2: {
+    width: 69,
+    height: 46,
+  },
+  buttonGradient2: {
+    width: 69,
+    height: 46,
+    experimental_backgroundImage:
+      'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+    borderRadius: 25,
+  },
+  buttonIcon: {
+    position: 'absolute',
   },
   // ── Input section ─────────────────────────────────────────────────────────────
   inputsSection: {
@@ -2619,6 +2843,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(235, 235, 235)',
     marginBottom: 10,
   },
+  descriptionContainer: {
+    marginVertical: 5,
+    marginHorizontal: 5,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: 'rgb(170, 170, 170)',
+    fontFamily: 'SFUIDisplay-Regular',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
   text: {
     fontFamily: 'SFUIDisplay-Medium',
     fontSize: 16,
@@ -2705,6 +2940,20 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#f5f5f5',
+  },
+  logoContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    width: 40,
+    height: 40,
+    opacity: 1,
+    zIndex: 10,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
   },
   iconWrapperRound: {
     width: 40,

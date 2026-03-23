@@ -77,6 +77,8 @@ import HistoryScreenGeometriaSecciones from './screens/calculators/5_GeometriaSe
 // 6_FACTOR FRICCION
 import FactorFriccionCalc from './screens/calculators/6_FactorFriccion/FactorFriccionCalc';
 import OptionsScreenFactorFriccion from './screens/calculators/6_FactorFriccion/OptionsScreenFactorFriccion';
+import HistoryScreenFactorFriccion from './screens/calculators/6_FactorFriccion/HistoryScreenFactorFriccion';
+import FactorFriccionTheory from './screens/calculators/6_FactorFriccion/FactorFriccionTheory';
 import MoodyDiagramScreen from './screens/calculators/6_FactorFriccion/MoodyDiagramScreen';
 
 // 7_PERDIDAS LOCALIZADAS
@@ -171,6 +173,8 @@ export type RootStackParamList = {
   EnergiaBernoulliTheory: undefined;
   FactorFriccionCalc: undefined;
   OptionsScreenFactorFriccion: undefined;
+  HistoryScreenFactorFriccion: undefined;
+  FactorFriccionTheory: undefined;
   MoodyDiagramScreen: undefined;
   PerdidasLocalizadasCalc: undefined;
   OptionsScreenPerdidasLocalizadas: undefined;
@@ -739,6 +743,22 @@ const App = () => {
                       <Stack.Screen
                         name="HistoryScreenEnergiaBernoulli"
                         component={HistoryScreenEnergiaBernoulli}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="HistoryScreenFactorFriccion"
+                        component={HistoryScreenFactorFriccion}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="FactorFriccionTheory"
+                        component={FactorFriccionTheory}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,

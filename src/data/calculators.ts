@@ -62,7 +62,7 @@ export const calculatorsDef: CalcDef[] = [
     titleKey: 'geometriaSeccionesCalc.cardTitle1',
     descKey: 'geometriaSeccionesCalc.cardDesc1',
     color: '#15BFAE',
-    progress: 4,
+    progress: 5,
   },
 
   //SECCION FLUJO EN TUBERIA
@@ -76,7 +76,7 @@ export const calculatorsDef: CalcDef[] = [
     descKey: 'factorFriccion.desc',
     math: 'f = \\frac{64}{Re} ; \\frac{1}{\\sqrt{f}} = -2 \\log \\left( \\frac{\\varepsilon/D}{3.7} + \\frac{2.51}{Re \\sqrt{f}} \\right)',
     color: '#188C81',
-    progress: 2,
+    progress: 5,
   },
   {
     desc: '',

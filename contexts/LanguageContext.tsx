@@ -40,6 +40,8 @@ const translationsMap: Record<string, any> = {
   'Japonés': jaTranslations
 };
 
+const DEFAULT_LANGUAGE = 'Español';
+
 interface LanguageContextType {
   selectedLanguage: string;
   setSelectedLanguage: (language: string) => void;
@@ -47,7 +49,7 @@ interface LanguageContextType {
 }
 
 export const LanguageContext = createContext<LanguageContextType>({
-  selectedLanguage: 'Español',
+  selectedLanguage: DEFAULT_LANGUAGE,
   setSelectedLanguage: () => {},
   t: (key) => key,
 });
@@ -55,7 +57,7 @@ export const LanguageContext = createContext<LanguageContextType>({
 export const useLanguage = () => useContext(LanguageContext);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [selectedLanguage, setSelectedLanguage] = useState('Español');
+  const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_LANGUAGE);
 
   // Contador que fuerza re-render cuando llega una actualización HMR
   const [, setHmrTick] = useState(0);
@@ -95,9 +97,14 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     const loadLanguage = async () => {
       try {
         const savedLanguage = await AsyncStorage.getItem('selectedLanguage');
+
         if (savedLanguage && translationsMap[savedLanguage]) {
           setSelectedLanguage(savedLanguage);
+          return;
         }
+
+        setSelectedLanguage(DEFAULT_LANGUAGE);
+        await AsyncStorage.setItem('selectedLanguage', DEFAULT_LANGUAGE);
       } catch (error) {
         console.error('Error al cargar el idioma:', error);
       }

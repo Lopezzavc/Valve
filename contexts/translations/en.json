@@ -77,6 +77,8 @@
   },
   "continuidadCalc": {
     "infoText": "Enter 3 of the 4 parameters (A₁, v₁, A₂, v₂) to calculate the flow rate and the unknown variable.",
+    "infoTextCaudal": "Flow rate is calculated by multiplying the cross-sectional area by the average fluid velocity. Q = A × v",
+    "infoTextContinuidad": "The continuity principle states that flow rate is constant: A₁·v₁ = A₂·v₂. As the section changes, velocity adjusts inversely.",
     "calculator": "Calculator",
     "title": "CONTINUITY EQUATION",
     "titlehistory": "Continuity equation",
@@ -815,9 +817,62 @@
       }
     }
   },
+  "factorFriccionTheory": {
+    "titles": {
+      "references": "References"
+    },
+    "subtitle": "Friction Factor",
+    "title": "What is it?",
+    "selectTermPlaceholder": "Select a term in the equation to see its description.",
+    "references": {
+      "reference1": {
+        "title": "Turbulent Flow in Pipes with Particular Reference to the Transition Region Between the Smooth and Rough Pipe Laws",
+        "author": "C. F. Colebrook",
+        "year": "1939",
+        "url": "https://www.sciepub.com/reference/127554"
+      },
+      "reference2": {
+        "title": "Friction factors for pipe flow",
+        "author": "L. F. Moody",
+        "year": "1944",
+        "url": "https://cir.nii.ac.jp/crid/1573668924921271808"
+      },
+      "reference3": {
+        "title": "Laws of Flow in Rough Pipes",
+        "author": "J. Nikuradse",
+        "year": "1950",
+        "url": "https://ntrs.nasa.gov/citations/19930093938"
+      },
+      "reference4": {
+        "title": "Roughness effects in turbulent pipe flow",
+        "author": "M. A. Shockling, J. J. Allen, A. J. Smits",
+        "year": "2006",
+        "url": "https://collaborate.princeton.edu/en/publications/roughness-effects-in-turbulent-pipe-flow/"
+      }
+    },
+    "terms": {
+      "f": {
+        "title": "Darcy friction factor (f)",
+        "description": "The Darcy friction factor is a dimensionless coefficient that quantifies how much mechanical energy a flow loses as it moves through a pipe due to wall shear stress. In the Colebrook-White equation it appears implicitly, because it is present both outside and inside the logarithm through the square root of f. That means that, for turbulent flow, it usually cannot be obtained by direct algebraic isolation, but rather through numerical iteration or with the help of the Moody diagram.\n\nIts value simultaneously summarizes the effect of the pipe's internal roughness and the flow regime. If the wall is smooth or the flow has a lower turbulent intensity, f tends to decrease; if the surface is rougher or the flow enters a region where the wall dominates the hydraulic behavior, f increases, and friction losses increase as well."
+      },
+      "ε": {
+        "title": "Absolute roughness (ε)",
+        "description": "Absolute roughness represents the characteristic height of the irregularities on the inner pipe surface. It is measured in units of length, such as meters or millimeters, and describes how rough the wall is with which the fluid interacts.\n\nIn the Colebrook-White equation it does not act alone, but in relation to the pipe diameter. When ε increases, the wall disturbs the sublayer near the wall more intensely and hydraulic resistance grows, especially in fully developed turbulent flow."
+      },
+      "D": {
+        "title": "Internal pipe diameter (D)",
+        "description": "The internal diameter is the geometric dimension that sets the main scale of the flow inside the pipe. It appears in both the Reynolds number and the relative roughness ε/D, so it directly influences the estimate of the friction factor.\n\nThe same absolute roughness does not produce the same effect in pipes of different sizes. If D is large, relative roughness decreases; if D is small, the same irregularities represent a larger fraction of the conduit and the wall effect becomes more important."
+      },
+      "Re": {
+        "title": "Reynolds number (Re)",
+        "description": "The Reynolds number is a dimensionless parameter that compares inertial forces with viscous forces in the flow. In the Colebrook-White equation it controls how strongly viscosity affects resistance to motion inside the pipe.\n\nAs Re increases, the flow becomes more turbulent and the dependence of the friction factor on wall roughness becomes more evident. By contrast, for lower values within the turbulent range, viscosity still has a noticeable effect on f. That is why Colebrook-White combines the effect of Re with that of relative roughness in a single correlation."
+      }
+    }
+  },
   "factorFriccionCalc": {
     "infoText": "The friction factor calculation is performed using iterative methods (up to 200 iterations) for equations like Colebrook-White, with a tolerance of 1e-20. For explicit equations, the calculation is direct. It may take a few seconds to converge depending on the selected equation.",
     "title": "FRICTION FACTOR",
+    "titleHistory": "Friction factor",
     "calculator": "Calculator",
     "saveToHistory": "Save to history",
     "frictionFactor": "Friction factor (f)",
@@ -844,8 +899,19 @@
       "blasius": "Blasius (Closed-form numeric)",
       "von-karman": "von Kármán (Iterative numeric)"
     },
+    "history": {
+      "export": {
+        "sheetName": "Friction factor",
+        "fileName": "Valve_History_Friction_Factor.xlsx",
+        "shareTitle": "Export history",
+        "columns": {
+          "dateTime": "Date/Time"
+        }
+      }
+    },
     "toasts": {
       "copied": "Data copied to clipboard",
+      "noResultsToCopy": "There is no friction factor to copy",
       "saved": "Calculation saved to history",
       "saveError": "Error saving to history",
       "nothingToSave": "No results to save",
@@ -1474,6 +1540,7 @@
     "action": {
       "verMas": "View more"
     },
+    "infoText": "Tank functionality is not yet integrated into the hydraulic calculation on this screen, since for now it does not provide practical value within the current modeling and analysis workflow. Support will be added when it becomes part of a complete operational stage of the simulator.",
     "options": {
       "selectOption": "Select an option",
       "selectNode": "Select node",
@@ -1485,5 +1552,8 @@
         "modoTuberia": "Show on pipes"
       }
     }
+  },
+  "homeNodara": {
+    "infoText": "NODARA is a hydraulic network simulator that allows you to model nodes, reservoirs, tanks, and pipes in a 3D environment, enter data, visualize connections, and calculate pressure, flow rate, velocity, and losses."
   }
 }

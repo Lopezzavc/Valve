@@ -22,6 +22,10 @@ const WEBVIEW_SINGLE_HEIGHT = 100;
 // ↓ Ajusta este valor para cambiar el espacio entre la ecuación principal y la secundaria.
 //   En modo compacto este gap no existe (es 0), por lo que no afecta el centrado.
 const EQUATION_GAP_PX = 0;
+const EQUATION_HORIZONTAL_PADDING_PX = 30;
+const PREFERRED_EQUATION_FONT_EM = 1.15;
+const MIN_EQUATION_FONT_EM = 0.9;
+const MAX_EQUATION_FONT_EM = 1.15;
 
 // ─── Términos expandibles y sus ecuaciones secundarias ───────────────────────
 interface ExpandableConfig {
@@ -104,7 +108,7 @@ const buildEquationHTML = (
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 0 20px;
+    padding: 0 ${EQUATION_HORIZONTAL_PADDING_PX}px;
     /*
      * gap empieza en 0: en modo compacto la ecuación queda perfectamente centrada
      * sin espacio sobrante. Se activa a ${EQUATION_GAP_PX}px solo al expandir (ver JS).
@@ -116,7 +120,7 @@ const buildEquationHTML = (
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5em;
+    font-size: ${PREFERRED_EQUATION_FONT_EM}em;
     color: ${isDark ? 'rgb(235,235,235)' : 'rgb(0,0,0)'};
     white-space: nowrap;
     transition: opacity 0.25s ease;
@@ -197,6 +201,59 @@ const buildEquationHTML = (
     );
   }
 
+  function visibleRows() {
+    return ['eq1-row', 'eq2-row']
+      .map(function(id) { return document.getElementById(id); })
+      .filter(function(row) {
+        return row && row.classList.contains('visible') || row && row.id === 'eq1-row';
+      });
+  }
+
+  function fitEquationToWidth() {
+    var wrapper = document.getElementById('equations-wrapper');
+    var rows = visibleRows();
+    if (!wrapper || rows.length === 0) return;
+
+    rows.forEach(function(row) {
+      row.style.fontSize = '${PREFERRED_EQUATION_FONT_EM}em';
+    });
+
+    var availableWidth = Math.max(
+      wrapper.clientWidth - ${EQUATION_HORIZONTAL_PADDING_PX * 2},
+      1
+    );
+    var widestRow = rows.reduce(function(maxWidth, row) {
+      return Math.max(maxWidth, row.scrollWidth);
+    }, 0);
+
+    if (!widestRow) {
+      reportHeight();
+      return;
+    }
+
+    var fitScale = availableWidth / widestRow;
+    var fittedFontSize = ${PREFERRED_EQUATION_FONT_EM} * fitScale;
+    var nextFontSize = Math.min(
+      ${MAX_EQUATION_FONT_EM},
+      Math.max(${MIN_EQUATION_FONT_EM}, fittedFontSize)
+    );
+
+    rows.forEach(function(row) {
+      row.style.fontSize = nextFontSize + 'em';
+    });
+
+    reportHeight();
+  }
+
+  var fitRaf = null;
+  function scheduleFitEquation() {
+    if (fitRaf !== null) cancelAnimationFrame(fitRaf);
+    fitRaf = requestAnimationFrame(function() {
+      fitRaf = null;
+      fitEquationToWidth();
+    });
+  }
+
   function notify(term) {
     window.ReactNativeWebView && window.ReactNativeWebView.postMessage(
       JSON.stringify({ type: 'selected', value: term })
@@ -263,8 +320,10 @@ const buildEquationHTML = (
     tokens1 = buildTokens('eq1-row');
     attachListeners(tokens1);
     selectByText(${JSON.stringify(initialTerm)}, tokens1);
-    // No reportamos altura en init: en modo compacto la controla WEBVIEW_SINGLE_HEIGHT en RN.
+    scheduleFitEquation();
   })();
+
+  window.addEventListener('resize', scheduleFitEquation);
 
   // ── Navegación ─────────────────────────────────────────────────────────────
   window.goNext = function() {
@@ -300,8 +359,7 @@ const buildEquationHTML = (
 
     selectByText(secondInitialTerm, tokens2);
 
-    // Reportar altura real para que React Native agrande el WebView
-    setTimeout(reportHeight, 50);
+    scheduleFitEquation();
   };
 
   // ── Comprimir ─────────────────────────────────────────────────────────────
@@ -322,9 +380,10 @@ const buildEquationHTML = (
 
     selectByText(restoreTerm || ${JSON.stringify(initialTerm)}, tokens1);
 
+    scheduleFitEquation();
+
     setTimeout(function() {
       eq2.innerHTML = '';
-      // No reportamos altura: React Native reestablece a WEBVIEW_SINGLE_HEIGHT al comprimir.
     }, 300);
   };
 
@@ -339,7 +398,7 @@ const buildEquationHTML = (
     tokens2 = buildTokens('eq2-row');
     attachListeners(tokens2);
     selectByText(secondInitialTerm, tokens2);
-    setTimeout(reportHeight, 50);
+    scheduleFitEquation();
   };
 </script>
 </body>

@@ -77,6 +77,8 @@
   },
   "continuidadCalc": {
     "infoText": "Entrez 3 des 4 paramètres (A₁, v₁, A₂, v₂) pour calculer le débit et la variable inconnue.",
+    "infoTextCaudal": "Le débit se calcule en multipliant l'aire de la section transversale par la vitesse moyenne du fluide. Q = A × v",
+    "infoTextContinuidad": "Le principe de continuité établit que le débit est constant : A₁·v₁ = A₂·v₂. Lorsque la section varie, la vitesse s'ajuste de manière inverse.",
     "calculator": "Calculateur",
     "title": "ÉQUATION DE CONTINUITÉ",
     "titlehistory": "Équation de continuité",
@@ -815,9 +817,62 @@
       }
     }
   },
+  "factorFriccionTheory": {
+    "titles": {
+      "references": "Références"
+    },
+    "subtitle": "Facteur de frottement",
+    "title": "Qu'est-ce que c'est ?",
+    "selectTermPlaceholder": "Sélectionnez un terme de l'équation pour voir sa description.",
+    "references": {
+      "reference1": {
+        "title": "Turbulent Flow in Pipes with Particular Reference to the Transition Region Between the Smooth and Rough Pipe Laws",
+        "author": "C. F. Colebrook",
+        "year": "1939",
+        "url": "https://www.sciepub.com/reference/127554"
+      },
+      "reference2": {
+        "title": "Friction factors for pipe flow",
+        "author": "L. F. Moody",
+        "year": "1944",
+        "url": "https://cir.nii.ac.jp/crid/1573668924921271808"
+      },
+      "reference3": {
+        "title": "Laws of Flow in Rough Pipes",
+        "author": "J. Nikuradse",
+        "year": "1950",
+        "url": "https://ntrs.nasa.gov/citations/19930093938"
+      },
+      "reference4": {
+        "title": "Roughness effects in turbulent pipe flow",
+        "author": "M. A. Shockling, J. J. Allen, A. J. Smits",
+        "year": "2006",
+        "url": "https://collaborate.princeton.edu/en/publications/roughness-effects-in-turbulent-pipe-flow/"
+      }
+    },
+    "terms": {
+      "f": {
+        "title": "Facteur de frottement de Darcy (f)",
+        "description": "Le facteur de frottement de Darcy est un coefficient sans dimension qui quantifie la quantité d'énergie mécanique qu'un écoulement perd lorsqu'il se déplace dans une conduite à cause de la contrainte de cisaillement à la paroi. Dans l'équation de Colebrook-White, il apparaît de manière implicite, car il est présent à la fois à l'extérieur et à l'intérieur du logarithme via la racine carrée de f. Cela signifie que, pour un écoulement turbulent, il ne s'obtient généralement pas par isolement direct, mais par itération numérique ou à l'aide du diagramme de Moody.\n\nSa valeur résume simultanément l'effet de la rugosité interne de la conduite et celui du régime d'écoulement. Si la paroi est lisse ou si l'intensité turbulente est plus faible, f tend à diminuer ; si la surface est plus rugueuse ou si l'écoulement entre dans une zone où la paroi domine le comportement hydraulique, f augmente, et les pertes par frottement augmentent également."
+      },
+      "ε": {
+        "title": "Rugosité absolue (ε)",
+        "description": "La rugosité absolue représente la hauteur caractéristique des irrégularités de la surface interne de la conduite. Elle se mesure en unités de longueur, par exemple en mètres ou en millimètres, et décrit à quel point la paroi est rugueuse pour le fluide qui y circule.\n\nDans l'équation de Colebrook-White, elle n'agit pas seule, mais en relation avec le diamètre de la conduite. Lorsque ε augmente, la paroi perturbe plus fortement la sous-couche proche du mur et la résistance hydraulique augmente, en particulier en régime turbulent pleinement développé."
+      },
+      "D": {
+        "title": "Diamètre intérieur de la conduite (D)",
+        "description": "Le diamètre intérieur est la dimension géométrique qui fixe l'échelle principale de l'écoulement à l'intérieur de la conduite. Il intervient à la fois dans le nombre de Reynolds et dans la rugosité relative ε/D, et influence donc directement l'estimation du facteur de frottement.\n\nUne même rugosité absolue ne produit pas le même effet dans des conduites de tailles différentes. Si D est grand, la rugosité relative diminue ; si D est petit, les mêmes irrégularités représentent une fraction plus importante du conduit et l'effet de la paroi devient plus marqué."
+      },
+      "Re": {
+        "title": "Nombre de Reynolds (Re)",
+        "description": "Le nombre de Reynolds est un paramètre sans dimension qui compare les forces d'inertie aux forces visqueuses dans l'écoulement. Dans l'équation de Colebrook-White, il contrôle dans quelle mesure la viscosité influence la résistance au mouvement à l'intérieur de la conduite.\n\nLorsque Re augmente, l'écoulement devient plus turbulent et la dépendance du facteur de frottement à la rugosité de la paroi devient plus évidente. À l'inverse, pour des valeurs plus faibles dans le domaine turbulent, la viscosité conserve encore un effet perceptible sur f. C'est pourquoi Colebrook-White combine l'effet de Re et celui de la rugosité relative dans une seule corrélation."
+      }
+    }
+  },
   "factorFriccionCalc": {
     "infoText": "Le calcul du facteur de frottement est effectué par des méthodes itératives (jusqu'à 200 itérations) pour des équations comme Colebrook-White, avec une tolérance de 1e-20. Pour les équations explicites, le calcul est direct. La convergence peut prendre quelques secondes selon l'équation sélectionnée.",
     "title": "FACTEUR DE FROTTEMENT",
+    "titleHistory": "Facteur de frottement",
     "calculator": "Calculateur",
     "saveToHistory": "Enregistrer dans l'historique",
     "frictionFactor": "Facteur de frottement (f)",
@@ -844,8 +899,19 @@
       "blasius": "Blasius (Numérique fermé)",
       "von-karman": "von Kármán (Numérique itératif)"
     },
+    "history": {
+      "export": {
+        "sheetName": "Facteur de frottement",
+        "fileName": "Valve_Historique_Facteur_Frottement.xlsx",
+        "shareTitle": "Exporter l'historique",
+        "columns": {
+          "dateTime": "Date/Heure"
+        }
+      }
+    },
     "toasts": {
       "copied": "Données copiées dans le presse-papiers",
+      "noResultsToCopy": "Il n'y a pas de facteur de frottement à copier",
       "saved": "Calcul enregistré dans l'historique",
       "saveError": "Erreur lors de l'enregistrement dans l'historique",
       "nothingToSave": "Aucun résultat à enregistrer",
@@ -1482,6 +1548,7 @@
     "action": {
       "verMas": "Voir plus"
     },
+    "infoText": "La fonctionnalité de réservoir n'est pas encore intégrée au calcul hydraulique de cet écran, car pour l'instant elle n'apporte pas d'utilité pratique dans le flux actuel de modélisation et d'analyse. Son support sera ajouté lorsqu'elle fera partie d'une étape opérationnelle complète du simulateur.",
     "options": {
       "selectOption": "Sélectionnez une option",
       "selectNode": "Sélectionner un nœud",
@@ -1493,5 +1560,8 @@
         "modoTuberia": "Afficher sur les conduites"
       }
     }
+  },
+  "homeNodara": {
+    "infoText": "NODARA est un simulateur de réseaux hydrauliques qui permet de modéliser des nœuds, des réservoirs, des cuves et des conduites dans un environnement 3D, de saisir des données, de visualiser les connexions et de calculer la pression, le débit, la vitesse et les pertes."
   }
 }

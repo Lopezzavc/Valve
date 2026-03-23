@@ -77,6 +77,8 @@
   },
   "continuidadCalc": {
     "infoText": "Geben Sie 3 der 4 Parameter (A₁, v₁, A₂, v₂) ein, um den Durchfluss und die unbekannte Variable zu berechnen.",
+    "infoTextCaudal": "Der Durchfluss wird berechnet, indem die Querschnittsfläche mit der mittleren Strömungsgeschwindigkeit des Fluids multipliziert wird. Q = A × v",
+    "infoTextContinuidad": "Das Kontinuitätsprinzip besagt, dass der Durchfluss konstant ist: A₁·v₁ = A₂·v₂. Wenn sich der Querschnitt ändert, passt sich die Geschwindigkeit umgekehrt proportional an.",
     "calculator": "Rechner",
     "title": "KONTINUITÄTSGLEICHUNG",
     "titlehistory": "Kontinuitätsgleichung",
@@ -815,9 +817,62 @@
       }
     }
   },
+  "factorFriccionTheory": {
+    "titles": {
+      "references": "Referenzen"
+    },
+    "subtitle": "Reibungsfaktor",
+    "title": "Was ist das?",
+    "selectTermPlaceholder": "Wählen Sie einen Term der Gleichung aus, um seine Beschreibung zu sehen.",
+    "references": {
+      "reference1": {
+        "title": "Turbulent Flow in Pipes with Particular Reference to the Transition Region Between the Smooth and Rough Pipe Laws",
+        "author": "C. F. Colebrook",
+        "year": "1939",
+        "url": "https://www.sciepub.com/reference/127554"
+      },
+      "reference2": {
+        "title": "Friction factors for pipe flow",
+        "author": "L. F. Moody",
+        "year": "1944",
+        "url": "https://cir.nii.ac.jp/crid/1573668924921271808"
+      },
+      "reference3": {
+        "title": "Laws of Flow in Rough Pipes",
+        "author": "J. Nikuradse",
+        "year": "1950",
+        "url": "https://ntrs.nasa.gov/citations/19930093938"
+      },
+      "reference4": {
+        "title": "Roughness effects in turbulent pipe flow",
+        "author": "M. A. Shockling, J. J. Allen, A. J. Smits",
+        "year": "2006",
+        "url": "https://collaborate.princeton.edu/en/publications/roughness-effects-in-turbulent-pipe-flow/"
+      }
+    },
+    "terms": {
+      "f": {
+        "title": "Darcy-Reibungsfaktor (f)",
+        "description": "Der Darcy-Reibungsfaktor ist ein dimensionsloser Koeffizient, der angibt, wie viel mechanische Energie eine Strömung beim Durchgang durch ein Rohr aufgrund der Schubspannung an der Wand verliert. In der Colebrook-White-Gleichung erscheint er implizit, da er sowohl außerhalb als auch innerhalb des Logarithmus über die Quadratwurzel von f vorkommt. Das bedeutet, dass er für turbulente Strömungen in der Regel nicht durch direktes Umstellen erhalten werden kann, sondern numerisch iterativ oder mit Hilfe des Moody-Diagramms bestimmt werden muss.\n\nSein Wert fasst gleichzeitig den Einfluss der inneren Rauheit des Rohres und des Strömungsregimes zusammen. Ist die Wand glatt oder die Turbulenz geringer, nimmt f tendenziell ab; ist die Oberfläche rauer oder gelangt die Strömung in einen Bereich, in dem die Wand das hydraulische Verhalten dominiert, steigt f an und damit auch die Reibungsverluste."
+      },
+      "ε": {
+        "title": "Absolute Rauheit (ε)",
+        "description": "Die absolute Rauheit beschreibt die charakteristische Höhe der Unregelmäßigkeiten auf der inneren Rohrwand. Sie wird in Längeneinheiten wie Metern oder Millimetern gemessen und beschreibt, wie rau die Oberfläche ist, mit der das Fluid in Kontakt steht.\n\nIn der Colebrook-White-Gleichung wirkt sie nicht allein, sondern in Beziehung zum Rohrdurchmesser. Wenn ε zunimmt, stört die Wand die wandnahe Unterschicht stärker und der hydraulische Widerstand wächst, insbesondere bei voll entwickelter turbulenter Strömung."
+      },
+      "D": {
+        "title": "Innendurchmesser des Rohres (D)",
+        "description": "Der Innendurchmesser ist die geometrische Größe, die den Hauptmaßstab der Strömung im Rohr festlegt. Er geht sowohl in die Reynolds-Zahl als auch in die relative Rauheit ε/D ein und beeinflusst daher die Abschätzung des Reibungsfaktors direkt.\n\nDieselbe absolute Rauheit hat in Rohren unterschiedlicher Größe nicht die gleiche Wirkung. Ist D groß, nimmt die relative Rauheit ab; ist D klein, stellen dieselben Unregelmäßigkeiten einen größeren Anteil des Leitungsquerschnitts dar und der Wandeinfluss wird bedeutender."
+      },
+      "Re": {
+        "title": "Reynolds-Zahl (Re)",
+        "description": "Die Reynolds-Zahl ist eine dimensionslose Kennzahl, die Trägheitskräfte mit viskosen Kräften in der Strömung vergleicht. In der Colebrook-White-Gleichung steuert sie, wie stark die Viskosität den Strömungswiderstand im Rohr beeinflusst.\n\nMit wachsendem Re wird die Strömung turbulenter und die Abhängigkeit des Reibungsfaktors von der Wandrauheit tritt deutlicher hervor. Bei kleineren Werten innerhalb des turbulenten Bereichs hat die Viskosität dagegen noch einen spürbaren Einfluss auf f. Deshalb kombiniert Colebrook-White den Einfluss von Re und relativer Rauheit in einer einzigen Korrelation."
+      }
+    }
+  },
   "factorFriccionCalc": {
     "infoText": "Die Berechnung des Reibungsfaktors erfolgt mittels iterativer Verfahren (bis zu 200 Iterationen) für Gleichungen wie Colebrook-White, mit einer Toleranz von 1e-20. Für explizite Gleichungen ist die Berechnung direkt. Abhängig von der gewählten Gleichung kann die Konvergenz einige Sekunden dauern.",
     "title": "REIBUNGSFAKTOR",
+    "titleHistory": "Reibungsfaktor",
     "calculator": "Rechner",
     "saveToHistory": "Im Verlauf speichern",
     "frictionFactor": "Reibungsfaktor (f)",
@@ -844,8 +899,19 @@
       "blasius": "Blasius (Geschlossene Form)",
       "von-karman": "von Kármán (Numerisch iterativ)"
     },
+    "history": {
+      "export": {
+        "sheetName": "Reibungsfaktor",
+        "fileName": "Valve_Verlauf_Reibungsfaktor.xlsx",
+        "shareTitle": "Verlauf exportieren",
+        "columns": {
+          "dateTime": "Datum/Uhrzeit"
+        }
+      }
+    },
     "toasts": {
       "copied": "Daten in die Zwischenablage kopiert",
+      "noResultsToCopy": "Es gibt keinen Reibungsfaktor zum Kopieren",
       "saved": "Berechnung im Verlauf gespeichert",
       "saveError": "Fehler beim Speichern im Verlauf",
       "nothingToSave": "Keine Ergebnisse zum Speichern",
@@ -1458,6 +1524,7 @@
     "action": {
       "verMas": "Mehr anzeigen"
     },
+    "infoText": "Die Tankfunktion ist noch nicht in die hydraulische Berechnung dieses Bildschirms integriert, da sie derzeit keinen praktischen Nutzen im aktuellen Modellierungs- und Analyseablauf bietet. Die Unterstützung wird hinzugefügt, sobald sie Teil einer vollständigen operativen Phase des Simulators wird.",
     "options": {
       "selectOption": "Wählen Sie eine Option",
       "selectNode": "Knoten auswählen",
@@ -1469,5 +1536,8 @@
         "modoTuberia": "Anzeige an Rohrleitungen"
       }
     }
+  },
+  "homeNodara": {
+    "infoText": "NODARA ist ein Simulator für hydraulische Netzwerke, mit dem Sie Knoten, Reservoire, Tanks und Rohrleitungen in einer 3D-Umgebung modellieren, Daten eingeben, Verbindungen visualisieren und Druck, Durchfluss, Geschwindigkeit und Verluste berechnen können."
   }
 }

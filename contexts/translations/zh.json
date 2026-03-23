@@ -77,6 +77,8 @@
   },
   "continuidadCalc": {
     "infoText": "输入4个参数（A₁, v₁, A₂, v₂）中的3个来计算流量和未知变量。",
+    "infoTextCaudal": "流量通过将横截面积乘以流体平均速度来计算。Q = A × v",
+    "infoTextContinuidad": "连续性原理表明流量保持不变：A₁·v₁ = A₂·v₂。当截面发生变化时，速度会成反比调整。",
     "calculator": "计算器",
     "title": "连续性方程",
     "titlehistory": "连续性方程",
@@ -815,9 +817,62 @@
       }
     }
   },
+  "factorFriccionTheory": {
+    "titles": {
+      "references": "参考文献"
+    },
+    "subtitle": "摩擦系数",
+    "title": "这是什么？",
+    "selectTermPlaceholder": "选择方程中的某一项以查看其说明。",
+    "references": {
+      "reference1": {
+        "title": "Turbulent Flow in Pipes with Particular Reference to the Transition Region Between the Smooth and Rough Pipe Laws",
+        "author": "C. F. Colebrook",
+        "year": "1939",
+        "url": "https://www.sciepub.com/reference/127554"
+      },
+      "reference2": {
+        "title": "Friction factors for pipe flow",
+        "author": "L. F. Moody",
+        "year": "1944",
+        "url": "https://cir.nii.ac.jp/crid/1573668924921271808"
+      },
+      "reference3": {
+        "title": "Laws of Flow in Rough Pipes",
+        "author": "J. Nikuradse",
+        "year": "1950",
+        "url": "https://ntrs.nasa.gov/citations/19930093938"
+      },
+      "reference4": {
+        "title": "Roughness effects in turbulent pipe flow",
+        "author": "M. A. Shockling, J. J. Allen, A. J. Smits",
+        "year": "2006",
+        "url": "https://collaborate.princeton.edu/en/publications/roughness-effects-in-turbulent-pipe-flow/"
+      }
+    },
+    "terms": {
+      "f": {
+        "title": "Darcy 摩擦系数 (f)",
+        "description": "Darcy 摩擦系数是一个无量纲系数，用来量化流体在管道中流动时由于壁面剪切应力而损失的机械能。在 Colebrook-White 方程中，它以隐式形式出现，因为通过 f 的平方根同时出现在对数项的内外两侧。这意味着在湍流条件下，通常无法通过直接代数变形求得，而需要借助数值迭代或 Moody 图来确定。\n\n它的数值同时概括了管道内壁粗糙度和流动状态的影响。如果壁面较光滑或湍流强度较低，f 往往会减小；如果表面更粗糙，或者流动进入由壁面效应主导的区域，f 就会增大，摩擦损失也会随之增加。"
+      },
+      "ε": {
+        "title": "绝对粗糙度 (ε)",
+        "description": "绝对粗糙度表示管道内表面不规则凸起的特征高度。它以长度单位表示，例如米或毫米，用来描述流体接触壁面的粗糙程度。\n\n在 Colebrook-White 方程中，它并不是单独起作用，而是与管径相关联。当 ε 增大时，壁面会更强烈地扰动近壁层，水力阻力随之增加，尤其是在充分发展的湍流中更为明显。"
+      },
+      "D": {
+        "title": "管道内径 (D)",
+        "description": "内径是决定管内流动主要尺度的几何尺寸。它同时出现在雷诺数和相对粗糙度 ε/D 中，因此会直接影响摩擦系数的估算。\n\n相同的绝对粗糙度在不同尺寸的管道中不会产生相同的影响。如果 D 较大，相对粗糙度会减小；如果 D 较小，相同的不规则度在管道中的占比就更大，壁面效应也会更加显著。"
+      },
+      "Re": {
+        "title": "雷诺数 (Re)",
+        "description": "雷诺数是一个无量纲参数，用于比较流动中的惯性力和黏性力。在 Colebrook-White 方程中，它控制黏性对管内流动阻力的影响程度。\n\n随着 Re 增大，流动会更加湍化，摩擦系数对壁面粗糙度的依赖也会更加明显。相反，在湍流范围内较低的 Re 值下，黏性对 f 仍然有可感知的影响。因此，Colebrook-White 将 Re 和相对粗糙度的作用结合在同一个相关式中。"
+      }
+    }
+  },
   "factorFriccionCalc": {
     "infoText": "摩擦系数的计算通过迭代方法（最多200次迭代）进行，适用于 Colebrook-White 等方程，容差为 1e-20。对于显式方程，计算是直接的。根据所选方程，可能需要几秒钟才能收敛。",
     "title": "摩擦系数",
+    "titleHistory": "摩擦系数",
     "calculator": "计算器",
     "saveToHistory": "保存到历史记录",
     "frictionFactor": "摩擦系数 (f)",
@@ -844,8 +899,19 @@
       "blasius": "Blasius (封闭数值法)",
       "von-karman": "von Kármán (迭代数值法)"
     },
+    "history": {
+      "export": {
+        "sheetName": "摩擦系数",
+        "fileName": "Valve_历史_摩擦系数.xlsx",
+        "shareTitle": "导出历史记录",
+        "columns": {
+          "dateTime": "日期/时间"
+        }
+      }
+    },
     "toasts": {
       "copied": "数据已复制到剪贴板",
+      "noResultsToCopy": "没有可复制的摩擦系数",
       "saved": "计算结果已保存到历史记录",
       "saveError": "保存到历史记录时出错",
       "nothingToSave": "没有结果可保存",
@@ -1482,6 +1548,7 @@
     "action": {
       "verMas": "查看更多"
     },
+    "infoText": "水箱功能尚未集成到此界面的水力计算中，因为目前它在当前的建模和分析流程中还没有实际用途。当它成为模拟器完整运行阶段的一部分时，将加入相应支持。",
     "options": {
       "selectOption": "选择一个选项",
       "selectNode": "选择节点",
@@ -1493,5 +1560,8 @@
         "modoTuberia": "管道显示"
       }
     }
+  },
+  "homeNodara": {
+    "infoText": "NODARA 是一款水力网络模拟器，可在 3D 环境中对节点、水库、水箱和管道进行建模，输入数据、可视化连接，并计算压力、流量、速度和损失。"
   }
 }

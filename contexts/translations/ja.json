@@ -77,6 +77,8 @@
   },
   "continuidadCalc": {
     "infoText": "流量と未知の変数を計算するには、4つのパラメータ（A₁、v₁、A₂、v₂）のうち3つを入力してください。",
+    "infoTextCaudal": "流量は、断面積に流体の平均流速を掛けて計算します。Q = A × v",
+    "infoTextContinuidad": "連続の原理では流量は一定です: A₁·v₁ = A₂·v₂。断面が変化すると、流速はそれに反比例して調整されます。",
     "calculator": "計算機",
     "title": "連続の式",
     "titlehistory": "連続の式",
@@ -815,9 +817,62 @@
       }
     }
   },
+  "factorFriccionTheory": {
+    "titles": {
+      "references": "参考文献"
+    },
+    "subtitle": "摩擦係数",
+    "title": "これは何ですか？",
+    "selectTermPlaceholder": "説明を表示するには、式中の項を選択してください。",
+    "references": {
+      "reference1": {
+        "title": "Turbulent Flow in Pipes with Particular Reference to the Transition Region Between the Smooth and Rough Pipe Laws",
+        "author": "C. F. Colebrook",
+        "year": "1939",
+        "url": "https://www.sciepub.com/reference/127554"
+      },
+      "reference2": {
+        "title": "Friction factors for pipe flow",
+        "author": "L. F. Moody",
+        "year": "1944",
+        "url": "https://cir.nii.ac.jp/crid/1573668924921271808"
+      },
+      "reference3": {
+        "title": "Laws of Flow in Rough Pipes",
+        "author": "J. Nikuradse",
+        "year": "1950",
+        "url": "https://ntrs.nasa.gov/citations/19930093938"
+      },
+      "reference4": {
+        "title": "Roughness effects in turbulent pipe flow",
+        "author": "M. A. Shockling, J. J. Allen, A. J. Smits",
+        "year": "2006",
+        "url": "https://collaborate.princeton.edu/en/publications/roughness-effects-in-turbulent-pipe-flow/"
+      }
+    },
+    "terms": {
+      "f": {
+        "title": "ダルシー摩擦係数 (f)",
+        "description": "ダルシー摩擦係数は、管内を流れる流体が壁面せん断応力の影響によってどれだけ機械的エネルギーを失うかを表す無次元係数です。Colebrook-White 式では、f の平方根を通じて対数の外側と内側の両方に現れるため、暗黙的に含まれています。そのため、乱流では通常、直接的な代数変形では求められず、数値反復やムーディー線図を用いて求めます。\n\nこの値は、管内面の粗さと流れの状態の影響を同時に要約したものです。壁面が滑らかで乱れが弱い場合は f は小さくなる傾向があり、表面がより粗い場合や壁面の影響が支配的な領域に入ると f は大きくなり、摩擦損失も増加します。"
+      },
+      "ε": {
+        "title": "絶対粗さ (ε)",
+        "description": "絶対粗さは、管の内面にある凹凸の代表的な高さを表します。単位はメートルやミリメートルなどの長さで、流体と接する壁面がどの程度粗いかを示します。\n\nColebrook-White 式では、これは単独で作用するのではなく、管径との関係で扱われます。ε が大きくなると、壁面近傍の層がより強く乱され、特に十分に発達した乱流で水理抵抗が増加します。"
+      },
+      "D": {
+        "title": "管の内径 (D)",
+        "description": "内径は、管内の流れの主要なスケールを決める幾何学的寸法です。レイノルズ数と相対粗さ ε/D の両方に現れるため、摩擦係数の推定に直接影響します。\n\n同じ絶対粗さでも、管の大きさが違えば影響は同じではありません。D が大きいと相対粗さは小さくなり、D が小さいと同じ凹凸でも管路断面に占める割合が大きくなるため、壁面の影響がより重要になります。"
+      },
+      "Re": {
+        "title": "レイノルズ数 (Re)",
+        "description": "レイノルズ数は、流れにおける慣性力と粘性力を比較する無次元量です。Colebrook-White 式では、粘性が管内の流動抵抗にどの程度影響するかを支配します。\n\nRe が大きくなるほど流れはより乱流的になり、摩擦係数が壁面粗さに依存する度合いがより明確になります。一方、乱流域でも比較的低い値では、粘性は依然として f に無視できない影響を与えます。そのため、Colebrook-White は Re と相対粗さの効果を1つの相関式にまとめています。"
+      }
+    }
+  },
   "factorFriccionCalc": {
     "infoText": "摩擦損失係数の計算は、コールブルック・ホワイト式などの方程式に対して、収束判定 1e-20、最大200回の反復による反復法で行われます。陽な方程式の場合は直接計算されます。選択された方程式によっては、収束に数秒かかる場合があります。",
     "title": "摩擦損失係数",
+    "titleHistory": "摩擦係数",
     "calculator": "計算機",
     "saveToHistory": "履歴に保存",
     "frictionFactor": "摩擦損失係数 (f)",
@@ -844,8 +899,19 @@
       "blasius": "ブラジウス式 (陽解法)",
       "von-karman": "フォン・カルマン式 (反復法)"
     },
+    "history": {
+      "export": {
+        "sheetName": "摩擦係数",
+        "fileName": "Valve_履歴_摩擦係数.xlsx",
+        "shareTitle": "履歴をエクスポート",
+        "columns": {
+          "dateTime": "日時"
+        }
+      }
+    },
     "toasts": {
       "copied": "データをクリップボードにコピーしました。",
+      "noResultsToCopy": "コピーできる摩擦係数がありません",
       "saved": "計算結果を履歴に保存しました。",
       "saveError": "履歴への保存中にエラーが発生しました。",
       "nothingToSave": "保存する結果がありません。",
@@ -1465,6 +1531,7 @@
     "action": {
       "verMas": "詳細"
     },
+    "infoText": "タンク機能は、この画面の水理計算にはまだ統合されていません。現時点では、現在のモデリングおよび解析フローの中で実用的な価値を持たないためです。シミュレータの完全な運用段階の一部となった時点で対応が追加されます。",
     "options": {
       "selectOption": "オプションを選択",
       "selectNode": "節点を選択",
@@ -1476,5 +1543,8 @@
         "modoTuberia": "管路表示"
       }
     }
+  },
+  "homeNodara": {
+    "infoText": "NODARA は水理ネットワークのシミュレータで、3D 環境で節点、貯水池、タンク、管路をモデル化し、データを入力し、接続を可視化し、圧力、流量、流速、損失を計算できます。"
   }
 }

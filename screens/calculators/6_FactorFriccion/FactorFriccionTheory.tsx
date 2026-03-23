@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Pressable, ScrollView, Linking } from 'react-na
 import { WebView } from 'react-native-webview';
 import Icon2 from 'react-native-vector-icons/Feather';
 import Icon3 from 'react-native-vector-icons/Feather';
-import Icon4 from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -11,62 +10,54 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { KATEX_JS, KATEX_CSS } from '../../../src/katexBundle';
 
-// ─── Ecuación LaTeX principal ─────────────────────────────────────────────────
-const LATEX_EQUATION = "R = \\frac{\\rho V D}{\\mu}";
+const LATEX_EQUATION =
+  "\\frac{1}{\\sqrt{f}} = -2\\log_{10}\\left(\\frac{\\varepsilon}{3.7D} + \\frac{2.51}{\\mathrm{Re}\\sqrt{f}}\\right)";
 
-// ─── ALTURA DEL WEBVIEW (modo compacto, una sola ecuación) ───────────────────
-// ↓ Ajusta este valor para cambiar la altura del WebView cuando solo hay una ecuación
 const WEBVIEW_SINGLE_HEIGHT = 100;
-
-// ─── SEPARACIÓN VERTICAL ENTRE ECUACIONES (solo en modo expandido) ────────────
-// ↓ Ajusta este valor para cambiar el espacio entre la ecuación principal y la secundaria.
-//   En modo compacto este gap no existe (es 0), por lo que no afecta el centrado.
 const EQUATION_GAP_PX = 0;
 const EQUATION_HORIZONTAL_PADDING_PX = 30;
 const PREFERRED_EQUATION_FONT_EM = 1.15;
 const MIN_EQUATION_FONT_EM = 0.9;
 const MAX_EQUATION_FONT_EM = 1.15;
 
-// ─── Términos expandibles y sus ecuaciones secundarias ───────────────────────
 interface ExpandableConfig {
   latex: string;
   initialTerm: string;
-  validTerms: Set<string>;
 }
+
 const EXPANDABLE_TERMS: Record<string, ExpandableConfig> = {
-  'ρ': {
-    // 'v' minúscula = volumen, distinta de 'V' (velocidad) en la ecuación principal
-    latex: "\\rho = \\frac{m}{v}",
-    initialTerm: 'm',
-    validTerms: new Set(['ρ', 'm', 'v']),
+  ε: {
+    latex: "\\frac{\\varepsilon}{D}",
+    initialTerm: 'ε',
   },
-  'μ': {
-    // \\text{du} y \\text{dy} son ESENCIALES: hacen que KaTeX renderice "du" y "dy"
-    // cada uno como un único nodo mord-mtext, de modo que buildTokens los recoge
-    // como términos compuestos individuales ("du" y "dy") en lugar de letras sueltas.
-    latex: "\\tau = \\mu\\,\\frac{\\text{du}}{\\text{dy}}",
-    initialTerm: 'τ',
-    validTerms: new Set(['τ', 'μ', 'du', 'dy']),
+  Re: {
+    latex: "\\mathrm{Re} = \\frac{\\rho V D}{\\mu}",
+    initialTerm: 'Re',
   },
 };
 
 const SOLVED_TERMS: Record<string, { latex: string; initialTerm: string }> = {
-  'ρ': { latex: "\\rho = \\frac{R \\mu}{V D}",  initialTerm: 'ρ' },
-  'V': { latex: "V = \\frac{R \\mu}{\\rho D}",  initialTerm: 'V' },
-  'D': { latex: "D = \\frac{R \\mu}{\\rho V}",  initialTerm: 'D' },
-  'μ': { latex: "\\mu = \\frac{\\rho V D}{R}",  initialTerm: 'μ' },
+  'ε': {
+    latex:
+      "\\varepsilon = 3.7D\\left(10^{-\\frac{1}{2\\sqrt{f}}} - \\frac{2.51}{\\mathrm{Re}\\sqrt{f}}\\right)",
+    initialTerm: 'ε',
+  },
+  D: {
+    latex:
+      "D = \\frac{\\varepsilon}{3.7\\left(10^{-\\frac{1}{2\\sqrt{f}}} - \\frac{2.51}{\\mathrm{Re}\\sqrt{f}}\\right)}",
+    initialTerm: 'D',
+  },
+  Re: {
+    latex:
+      "\\mathrm{Re} = \\frac{2.51}{\\sqrt{f}\\left(10^{-\\frac{1}{2\\sqrt{f}}} - \\frac{\\varepsilon}{3.7D}\\right)}",
+    initialTerm: 'Re',
+  },
 };
 
-// ─── Términos válidos de la ecuación principal ────────────────────────────────
-const VALID_TERMS_PRIMARY = new Set(['R', 'ρ', 'V', 'D', 'μ']);
+const SELECTABLE_TERMS = new Set(['f', 'ε', 'D', 'Re']);
 
-// Unión de todos los términos válidos (primaria + secundarias)
-const ALL_VALID_TERMS = new Set([
-  ...VALID_TERMS_PRIMARY,
-  ...Object.values(EXPANDABLE_TERMS).flatMap(cfg => [...cfg.validTerms]),
-]);
+const REFERENCE_KEYS = ['reference1', 'reference2', 'reference3', 'reference4'] as const;
 
-// ─── HTML del WebView ────────────────────────────────────────────────────────
 const buildEquationHTML = (
   latex: string,
   isDark: boolean,
@@ -85,10 +76,6 @@ const buildEquationHTML = (
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 
-  /*
-   * html y body ocupan el 100 % de la altura del WebView y centran su contenido
-   * tanto vertical como horizontalmente (una ecuación o dos).
-   */
   html, body {
     background: transparent;
     width: 100%;
@@ -106,10 +93,6 @@ const buildEquationHTML = (
     justify-content: center;
     width: 100%;
     padding: 0 ${EQUATION_HORIZONTAL_PADDING_PX}px;
-    /*
-     * gap empieza en 0: en modo compacto la ecuación queda perfectamente centrada
-     * sin espacio sobrante. Se activa a ${EQUATION_GAP_PX}px solo al expandir (ver JS).
-     */
     gap: 0px;
   }
 
@@ -123,7 +106,6 @@ const buildEquationHTML = (
     transition: opacity 0.25s ease;
   }
 
-  /* Segunda ecuación: oculta por defecto */
   #eq2-row {
     display: none;
     opacity: 0;
@@ -134,7 +116,6 @@ const buildEquationHTML = (
     opacity: 1;
   }
 
-  /* Dimming de la ecuación principal cuando se expande */
   #eq1-row.dimmed {
     opacity: 0.4;
     pointer-events: none;
@@ -151,8 +132,6 @@ const buildEquationHTML = (
 
   .mord { cursor: pointer; }
   .mrel, .mbin, .mopen, .mclose, .mpunct { cursor: default; }
-
-  /* Evitar que el contenedor de fracción bloquee clics en sus hijos */
   .mfrac { pointer-events: none; }
   .mfrac .mord { pointer-events: auto; }
 </style>
@@ -171,11 +150,12 @@ const buildEquationHTML = (
     '<', '>', '≤', '≥', '≠', '≈', '∝', '∞',
     '(', ')', '[', ']', '{', '}', ',', '.', ':', ';', '|']);
   var SKIP_CLASSES = ['mrel', 'mbin', 'mopen', 'mclose', 'mpunct'];
+  var VALID_TERMS = new Set(${JSON.stringify([...SELECTABLE_TERMS])});
 
-  var activeEq   = 1;
-  var tokens1    = [];
-  var tokens2    = [];
-  var selected   = null;
+  var activeEq = 1;
+  var tokens1 = [];
+  var tokens2 = [];
+  var selected = null;
   var currentIdx = -1;
 
   function isOperator(span) {
@@ -188,9 +168,8 @@ const buildEquationHTML = (
   }
 
   function getTokenText(tok) { return tok.textContent.trim(); }
-  function activeTokens()    { return activeEq === 1 ? tokens1 : tokens2; }
+  function activeTokens() { return activeEq === 1 ? tokens1 : tokens2; }
 
-  // ── Comunicación con React Native ─────────────────────────────────────────
   function reportHeight() {
     var h = document.getElementById('equations-wrapper').scrollHeight;
     window.ReactNativeWebView && window.ReactNativeWebView.postMessage(
@@ -257,7 +236,6 @@ const buildEquationHTML = (
     );
   }
 
-  // ── Selección ─────────────────────────────────────────────────────────────
   function selectToken(index) {
     var toks = activeTokens();
     if (toks.length === 0) return;
@@ -278,23 +256,12 @@ const buildEquationHTML = (
     selectToken(idx !== -1 ? idx : 0);
   }
 
-  /*
-   * buildTokens: recoge los nodos .mord que contienen texto seleccionable.
-   *
-   * Clave para términos compuestos (du, dy):
-   *   \text{du} → KaTeX produce <span class="mord mtext">du</span>
-   *   Sus hijos son nodos mtext, NO mord. Por tanto !span.querySelector('.mord')
-   *   es true y el span pasa el filtro con textContent "du" completo.
-   *
-   *   Sin \text{}, KaTeX separa en <span class="mord">d</span><span class="mord">u</span>
-   *   dando tokens individuales 'd' y 'u' — comportamiento incorrecto.
-   */
   function buildTokens(containerId) {
     var container = document.getElementById(containerId);
     var all = Array.from(container.querySelectorAll('.mord'));
     return all.filter(function(span) {
       var text = span.textContent.trim();
-      return text.length > 0 && !isOperator(span) && !span.querySelector('.mord');
+      return text.length > 0 && VALID_TERMS.has(text) && !isOperator(span) && !span.querySelector('.mord');
     });
   }
 
@@ -308,7 +275,6 @@ const buildEquationHTML = (
     });
   }
 
-  // ── Inicializar ecuación principal ────────────────────────────────────────
   (function initPrimary() {
     katex.render(
       ${JSON.stringify(latex)},
@@ -323,74 +289,58 @@ const buildEquationHTML = (
 
   window.addEventListener('resize', scheduleFitEquation);
 
-  // ── Navegación ─────────────────────────────────────────────────────────────
   window.goNext = function() {
     var toks = activeTokens();
     if (toks.length === 0) return;
     selectToken(currentIdx < toks.length - 1 ? currentIdx + 1 : 0);
   };
+
   window.goPrev = function() {
     var toks = activeTokens();
     if (toks.length === 0) return;
     selectToken(currentIdx > 0 ? currentIdx - 1 : toks.length - 1);
   };
 
-  // ── Expandir ──────────────────────────────────────────────────────────────
   window.expandTo = function(secondLatex, secondInitialTerm) {
     var eq2 = document.getElementById('eq2-row');
     eq2.innerHTML = '';
-
     katex.render(secondLatex, eq2, { displayMode: true, throwOnError: false });
     tokens2 = buildTokens('eq2-row');
     attachListeners(tokens2);
-
-    // Activar gap solo al expandir (0 en modo compacto)
     document.getElementById('equations-wrapper').style.gap = '${EQUATION_GAP_PX}px';
-
     document.getElementById('eq1-row').classList.add('dimmed');
     eq2.classList.add('visible');
-
     if (selected) selected.classList.remove('katex-selected');
     selected = null;
     currentIdx = -1;
     activeEq = 2;
-
     selectByText(secondInitialTerm, tokens2);
-
     scheduleFitEquation();
   };
 
-  // ── Comprimir ─────────────────────────────────────────────────────────────
   window.collapseEquation = function(restoreTerm) {
     var eq2 = document.getElementById('eq2-row');
     eq2.classList.remove('visible');
-
     document.getElementById('eq1-row').classList.remove('dimmed');
-
-    // Eliminar gap al volver al modo compacto
     document.getElementById('equations-wrapper').style.gap = '0px';
-
     if (selected) selected.classList.remove('katex-selected');
     selected = null;
     currentIdx = -1;
     tokens2 = [];
     activeEq = 1;
-
     selectByText(restoreTerm || ${JSON.stringify(initialTerm)}, tokens1);
-
     scheduleFitEquation();
-
     setTimeout(function() {
       eq2.innerHTML = '';
     }, 300);
   };
 
-  // ── Actualizar segunda ecuación dinámicamente ─────────────────────────────
   window.updateSecondaryEquation = function(secondLatex, secondInitialTerm) {
     if (activeEq !== 2) return;
     var eq2 = document.getElementById('eq2-row');
     if (selected) selected.classList.remove('katex-selected');
-    selected = null; currentIdx = -1;
+    selected = null;
+    currentIdx = -1;
     eq2.innerHTML = '';
     katex.render(secondLatex, eq2, { displayMode: true, throwOnError: false });
     tokens2 = buildTokens('eq2-row');
@@ -402,34 +352,6 @@ const buildEquationHTML = (
 </body>
 </html>
 `;
-
-// ─── Referencias ─────────────────────────────────────────────────────────────
-const REFERENCES: Array<{ title: string; author: string; year: string; url: string }> = [
-  {
-    title: 'Osborne Reynolds: scientist, engineer and pioneer',
-    author: 'J. D. Jackson',
-    year: '1995',
-    url: 'https://doi.org/10.1098/rspa.1995.0117',
-  },
-  {
-    title: 'Note on the History of the Reynolds Number',
-    author: 'N. Rott',
-    year: '1990',
-    url: 'https://www.annualreviews.org/content/journals/10.1146/annurev.fl.22.010190.000245',
-  },
-  {
-    title: 'Non-dimensionalization of the Navier–Stokes Equation',
-    author: 'Penn State ME320',
-    year: 'ND',
-    url: 'https://www.me.psu.edu/cimbala/me320web_Fall_2012/pdf/Nondimensionalization_of_NS_equation.pdf?utm_source=chatgpt.com',
-  },
-  {
-    title: 'On Reynolds Number Physical Interpretation',
-    author: 'Václav Uruba',
-    year: '2018',
-    url: 'https://scispace.com/pdf/on-reynolds-number-physical-interpretation-3sgje7gdg5.pdf?utm_source=chatgpt.com',
-  },
-];
 
 type ReferenceItemProps = {
   title: string;
@@ -471,8 +393,7 @@ const ReferenceItem = memo(({ title, author, year, url, textColor, subtitleColor
 });
 ReferenceItem.displayName = 'ReferenceItem';
 
-// ─── Componente ──────────────────────────────────────────────────────────────
-const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: string }) => {
+const FactorFriccionTheory = ({ initialSelectedTerm = 'f' }: { initialSelectedTerm?: string }) => {
   const navigation = useNavigation();
   const { currentTheme } = useTheme();
   const { t } = useContext(LanguageContext);
@@ -480,25 +401,28 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
 
   const webViewRef = useRef<WebView>(null);
 
-  // ── Estado de UI ──────────────────────────────────────────────────────────────
-  const [selectedTerm, setSelectedTerm]     = useState<string>('none');
-  // Altura inicial = WEBVIEW_SINGLE_HEIGHT. Para cambiarla en modo compacto,
-  // modifica la constante WEBVIEW_SINGLE_HEIGHT al principio del archivo.
-  const [webViewHeight, setWebViewHeight]   = useState<number>(WEBVIEW_SINGLE_HEIGHT);
+  const [selectedTerm, setSelectedTerm] = useState<string>('none');
+  const [webViewHeight, setWebViewHeight] = useState<number>(WEBVIEW_SINGLE_HEIGHT);
   const [isWebViewReady, setIsWebViewReady] = useState(false);
 
-  // ── Estado expandir/comprimir ─────────────────────────────────────────────────
-  const [isExpanded, setIsExpanded]         = useState(false);
-  // Ref sincronizada: permite que handleWebViewMessage (memoizado) lea el valor actualizado
-  const isExpandedRef                       = useRef(false);
-  const expandedFromTerm                    = useRef<string>('R');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isExpandedRef = useRef(false);
+  const expandedFromTerm = useRef<string>('f');
 
-  const [isSolved, setIsSolved]             = useState(false);
-  const isSolvedRef                         = useRef(false);
+  const [isSolved, setIsSolved] = useState(false);
+  const isSolvedRef = useRef(false);
 
-  const references = useMemo(() => REFERENCES, []);
+  const references = useMemo(
+    () =>
+      REFERENCE_KEYS.map((key) => ({
+        title: t(`factorFriccionTheory.references.${key}.title`),
+        author: t(`factorFriccionTheory.references.${key}.author`),
+        year: t(`factorFriccionTheory.references.${key}.year`),
+        url: t(`factorFriccionTheory.references.${key}.url`),
+      })).filter(ref => ref.url.startsWith('http')),
+    [t]
+  );
 
-  // ── Callbacks del WebView ─────────────────────────────────────────────────────
   const handleWebViewLoad = useCallback(() => {
     setIsWebViewReady(true);
   }, []);
@@ -507,8 +431,6 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'height' && typeof data.value === 'number') {
-        // Solo aplicar altura dinámica cuando estamos expandidos.
-        // En modo compacto la altura permanece fija en WEBVIEW_SINGLE_HEIGHT.
         if (isExpandedRef.current) {
           setWebViewHeight(Math.max(data.value, WEBVIEW_SINGLE_HEIGHT));
         }
@@ -547,7 +469,6 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
     };
   }, [isDark]);
 
-  // ── Navegación ────────────────────────────────────────────────────────────────
   const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleNext = useCallback(() => {
@@ -558,25 +479,20 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
     webViewRef.current?.injectJavaScript('window.goPrev(); true;');
   }, []);
 
-  // ── Expandir / Comprimir ──────────────────────────────────────────────────────
   const handleExpand = useCallback(() => {
     if (isExpandedRef.current) {
-      // — Comprimir —
       const restore = expandedFromTerm.current;
       webViewRef.current?.injectJavaScript(
         `window.collapseEquation(${JSON.stringify(restore)}); true;`
       );
       isExpandedRef.current = false;
       setIsExpanded(false);
-      // Restaurar altura fija al comprimir
       setWebViewHeight(WEBVIEW_SINGLE_HEIGHT);
     } else {
-      
       if (isSolvedRef.current) {
         isSolvedRef.current = false;
         setIsSolved(false);
       }
-      // — Expandir (solo si el término seleccionado es expandible) —
       const config = EXPANDABLE_TERMS[selectedTerm];
       if (!config) return;
 
@@ -591,7 +507,6 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
 
   const handleSolve = useCallback(() => {
     if (isSolvedRef.current) {
-      // — Comprimir modo solve —
       const restore = expandedFromTerm.current;
       webViewRef.current?.injectJavaScript(
         `window.collapseEquation(${JSON.stringify(restore)}); true;`
@@ -600,8 +515,6 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
       setIsSolved(false);
       setWebViewHeight(WEBVIEW_SINGLE_HEIGHT);
     } else {
-      // — Activar modo solve —
-      // Si expand está activo, lo desactivamos (expandTo reemplazará la ecuación secundaria)
       if (isExpandedRef.current) {
         isExpandedRef.current = false;
         setIsExpanded(false);
@@ -613,19 +526,17 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
       webViewRef.current?.injectJavaScript(
         `window.expandTo(${JSON.stringify(config.latex)}, ${JSON.stringify(config.initialTerm)}); true;`
       );
-      // Reutilizamos isExpandedRef para que handleWebViewMessage reporte la altura correctamente
       isExpandedRef.current = true;
       isSolvedRef.current = true;
       setIsSolved(true);
     }
   }, [selectedTerm]);
 
-  // ── Helpers de estado ─────────────────────────────────────────────────────────
-  const isValidTerm    = ALL_VALID_TERMS.has(selectedTerm);
+  const isValidTerm = SELECTABLE_TERMS.has(selectedTerm);
   const expandIconName = isExpanded ? 'chevron-up' : 'search';
-  const canExpand      = isExpanded || Boolean(EXPANDABLE_TERMS[selectedTerm]);
-  const canSolve      = isSolved || Boolean(SOLVED_TERMS[selectedTerm]);
-  const solveIconName = isSolved ? 'chevron-up' : 'corner-down-left';   // o el ícono Feather que prefieras
+  const canExpand = isExpanded || Boolean(EXPANDABLE_TERMS[selectedTerm]);
+  const canSolve = isSolved || Boolean(SOLVED_TERMS[selectedTerm]);
+  const solveIconName = isSolved ? 'chevron-up' : 'corner-down-left';
 
   const equationHTML = React.useMemo(
     () => buildEquationHTML(LATEX_EQUATION, isDark, initialSelectedTerm),
@@ -637,7 +548,6 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
       style={[styles.safeArea, { backgroundColor: themeColors.background }]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.leftIconsContainer}>
           <View style={[styles.iconWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
@@ -652,17 +562,15 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
         <View style={styles.rightIconsContainer} />
       </View>
 
-      {/* Títulos */}
       <View style={styles.titlesContainer}>
         <Text style={[styles.subtitle, { color: themeColors.text, fontSize: 18 * fontSizeFactor }]}>
-          {t('reynoldsTheory.subtitle')}
+          {t('factorFriccionTheory.subtitle')}
         </Text>
         <Text style={[styles.title, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('reynoldsTheory.title')}
+          {t('factorFriccionTheory.title')}
         </Text>
       </View>
 
-      {/* ── Ecuación LaTeX ── */}
       <View style={[styles.equationContainer, { borderColor: themeColors.separator }]}>
         <WebView
           ref={webViewRef}
@@ -685,9 +593,7 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
         />
       </View>
 
-      {/* ── Controles de navegación + botón expandir ── */}
       <View style={styles.controlsRow}>
-        {/* Botón anterior */}
         <Pressable style={styles.simpleButtonContainer} onPress={handlePrev}>
           <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
           <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
@@ -696,7 +602,6 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
           <Icon2 name="chevron-left" size={22} color={themeColors.icon} style={styles.buttonIcon} />
         </Pressable>
 
-        {/* Botón siguiente */}
         <Pressable style={styles.simpleButtonContainer} onPress={handleNext}>
           <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} />
           <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
@@ -705,7 +610,6 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
           <Icon2 name="chevron-right" size={22} color={themeColors.icon} style={styles.buttonIcon} />
         </Pressable>
 
-        {/* Botón expandir/comprimir — mismo diseño que las flechas */}
         <Pressable
           style={[styles.simpleButtonContainer2, !canExpand && styles.buttonDisabled]}
           onPress={handleExpand}
@@ -721,7 +625,7 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
           <Icon3
             name={expandIconName}
             size={20}
-            color={isExpanded ? themeColors.icon : themeColors.icon}
+            color={themeColors.icon}
             style={styles.buttonIcon}
           />
         </Pressable>
@@ -747,29 +651,27 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
         </Pressable>
       </View>
 
-      {/* ── Info del término seleccionado ── */}
       {selectedTerm !== 'none' && isValidTerm && (
         <View style={[styles.termCard, { borderColor: themeColors.separator }]}>
           <Text style={[styles.termTitle, { color: themeColors.selectedAccent, fontSize: 30 * fontSizeFactor }]}>
-            {t(`reynoldsTheory.terms.${selectedTerm}.title`)}
+            {t(`factorFriccionTheory.terms.${selectedTerm}.title`)}
           </Text>
           <Text style={[styles.termDescription, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-            {t(`reynoldsTheory.terms.${selectedTerm}.description`)}
+            {t(`factorFriccionTheory.terms.${selectedTerm}.description`)}
           </Text>
         </View>
       )}
       {selectedTerm === 'none' && (
         <View style={[styles.termCard, { borderColor: themeColors.separator }]}>
           <Text style={[styles.termPlaceholder, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-            {t('reynoldsTheory.selectTermPlaceholder')}
+            {t('factorFriccionTheory.selectTermPlaceholder')}
           </Text>
         </View>
       )}
 
-      {/* Referencias */}
       <View style={styles.refcont}>
         <Text style={[styles.titleReferencesText, { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor }]}>
-          {t('reynoldsTheory.titles.references')}
+          {t('factorFriccionTheory.titles.references')}
         </Text>
         {references.map((ref) => (
           <ReferenceItem
@@ -791,7 +693,7 @@ const ReynoldsTheory = ({ initialSelectedTerm = 'R' }: { initialSelectedTerm?: s
   );
 };
 
-export default memo(ReynoldsTheory);
+export default memo(FactorFriccionTheory);
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -952,7 +854,6 @@ const styles = StyleSheet.create({
       'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     borderRadius: 25,
   },
-
   simpleButtonContainer2: {
     width: 69,
     height: 46,
@@ -992,7 +893,6 @@ const styles = StyleSheet.create({
       'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
     borderRadius: 25,
   },
-
   buttonIcon: {
     position: 'absolute',
   },

@@ -216,7 +216,7 @@
   "home": {
     "calculatorsTitle": "Menú Principal",
     "pressureDuctsTitle": "Calculadoras",
-    "marquee": "Esta es una versión Beta, es normal que hayan errores",
+    "marquee": "// Esta es una versión Beta, es normal que hayan errores //",
     "progressInfo": {
       "title": "Indicador de progreso",
       "level1": "Calculadora base sin funcionalidades extra",
@@ -686,6 +686,58 @@
       }
     }
   },
+  "factorFriccionTheory": {
+    "titles": {
+      "references": "Referencias"
+    },
+    "subtitle": "Factor de Fricción",
+    "title": "¿Qué es?",
+    "selectTermPlaceholder": "Selecciona un término de la ecuación para ver su descripción.",
+    "references": {
+      "reference1": {
+        "title": "Turbulent Flow in Pipes with Particular Reference to the Transition Region Between the Smooth and Rough Pipe Laws",
+        "author": "C. F. Colebrook",
+        "year": "1939",
+        "url": "https://www.sciepub.com/reference/127554"
+      },
+      "reference2": {
+        "title": "Friction factors for pipe flow",
+        "author": "L. F. Moody",
+        "year": "1944",
+        "url": "https://cir.nii.ac.jp/crid/1573668924921271808"
+      },
+      "reference3": {
+        "title": "Laws of Flow in Rough Pipes",
+        "author": "J. Nikuradse",
+        "year": "1950",
+        "url": "https://ntrs.nasa.gov/citations/19930093938"
+      },
+      "reference4": {
+        "title": "Roughness effects in turbulent pipe flow",
+        "author": "M. A. Shockling, J. J. Allen, A. J. Smits",
+        "year": "2006",
+        "url": "https://collaborate.princeton.edu/en/publications/roughness-effects-in-turbulent-pipe-flow/"
+      }
+    },
+    "terms": {
+      "f": {
+        "title": "Factor de fricción de Darcy (f)",
+        "description": "El factor de fricción de Darcy es un coeficiente adimensional que cuantifica cuánta energía mecánica pierde un flujo al desplazarse por una tubería debido al esfuerzo cortante en la pared. En la ecuación de Colebrook-White aparece de forma implícita, porque está presente tanto fuera como dentro del logaritmo a través de la raíz cuadrada de f. Eso significa que, para flujo turbulento, normalmente no se obtiene con despeje directo sino mediante iteración numérica o con ayuda del diagrama de Moody.\n\nSu valor resume simultáneamente el efecto de la rugosidad interna de la tubería y del régimen del flujo. Si la pared es lisa o el flujo tiene menor intensidad turbulenta, f tiende a disminuir; si la superficie es más rugosa o el flujo entra en una región donde la pared domina el comportamiento hidráulico, f aumenta y con ello también aumentan las pérdidas por fricción."
+      },
+      "ε": {
+        "title": "Rugosidad absoluta (ε)",
+        "description": "La rugosidad absoluta representa la altura característica de las irregularidades de la superficie interna de la tubería. Se mide en unidades de longitud, por ejemplo metros o milímetros, y describe cuán áspera es la pared con la que interactúa el fluido.\n\nEn la ecuación de Colebrook-White no actúa sola, sino en relación con el diámetro de la tubería. Cuando ε aumenta, la pared perturba más intensamente la subcapa cercana al muro y la resistencia hidráulica crece, especialmente en flujo turbulento desarrollado."
+      },
+      "D": {
+        "title": "Diámetro interno de la tubería (D)",
+        "description": "El diámetro interno es la dimensión geométrica que fija la escala principal del flujo dentro de la tubería. Interviene tanto en el número de Reynolds como en la rugosidad relativa ε/D, por lo que influye de manera directa en la estimación del factor de fricción.\n\nUna misma rugosidad absoluta no produce el mismo efecto en tuberías de distinto tamaño. Si D es grande, la rugosidad relativa disminuye; si D es pequeño, las mismas irregularidades representan una fracción mayor del conducto y el efecto de la pared se vuelve más importante."
+      },
+      "Re": {
+        "title": "Número de Reynolds (Re)",
+        "description": "El número de Reynolds es un parámetro adimensional que compara las fuerzas inerciales con las fuerzas viscosas del flujo. En la ecuación de Colebrook-White controla qué tanto influye la viscosidad en la resistencia al movimiento dentro de la tubería.\n\nCuando Re crece, el flujo se vuelve más turbulento y la dependencia del factor de fricción con la rugosidad de la pared se hace más evidente. En cambio, para valores menores dentro del rango turbulento, la viscosidad todavía tiene un efecto perceptible sobre f. Por eso Colebrook-White combina el efecto de Re con el de la rugosidad relativa en una sola correlación."
+      }
+    }
+  },
   "froudeTheory": {
     "subtitle": "Número de Froude",
     "title": "¿Qué es?",
@@ -819,6 +871,7 @@
   "factorFriccionCalc": {
     "infoText": "El cálculo del factor de fricción se realiza mediante métodos iterativos (hasta 200 iteraciones) para ecuaciones como Colebrook-White, con tolerancia de 1e-20. Para ecuaciones explícitas el cálculo es directo. Puede tomar algunos segundos en converger dependiendo de la ecuación seleccionada.",
     "title": "FACTOR DE FRICCIÓN",
+    "titleHistory": "Factor de fricción",
     "calculator": "Calculadora",
     "saveToHistory": "Guardar en historial",
     "frictionFactor": "Factor de fricción (f)",
@@ -845,8 +898,19 @@
       "blasius": "Blasius (Numérico cerrado)",
       "von-karman": "von Kármán (Numérico iterativo)"
     },
+    "history": {
+      "export": {
+        "sheetName": "Factor de fricción",
+        "fileName": "Valve_Historial_Factor_Friccion.xlsx",
+        "shareTitle": "Exportar historial",
+        "columns": {
+          "dateTime": "Fecha/Hora"
+        }
+      }
+    },
     "toasts": {
       "copied": "Datos copiados al portapapeles",
+      "noResultsToCopy": "No hay factor de fricción para copiar",
       "saved": "Cálculo guardado en el historial",
       "saveError": "Error al guardar en el historial",
       "nothingToSave": "No hay resultados para guardar",
@@ -1483,6 +1547,7 @@
     "action": {
       "verMas": "Ver más"
     },
+    "infoText": "La funcionalidad de tanque aún no está integrada en el cálculo hidráulico de esta pantalla, ya que por el momento no aporta utilidad práctica dentro del flujo actual de modelado y análisis. Su soporte se incorporará cuando forme parte de una etapa operativa completa del simulador.",
     "options": {
       "selectOption": "Selecciona una opción",
       "selectNode": "Seleccionar nodo",
