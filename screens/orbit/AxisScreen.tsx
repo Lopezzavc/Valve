@@ -1,12 +1,14 @@
 import React, { useState, useRef, useContext, useCallback, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, Pressable, ScrollView, TextInput,
-  Animated, LayoutChangeEvent, Dimensions, Modal,
+  Animated, LayoutChangeEvent, Dimensions, Modal, Easing,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/Feather';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Octicons from 'react-native-vector-icons/Octicons';
 import MaskedView from '@react-native-masked-view/masked-view';
 import FastImage from '@d11/react-native-fast-image';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -21,6 +23,9 @@ import Decimal from 'decimal.js';
 const STORAGE_KEY = 'axis_screen_state';
 const logoLight = require('../../assets/icon/iconblack.webp');
 const logoDark = require('../../assets/icon/iconwhite.webp');
+const CARTESIAN_DEFAULT_ASPECT_RATIO = 3 / 2.5;
+const CARTESIAN_COMPACT_ASPECT_RATIO = 1.6 / 2.5;
+const CARTESIAN_WIDE_ASPECT_RATIO = 15 / 2.5;
 
 Decimal.set({
   precision: 50,
@@ -1292,6 +1297,8 @@ const AxisScreen: React.FC = () => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const animatedScale = useRef(new Animated.Value(1)).current;
   const controls2DAnim = useRef(new Animated.Value(0)).current;
+  const [cartesianAspectRatio, setCartesianAspectRatio] = useState(CARTESIAN_DEFAULT_ASPECT_RATIO);
+  const cartesianAspectRatioAnim = useRef(new Animated.Value(CARTESIAN_DEFAULT_ASPECT_RATIO)).current;
 
   const [buttonMetrics,   setButtonMetrics]   = useState<{ nodes: number; connections: number }>({ nodes: 0, connections: 0 });
   const [buttonPositions, setButtonPositions] = useState<{ nodes: number; connections: number }>({ nodes: 0, connections: 0 });
@@ -1323,6 +1330,32 @@ const AxisScreen: React.FC = () => {
   useEffect(() => {
     setIs2DViewMode(false);
   }, [currentTheme]);
+
+  const animateCartesianAspectRatio = useCallback((toValue: number) => {
+    Animated.timing(cartesianAspectRatioAnim, {
+      toValue,
+      duration: 320,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+    setCartesianAspectRatio(toValue);
+  }, [cartesianAspectRatioAnim]);
+
+  const handleSetWideCartesianView = useCallback(() => {
+    animateCartesianAspectRatio(
+      cartesianAspectRatio === CARTESIAN_WIDE_ASPECT_RATIO
+        ? CARTESIAN_DEFAULT_ASPECT_RATIO
+        : CARTESIAN_WIDE_ASPECT_RATIO,
+    );
+  }, [animateCartesianAspectRatio, cartesianAspectRatio]);
+
+  const handleSetCompactCartesianView = useCallback(() => {
+    animateCartesianAspectRatio(
+      cartesianAspectRatio === CARTESIAN_COMPACT_ASPECT_RATIO
+        ? CARTESIAN_DEFAULT_ASPECT_RATIO
+        : CARTESIAN_COMPACT_ASPECT_RATIO,
+    );
+  }, [animateCartesianAspectRatio, cartesianAspectRatio]);
 
   // ── Sincronizar refs ──────────────────────────────────────────────────────────
   useEffect(() => { nodesRef.current = nodes; }, [nodes]);
@@ -2119,8 +2152,8 @@ const AxisScreen: React.FC = () => {
         </View>
 
         {/* ── Espacio cartesiano 3D ── */}
-        <View
-          style={styles.cartesianContainer}
+        <Animated.View
+          style={[styles.cartesianContainer, { aspectRatio: cartesianAspectRatioAnim }]}
           onTouchStart={() => setScrollEnabled(false)}
           onTouchEnd={() => setScrollEnabled(true)}
           onTouchCancel={() => setScrollEnabled(true)}
@@ -2139,7 +2172,7 @@ const AxisScreen: React.FC = () => {
             overScrollMode="never"
             onMessage={handleWebViewMessage}
           />
-        </View>
+        </Animated.View>
 
         {/* ── Contenedor de inputs ── */}
         <Animated.View
@@ -2186,38 +2219,56 @@ const AxisScreen: React.FC = () => {
         <View style={[styles.inputsSection, { backgroundColor: themeColors.card, paddingBottom: isKeyboardOpen ? 330 : 70 }]}>
 
           {/* Selector de modo animado */}
-          <View style={styles.buttonContainer}>
-            <Animated.View
-              style={[
-                styles.overlay,
-                {
-                  experimental_backgroundImage: themeColors.gradient,
-                  width: getModeOverlayWidth(),
-                  transform: [{ translateX: animatedValue }, { scale: animatedScale }],
-                },
-              ]}
-            >
-              <View style={[styles.overlayInner, { backgroundColor: themeColors.card }]} />
-            </Animated.View>
-
-            <Pressable
-              onLayout={onLayoutNodes}
-              style={[styles.button, mode === 'nodes' ? styles.selectedButton : styles.unselectedButton]}
-              onPress={() => setMode('nodes')}
-            >
-              <Text style={[styles.buttonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-                {t('axis.tab.elementos')}
-              </Text>
+          <View style={styles.modeSelectorRow}>
+            <Pressable style={styles.simpleButtonContainer} onPress={handleSetWideCartesianView}>
+              <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: theoryButtonColors.cardGradient }]} />
+              <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
+                <View style={[styles.buttonGradient, { experimental_backgroundImage: theoryButtonColors.gradient }]} />
+              </MaskedView>
+              <Octicons name="table" size={18} color={themeColors.icon} style={styles.buttonIcon} />
             </Pressable>
 
-            <Pressable
-              onLayout={onLayoutConnections}
-              style={[styles.button, mode === 'connections' ? styles.selectedButton : styles.unselectedButton]}
-              onPress={() => setMode('connections')}
-            >
-              <Text style={[styles.buttonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
-                {t('axis.tab.conexiones')}
-              </Text>
+            <View style={styles.buttonContainer}>
+              <Animated.View
+                style={[
+                  styles.overlay,
+                  {
+                    experimental_backgroundImage: themeColors.gradient,
+                    width: getModeOverlayWidth(),
+                    transform: [{ translateX: animatedValue }, { scale: animatedScale }],
+                  },
+                ]}
+              >
+                <View style={[styles.overlayInner, { backgroundColor: themeColors.card }]} />
+              </Animated.View>
+
+              <Pressable
+                onLayout={onLayoutNodes}
+                style={[styles.button, mode === 'nodes' ? styles.selectedButton : styles.unselectedButton]}
+                onPress={() => setMode('nodes')}
+              >
+                <Text style={[styles.buttonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+                  {t('axis.tab.elementos')}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onLayout={onLayoutConnections}
+                style={[styles.button, mode === 'connections' ? styles.selectedButton : styles.unselectedButton]}
+                onPress={() => setMode('connections')}
+              >
+                <Text style={[styles.buttonText, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
+                  {t('axis.tab.conexiones')}
+                </Text>
+              </Pressable>
+            </View>
+
+            <Pressable style={styles.simpleButtonContainer} onPress={handleSetCompactCartesianView}>
+              <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: theoryButtonColors.cardGradient }]} />
+              <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
+                <View style={[styles.buttonGradient, { experimental_backgroundImage: theoryButtonColors.gradient }]} />
+              </MaskedView>
+              <Ionicons name="expand" size={20} color={themeColors.icon} style={styles.buttonIcon} />
             </Pressable>
           </View>
 
@@ -2588,7 +2639,6 @@ const styles = StyleSheet.create({
   },
   cartesianContainer: {
     width: '100%',
-    aspectRatio: 1.8 / 2.5,
     paddingHorizontal: 0,
     marginTop: 10,
     overflow: 'hidden',
@@ -2698,22 +2748,29 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
   },
+  modeSelectorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    gap: 6,
+    marginBottom: 16,
+  },
   buttonContainer: {
     flexDirection: 'row',
-    width: '100%',
+    flex: 1,
     justifyContent: 'space-between',
     position: 'relative',
-    height: 50,
-    marginBottom: 16,
+    height: 46,
+    minWidth: 0,
   },
   button: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 25,
-    marginHorizontal: 5,
-    height: 50,
+    paddingVertical: 0,
+    borderRadius: 23,
+    marginHorizontal: 3,
+    height: 46,
     zIndex: 2,
   },
   selectedButton:   { backgroundColor: 'transparent' },
@@ -2726,17 +2783,17 @@ const styles = StyleSheet.create({
   },
   overlay: {
     position: 'absolute',
-    height: 50,
+    height: 46,
     experimental_backgroundImage:
       'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
-    borderRadius: 25,
+    borderRadius: 23,
     zIndex: 0,
     padding: 1,
   },
   overlayInner: {
     flex: 1,
     backgroundColor: 'white',
-    borderRadius: 25,
+    borderRadius: 23,
   },
   inputsContainer: { backgroundColor: 'transparent' },
   inputWrapper:    { marginBottom: 10, backgroundColor: 'transparent' },

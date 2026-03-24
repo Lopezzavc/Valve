@@ -76,7 +76,6 @@
     "inputs": "入力値"
   },
   "continuidadCalc": {
-    "infoText": "流量と未知の変数を計算するには、4つのパラメータ（A₁、v₁、A₂、v₂）のうち3つを入力してください。",
     "infoTextCaudal": "流量は、断面積に流体の平均流速を掛けて計算します。Q = A × v",
     "infoTextContinuidad": "連続の原理では流量は一定です: A₁·v₁ = A₂·v₂。断面が変化すると、流速はそれに反比例して調整されます。",
     "calculator": "計算機",
@@ -476,7 +475,11 @@
     "closedSystem": "閉鎖系",
     "openSystem": "開放系",
     "vaporPressure": "蒸気圧",
-    "cavitationStatus": "キャビテーション状態",
+    "cavitationStatus": {
+      "safe": "安全",
+      "lowMargin": "余裕が少ない",
+      "risk": "キャビテーションリスクあり"
+    },
     "useRhoForGamma": "密度 (ρ) から計算",
     "useTempForPv": "温度から Pv を計算",
     "title": "エネルギー / ベルヌーイ",
@@ -549,11 +552,6 @@
       "gammaCalculated": "計算上の γ",
       "pvCalculated": "計算上の Pv"
     },
-    "cavitationStatus": {
-      "safe": "安全",
-      "lowMargin": "余裕が少ない",
-      "risk": "キャビテーションリスクあり"
-    },
     "includeBomba": "ポンプを含める",
     "includeTurbina": "タービンを含める",
     "toasts": {
@@ -610,7 +608,7 @@
       "tirante": "水深",
       "base": "底幅",
       "talud": "法勾配",
-      "K": "K",
+      "K": "形状係数",
       "A": "面積",
       "P": "潤辺",
       "R": "径深",
@@ -729,14 +727,6 @@
       "references": "参考文献"
     },
     "terms": {
-      "A": {
-        "title": "断面積 (A)",
-        "description": "流体の移動方向に垂直に切断された幾何学的断面の表面を表します。\n\n流体力学の文脈では、面積は流れの通過を制限または許可する「漏斗」として機能します。その重要性は、速度との逆数の関係にあります。一定の流量の下では、断面積が減少すると、同じ時間間隔で同じ質量の液体が断面を通過できるように、流体粒子は加速せざるを得ません。"
-      },
-      "V": {
-        "title": "流体の速度 (V)",
-        "description": "流体粒子が特定の断面を通過する平均速度を定義します。\n\nこれは単なる速度の尺度ではなく、システムの運動エネルギーの重要な要素です。非圧縮性流体の連続の原理によれば、速度はダクトの形状に依存する変数です。したがって、管路の狭窄は直ちに速度の比例した増加につながり、質量バランスが変更されないことを保証します。"
-      },
       "1": {
         "title": "断面 1 (入口)",
         "description": "入口点または上流側断面における流体の状態を識別する添え字です。値 A₁ と V₁ は、流れの初期状態を記述します。"
@@ -744,6 +734,14 @@
       "2": {
         "title": "断面 2 (出口)",
         "description": "出口点または下流側断面における流体の状態を識別する添え字です。値 A₂ と V₂ は、流れの最終状態を記述します。"
+      },
+      "A": {
+        "title": "断面積 (A)",
+        "description": "流体の移動方向に垂直に切断された幾何学的断面の表面を表します。\n\n流体力学の文脈では、面積は流れの通過を制限または許可する「漏斗」として機能します。その重要性は、速度との逆数の関係にあります。一定の流量の下では、断面積が減少すると、同じ時間間隔で同じ質量の液体が断面を通過できるように、流体粒子は加速せざるを得ません。"
+      },
+      "V": {
+        "title": "流体の速度 (V)",
+        "description": "流体粒子が特定の断面を通過する平均速度を定義します。\n\nこれは単なる速度の尺度ではなく、システムの運動エネルギーの重要な要素です。非圧縮性流体の連続の原理によれば、速度はダクトの形状に依存する変数です。したがって、管路の狭窄は直ちに速度の比例した増加につながり、質量バランスが変更されないことを保証します。"
       },
       "π": {
         "title": "円周率 (π)",
@@ -875,7 +873,7 @@
     "titleHistory": "摩擦係数",
     "calculator": "計算機",
     "saveToHistory": "履歴に保存",
-    "frictionFactor": "摩擦損失係数 (f)",
+    "frictionFactor": "摩擦係数",
     "equation": "方程式",
     "roughnessSection": "相対粗さ",
     "moodyDiagramHint": "ムーディー線図を開いています...",
@@ -885,10 +883,10 @@
     },
     "labels": {
       "equation": "方程式",
-      "Re": "レイノルズ数 Re",
-      "epsilon": "相当粗さ ε",
-      "diameter": "直径 D",
-      "epsilonOverD": "相対粗さ ε/D"
+      "Re": "レイノルズ数",
+      "epsilon": "絶対粗さ",
+      "diameter": "直径",
+      "epsilonOverD": "相対粗さ"
     },
     "equations": {
       "colebrook-white": "コールブルック・ホワイト式 (反復法)",
@@ -960,11 +958,11 @@
     "fittingType": "継手の種類",
     "selectFitting": "継手を選択...",
     "labels": {
-      "K": "損失係数 K",
-      "V": "流速 V",
-      "g": "重力加速度 g",
-      "D": "直径 D",
-      "f": "摩擦損失係数 f"
+      "K": "損失係数",
+      "V": "流速",
+      "g": "重力加速度",
+      "D": "直径",
+      "f": "摩擦係数"
     },
     "table": {
       "name": "継手",
@@ -1021,7 +1019,6 @@
       "swingCheckValveForwardFlow": "スイング式逆止め弁 (全開)",
       "liftCheckValve": "リフト式逆止め弁",
       "waterMeterValve": "水道メーター",
-
       "elbow90StandardThreaded": "90° 標準エルボ (ねじ込み)",
       "elbow90StandardFlanged": "90° 標準エルボ (フランジ)",
       "elbow90LongRadiusThreaded": "90° ロングエルボ (ねじ込み)",
@@ -1040,7 +1037,6 @@
       "returnBend180Threaded": "180° リターンベンド (ねじ込み)",
       "returnBend180Flanged": "180° リターンベンド (フランジ)",
       "ubend180": "U字管 180°",
-
       "teeFlangedDividingLineFlow": "チーズ 分流 (直通、フランジ)",
       "teeThreadedDividingLineFlow": "チーズ 分流 (直通、ねじ込み)",
       "teeFlangedDividingBranchFlow": "チーズ 分流 (分岐、フランジ)",
@@ -1054,14 +1050,12 @@
       "crossBranchFlow": "十字管 (分岐流)",
       "wye45LineFlow": "Y管 45° (直通流)",
       "wye45BranchFlow": "Y管 45° (分岐流)",
-
       "entranceSharpEdged": "入口 (鋭縁)",
       "entranceProjecting": "入口 (突出し)",
       "entranceRounded": "入口 (丸み付き)",
       "entranceBellmouth": "入口 (ベルマウス)",
       "exitDischargeToTank": "出口 (タンクへの放出)",
       "exitRoundedAgainstBaffle": "出口 (丸み付き、バッフル向かい)",
-
       "suddenContractionD2D1_080": "急縮小 (D₂/D₁=0.80)",
       "suddenContractionD2D1_050": "急縮小 (D₂/D₁=0.50)",
       "suddenContractionD2D1_020": "急縮小 (D₂/D₁=0.20)",
@@ -1069,18 +1063,15 @@
       "conicalContractionD2D1_050": "円すい縮小 (D₂/D₁=0.50)",
       "conicalContractionD2D1_020": "円すい縮小 (D₂/D₁=0.20)",
       "suddenContractionGeneral": "急縮小 (鋭縁入口)",
-
       "suddenExpansionD2D1_080": "急拡大 (D₂/D₁=0.80)",
       "suddenExpansionD2D1_050": "急拡大 (D₂/D₁=0.50)",
       "suddenExpansionD2D1_020": "急拡大 (D₂/D₁=0.20)",
       "conicalExpansionD2D1_080": "円すい拡大 (D₂/D₁=0.80)",
       "conicalExpansionD2D1_050": "円すい拡大 (D₂/D₁=0.50)",
       "conicalExpansionD2D1_020": "円すい拡大 (D₂/D₁=0.20)",
-
       "waterMeter": "水道メーター",
       "orificeMeterSharpEdged": "オリフィス流量計 (鋭縁)",
       "venturiMeter": "ベンチュリ計",
-
       "couplingUnionThreaded": "カップリング / ユニオン (ねじ込み)",
       "reducerEnlargerSudden": "レジューサー / エンラージャー (急変)",
       "radiator": "ラジエーター",
@@ -1100,16 +1091,16 @@
     "calculator": "計算機",
     "paramsSection": "設計パラメータ",
     "energySection": "エネルギー条件",
-    "resultLabel": "流量 Q",
+    "resultLabel": "流量",
     "labels": {
       "L": "管長",
       "D": "直径",
       "ks": "相当粗さ",
       "nu": "動粘度",
       "Km": "局部損失係数",
-      "z1": "上流側標高 z1",
-      "z2": "下流側標高 z2",
-      "g": "重力加速度 g"
+      "z1": "上流側の高さ",
+      "z2": "下流側の高さ",
+      "g": "重力加速度"
     },
     "table": {
       "title": "反復計算表",
@@ -1199,7 +1190,7 @@
     "calculator": "計算機",
     "title": "単一管路の動力計算",
     "saveToHistory": "履歴に保存",
-    "resultLabel": "動力 P",
+    "resultLabel": "必要動力",
     "includePresiones": "地点の圧力を含める",
     "infoText": "すべてのパラメータを入力し、「計算」を押して結果を取得してください。摩擦損失係数は、陰的なコールブルック・ホワイト式にニュートン・ラフソン法を適用し、収束判定 1e-20 で解かれます。収束に時間がかかる場合があります。",
     "resultsTitle": "計算結果",
@@ -1210,18 +1201,18 @@
       "pressures": "圧力"
     },
     "labels": {
-      "D": "内径 D",
-      "Q": "体積流量 Q",
-      "ks": "相当粗さ ks",
-      "nu": "動粘度 ν",
-      "L": "システム全長 L",
-      "km": "局部損失係数 km",
-      "gamma": "流体の比重量 γ",
-      "eta": "ポンプ効率 η (0 – 1)",
-      "z1": "下流側水位 z₁",
-      "z2": "上流側水位 z₂",
-      "p1": "下流側圧力 p₁",
-      "p2": "上流側圧力 p₂"
+      "D": "内径",
+      "Q": "体積流量",
+      "ks": "相当粗さ",
+      "nu": "動粘性係数",
+      "L": "系全体の長さ",
+      "km": "小損失係数",
+      "gamma": "流体の単位重量",
+      "eta": "ポンプ効率",
+      "z1": "下側水面の高さ",
+      "z2": "上側水面の高さ",
+      "p1": "下側点の圧力",
+      "p2": "上側点の圧力"
     },
     "table": {
       "parameter": "パラメータ",
@@ -1262,7 +1253,7 @@
     "infoText": "この反復プロセスは、管路口数によって数秒かかる場合があります。アルゴリズムは、各反復で摩擦損失を比例的に調整し、全損失水頭の合計が利用可能な水頭差（ΔH = H1 − H2）に収束するまで続けます。収束パラメータは、コード内で許容誤差 = 1e-6 m、最大反復回数 = 200 と定義されています。",
     "calculator": "計算機",
     "title": "直列管路の検証",
-    "resultLabel": "入口流量 (m³/s)",
+    "resultLabel": "入口流量",
     "globalParams": "全体パラメータ",
     "convergenceParams": "収束パラメータ",
     "tramosSection": "管路区間",
@@ -1271,17 +1262,17 @@
     "iterations": "反復)",
     "notConverged": "収束しませんでした",
     "labels": {
-      "nu": "動粘度 ν",
-      "H1": "上流側ピエゾ水頭 H1",
-      "H2": "下流側ピエゾ水頭 H2",
+      "nu": "動粘性係数",
+      "H1": "上流水頭",
+      "H2": "下流水頭",
       "TOL": "許容誤差 [m]",
       "MAX_ITER": "最大反復数",
-      "D": "直径 D",
-      "L": "長さ L",
-      "Km": "局部損失係数 Km",
-      "ks": "相当粗さ ks",
-      "q_lat": "分流量 q_lat",
-      "Q_entrada": "入口流量 (区間1)"
+      "D": "直径",
+      "L": "長さ",
+      "Km": "小損失係数",
+      "ks": "絶対粗さ",
+      "q_lat": "側方流出",
+      "Q_entrada": "入口流量"
     },
     "table": {
       "summaryTitle": "最終結果概要",
@@ -1321,19 +1312,19 @@
   "compParaleloCalc": {
     "calculator": "計算機",
     "title": "並列管路の検証",
-    "resultLabel": "総流量 [m³/s]",
+    "resultLabel": "総流量",
     "globalParams": "全体パラメータ",
     "ramalesSection": "分岐管路",
     "ramalTitle": "分岐",
     "labels": {
-      "nu": "動粘度 ν",
-      "H1": "上流側ピエゾ水頭 H1",
-      "H2": "下流側ピエゾ水頭 H2",
-      "D": "直径 D",
-      "L": "長さ L",
-      "Km": "局部損失係数 Km",
-      "ks": "相当粗さ ks",
-      "Q_total": "総流量 (システム)"
+      "nu": "動粘性係数",
+      "H1": "上流水頭",
+      "H2": "下流水頭",
+      "D": "直径",
+      "L": "長さ",
+      "Km": "小損失係数",
+      "ks": "絶対粗さ",
+      "Q_total": "系全体の総流量"
     },
     "table": {
       "summaryTitle": "最終結果概要",
@@ -1377,18 +1368,18 @@
     "globalParams": "全体パラメータ",
     "tramosSection": "管路区間",
     "tramoTitle": "区間",
-    "resultLabel": "所要動力 [kW]",
+    "resultLabel": "所要動力",
     "infoText": "全体パラメータと各区間のデータを入力し、直列管路システムにおける所要水頭とポンプ動力を計算します。",
     "labels": {
-      "eficiencia": "効率 η [%]",
-      "densidad": "密度 ρ",
-      "viscosidad": "動粘度 μ",
-      "cabeza": "全水頭 H",
-      "D": "直径 D",
-      "L": "長さ L",
-      "ks": "相当粗さ ks",
-      "Km": "局部損失係数 Km",
-      "Q": "流量 Q"
+      "eficiencia": "効率",
+      "densidad": "密度",
+      "viscosidad": "動粘度",
+      "cabeza": "全揚程",
+      "D": "直径",
+      "L": "長さ",
+      "ks": "絶対粗さ",
+      "Km": "小損失係数",
+      "Q": "流量"
     },
     "balance": {
       "Qentrada": "入口流量 Q:",
@@ -1429,17 +1420,17 @@
     "globalParams": "全体パラメータ",
     "tramosSection": "管路",
     "tramoTitle": "管路",
-    "resultLabel": "所要動力 [kW]",
+    "resultLabel": "所要動力",
     "infoText": "全体パラメータと各管路のデータを入力し、並列管路システムにおける流量配分と動力を計算します。",
     "labels": {
-      "H_presion": "全水頭 H",
-      "rho": "密度 ρ",
-      "nu": "動粘度 ν",
-      "Q_total": "総流量 Q",
-      "D": "直径 D",
-      "L": "長さ L",
-      "ks": "相当粗さ ks",
-      "Km": "局部損失係数 Km"
+      "H_presion": "全揚程",
+      "rho": "密度",
+      "nu": "動粘性係数",
+      "Q_total": "総流量",
+      "D": "直径",
+      "L": "長さ",
+      "ks": "絶対粗さ",
+      "Km": "小損失係数"
     },
     "balance": {
       "Hmetros": "水頭 H:",

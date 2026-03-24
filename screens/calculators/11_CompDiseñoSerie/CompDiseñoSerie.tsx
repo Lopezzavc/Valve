@@ -371,6 +371,8 @@ const initialState = (): CalculatorState => ({
 });
 
 // ─── Main component ───────────────────────────────────────────────────────────
+const withSymbol = (label: string, symbol: string): string => `${label} (${symbol})`;
+
 const CompDiseñoSerie: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber } = useContext(PrecisionDecimalContext);
@@ -902,7 +904,7 @@ const CompDiseñoSerie: React.FC = () => {
 		  {/* D — Diameter */}
 		  {renderInputWithUnit(
 			`tramo-${tramo.id}-D`,
-			t('compDiseñoSerie.labels.D') || 'Diámetro D',
+			withSymbol(t('compDiseñoSerie.labels.D') || 'Diámetro', 'D'),
 			tramo.D,
 			tramo.DUnit,
 			'length',
@@ -916,7 +918,7 @@ const CompDiseñoSerie: React.FC = () => {
 		  {/* L — Length */}
 		  {renderInputWithUnit(
 			`tramo-${tramo.id}-L`,
-			t('compDiseñoSerie.labels.L') || 'Longitud L',
+			withSymbol(t('compDiseñoSerie.labels.L') || 'Longitud', 'L'),
 			tramo.L,
 			tramo.LUnit,
 			'length',
@@ -930,7 +932,7 @@ const CompDiseñoSerie: React.FC = () => {
 		  {/* Km — Minor loss coefficient */}
 		  {renderSimpleInput(
 			`tramo-${tramo.id}-Km`,
-			t('compDiseñoSerie.labels.Km') || 'Km',
+			withSymbol(t('compDiseñoSerie.labels.Km') || 'Coef. pérdidas menores', 'Kᵐ'),
 			tramo.Km,
 			text => updateTramo(tramo.id, { Km: text })
 		  )}
@@ -938,7 +940,7 @@ const CompDiseñoSerie: React.FC = () => {
 		  {/* ks — Absolute roughness */}
 		  {renderInputWithUnit(
 			`tramo-${tramo.id}-ks`,
-			t('compDiseñoSerie.labels.ks') || 'Rugosidad ks',
+			withSymbol(t('compDiseñoSerie.labels.ks') || 'Rugosidad absoluta', 'kˢ'),
 			tramo.ks,
 			tramo.ksUnit,
 			'length',
@@ -952,7 +954,7 @@ const CompDiseñoSerie: React.FC = () => {
 		  {/* q_lat — Lateral extraction */}
 		  {renderInputWithUnit(
 			`tramo-${tramo.id}-q_lat`,
-			t('compDiseñoSerie.labels.q_lat') || 'Extracción lateral q_lat',
+			withSymbol(t('compDiseñoSerie.labels.q_lat') || 'Extracción lateral', 'qˡᵃᵗ'),
 			tramo.q_lat,
 			tramo.q_latUnit,
 			'flow',
@@ -1905,7 +1907,7 @@ const CompDiseñoSerie: React.FC = () => {
 					>
 					  {!hasResult
 						? 'な'
-						: t('compDiseñoSerie.resultLabel') || 'Q entrada [m³/s]'}
+						: `${t('compDiseñoSerie.resultLabel') || 'Caudal de entrada'} (m³/s)`}
 					</Text>
 				  </View>
 				  <View style={styles.flowValueContainer}>
@@ -2004,7 +2006,7 @@ const CompDiseñoSerie: React.FC = () => {
 
 		  {renderInputWithUnit(
 			'nu',
-			t('compDiseñoSerie.labels.nu') || 'Viscosidad cinemática ν',
+			withSymbol(t('compDiseñoSerie.labels.nu') || 'Viscosidad cinemática', 'ν'),
 			state.nu,
 			state.nuUnit,
 			'viscosity',
@@ -2017,7 +2019,7 @@ const CompDiseñoSerie: React.FC = () => {
 
 		  {renderInputWithUnit(
 			'H1',
-			t('compDiseñoSerie.labels.H1') || 'Carga piezométrica aguas arriba H1',
+			withSymbol(t('compDiseñoSerie.labels.H1') || 'Carga piezométrica aguas arriba', 'H₁'),
 			state.H1,
 			state.H1Unit,
 			'length',
@@ -2030,7 +2032,7 @@ const CompDiseñoSerie: React.FC = () => {
 
 		  {renderInputWithUnit(
 			'H2',
-			t('compDiseñoSerie.labels.H2') || 'Carga piezométrica aguas abajo H2',
+			withSymbol(t('compDiseñoSerie.labels.H2') || 'Carga piezométrica aguas abajo', 'H₂'),
 			state.H2,
 			state.H2Unit,
 			'length',

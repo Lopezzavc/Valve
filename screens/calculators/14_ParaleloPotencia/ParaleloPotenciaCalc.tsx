@@ -386,6 +386,8 @@ const initialState = (): CalculatorState => ({
 });
 
 // ─── Main component ───────────────────────────────────────────────────────────
+const withSymbol = (label: string, symbol: string): string => `${label} (${symbol})`;
+
 const ParaleloPotenciaCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber }             = useContext(PrecisionDecimalContext);
@@ -785,7 +787,7 @@ const ParaleloPotenciaCalc: React.FC = () => {
           {/* D — Diámetro */}
           {renderInputWithUnit(
             `tramo-${tramo.id}-D`,
-            t('paraleloPotenciaCalc.labels.D'),
+            withSymbol(t('paraleloPotenciaCalc.labels.D') || 'Diámetro', 'D'),
             tramo.D, tramo.DUnit, 'length',
             text => updateTramo(tramo.id, { D: text }),
             (newUnit, oldUnit) => {
@@ -797,7 +799,7 @@ const ParaleloPotenciaCalc: React.FC = () => {
           {/* L — Longitud */}
           {renderInputWithUnit(
             `tramo-${tramo.id}-L`,
-            t('paraleloPotenciaCalc.labels.L'),
+            withSymbol(t('paraleloPotenciaCalc.labels.L') || 'Longitud', 'L'),
             tramo.L, tramo.LUnit, 'length',
             text => updateTramo(tramo.id, { L: text }),
             (newUnit, oldUnit) => {
@@ -809,7 +811,7 @@ const ParaleloPotenciaCalc: React.FC = () => {
           {/* ks — Rugosidad absoluta */}
           {renderInputWithUnit(
             `tramo-${tramo.id}-ks`,
-            t('paraleloPotenciaCalc.labels.ks'),
+            withSymbol(t('paraleloPotenciaCalc.labels.ks') || 'Rugosidad absoluta', 'kˢ'),
             tramo.ks, tramo.ksUnit, 'length',
             text => updateTramo(tramo.id, { ks: text }),
             (newUnit, oldUnit) => {
@@ -821,7 +823,7 @@ const ParaleloPotenciaCalc: React.FC = () => {
           {/* Km — Coeficiente de pérdidas menores */}
           {renderSimpleInput(
             `tramo-${tramo.id}-Km`,
-            t('paraleloPotenciaCalc.labels.Km'),
+            withSymbol(t('paraleloPotenciaCalc.labels.Km') || 'Coef. pérdidas menores', 'Kᵐ'),
             tramo.Km,
             text => updateTramo(tramo.id, { Km: text })
           )}
@@ -1260,7 +1262,7 @@ const ParaleloPotenciaCalc: React.FC = () => {
                   )}
                   <View style={styles.caudalLabel}>
                     <Text style={[styles.flowLabel, { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 16 * fontSizeFactor }]}>
-                      {!hasResult ? 'な' : t('paraleloPotenciaCalc.resultLabel')}
+                      {!hasResult ? 'な' : `${t('paraleloPotenciaCalc.resultLabel') || 'Potencia requerida'} (kW)`}
                     </Text>
                   </View>
                   <View style={styles.flowValueContainer}>
@@ -1310,7 +1312,7 @@ const ParaleloPotenciaCalc: React.FC = () => {
           {/* Cabeza en presión */}
           {renderInputWithUnit(
             'H_presion',
-            t('paraleloPotenciaCalc.labels.H_presion'),
+            withSymbol(t('paraleloPotenciaCalc.labels.H_presion') || 'Cabeza total', 'H'),
             state.H_presion, state.H_presionUnit, 'pressure',
             text => setState(prev => ({ ...prev, H_presion: text })),
             (newUnit, oldUnit) => {
@@ -1322,7 +1324,7 @@ const ParaleloPotenciaCalc: React.FC = () => {
           {/* Densidad */}
           {renderInputWithUnit(
             'rho',
-            t('paraleloPotenciaCalc.labels.rho'),
+            withSymbol(t('paraleloPotenciaCalc.labels.rho') || 'Densidad', 'ρ'),
             state.rho, state.rhoUnit, 'density',
             text => setState(prev => ({ ...prev, rho: text })),
             (newUnit, oldUnit) => {
@@ -1334,7 +1336,7 @@ const ParaleloPotenciaCalc: React.FC = () => {
           {/* Viscosidad cinemática */}
           {renderInputWithUnit(
             'nu',
-            t('paraleloPotenciaCalc.labels.nu'),
+            withSymbol(t('paraleloPotenciaCalc.labels.nu') || 'Viscosidad cinemática', 'ν'),
             state.nu, state.nuUnit, 'kinematicViscosity',
             text => setState(prev => ({ ...prev, nu: text })),
             (newUnit, oldUnit) => {
@@ -1346,7 +1348,7 @@ const ParaleloPotenciaCalc: React.FC = () => {
           {/* Caudal total */}
           {renderInputWithUnit(
             'Q_total',
-            t('paraleloPotenciaCalc.labels.Q_total'),
+            withSymbol(t('paraleloPotenciaCalc.labels.Q_total') || 'Caudal total', 'Qᵗᵒᵗᵃˡ'),
             state.Q_total, state.Q_totalUnit, 'flow',
             text => setState(prev => ({ ...prev, Q_total: text })),
             (newUnit, oldUnit) => {

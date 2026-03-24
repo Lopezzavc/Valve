@@ -76,7 +76,6 @@
     "inputs": "Inputs"
   },
   "continuidadCalc": {
-    "infoText": "Enter 3 of the 4 parameters (A₁, v₁, A₂, v₂) to calculate the flow rate and the unknown variable.",
     "infoTextCaudal": "Flow rate is calculated by multiplying the cross-sectional area by the average fluid velocity. Q = A × v",
     "infoTextContinuidad": "The continuity principle states that flow rate is constant: A₁·v₁ = A₂·v₂. As the section changes, velocity adjusts inversely.",
     "calculator": "Calculator",
@@ -476,7 +475,11 @@
     "closedSystem": "CLOSED SYSTEM",
     "openSystem": "Open System",
     "vaporPressure": "VAPOR PRESSURE",
-    "cavitationStatus": "Cavitation status",
+    "cavitationStatus": {
+      "safe": "Safe",
+      "lowMargin": "Low margin",
+      "risk": "Cavitation risk"
+    },
     "useRhoForGamma": "Use density (ρ)",
     "useTempForPv": "Calculate Pv from temperature",
     "title": "ENERGY / BERNOULLI",
@@ -549,11 +552,6 @@
       "gammaCalculated": "γ calculated",
       "pvCalculated": "Pv calculated"
     },
-    "cavitationStatus": {
-      "safe": "Safe",
-      "lowMargin": "Low margin",
-      "risk": "Cavitation risk"
-    },
     "includeBomba": "Include pump",
     "includeTurbina": "Include turbine",
     "toasts": {
@@ -570,8 +568,8 @@
   },
   "geometriaSeccionesCalc": {
     "calculator": "Calculator",
-    "cardTitle1":"Section Geometry",
-    "cardDesc1":"Calculates area, perimeter, and hydraulic radius for different types of sections.",
+    "cardTitle1": "Section Geometry",
+    "cardDesc1": "Calculates area, perimeter, and hydraulic radius for different types of sections.",
     "title": "SECTION GEOMETRY",
     "titlehistory": "Section Geometry",
     "y2": "Depth (y₂)",
@@ -610,7 +608,7 @@
       "tirante": "Depth",
       "base": "Base",
       "talud": "Side slope",
-      "K": "K",
+      "K": "Shape parameter",
       "A": "Area",
       "P": "Perimeter",
       "R": "Hydraulic radius",
@@ -729,14 +727,6 @@
       "references": "References"
     },
     "terms": {
-      "A": {
-        "title": "Cross-sectional area (A)",
-        "description": "Represents the surface of the geometric section cut perpendicularly to the direction of fluid motion. In the context of fluid mechanics, the area acts as the 'funnel' that restricts or allows the passage of flow. Its importance lies in the inverse relationship it maintains with velocity: under constant flow rate, a reduction in cross-sectional area forces fluid particles to accelerate to allow the same mass of liquid to pass through the section in the same time interval."
-      },
-      "V": {
-        "title": "Fluid velocity (V)",
-        "description": "Defines the average speed at which fluid particles move through a given section. It is not just a measure of speed, but a critical component of the system's kinetic energy. According to the continuity principle for incompressible fluids, velocity is a variable dependent on the conduit geometry; therefore, any narrowing in the pipe immediately translates into a proportional increase in velocity, ensuring that the mass balance remains unchanged."
-      },
       "1": {
         "title": "Section 1 (inlet)",
         "description": "Subscript identifying the fluid conditions at the inlet point or upstream section. The values A₁ and V₁ describe the initial state of the flow."
@@ -744,6 +734,14 @@
       "2": {
         "title": "Section 2 (outlet)",
         "description": "Subscript identifying the fluid conditions at the outlet point or downstream section. The values A₂ and V₂ describe the final state of the flow."
+      },
+      "A": {
+        "title": "Cross-sectional area (A)",
+        "description": "Represents the surface of the geometric section cut perpendicularly to the direction of fluid motion. In the context of fluid mechanics, the area acts as the 'funnel' that restricts or allows the passage of flow. Its importance lies in the inverse relationship it maintains with velocity: under constant flow rate, a reduction in cross-sectional area forces fluid particles to accelerate to allow the same mass of liquid to pass through the section in the same time interval."
+      },
+      "V": {
+        "title": "Fluid velocity (V)",
+        "description": "Defines the average speed at which fluid particles move through a given section. It is not just a measure of speed, but a critical component of the system's kinetic energy. According to the continuity principle for incompressible fluids, velocity is a variable dependent on the conduit geometry; therefore, any narrowing in the pipe immediately translates into a proportional increase in velocity, ensuring that the mass balance remains unchanged."
       },
       "π": {
         "title": "Pi (π)",
@@ -875,7 +873,7 @@
     "titleHistory": "Friction factor",
     "calculator": "Calculator",
     "saveToHistory": "Save to history",
-    "frictionFactor": "Friction factor (f)",
+    "frictionFactor": "Friction factor",
     "equation": "Equation",
     "roughnessSection": "RELATIVE ROUGHNESS",
     "moodyDiagramHint": "Opening Moody diagram…",
@@ -885,10 +883,10 @@
     },
     "labels": {
       "equation": "Equation",
-      "Re": "Reynolds number Re",
-      "epsilon": "Absolute roughness ε",
-      "diameter": "Diameter D",
-      "epsilonOverD": "Relative roughness ε/D"
+      "Re": "Reynolds number",
+      "epsilon": "Absolute roughness",
+      "diameter": "Diameter",
+      "epsilonOverD": "Relative roughness"
     },
     "equations": {
       "colebrook-white": "Colebrook-White (Iterative numeric)",
@@ -960,11 +958,11 @@
     "fittingType": "Fitting type",
     "selectFitting": "Select fitting...",
     "labels": {
-      "K": "Loss coefficient K",
-      "V": "Velocity V",
-      "g": "Gravity g",
-      "D": "Diameter D",
-      "f": "Friction factor f"
+      "K": "Loss coefficient",
+      "V": "Velocity",
+      "g": "Gravity",
+      "D": "Diameter",
+      "f": "Friction factor"
     },
     "table": {
       "name": "Fitting",
@@ -1021,7 +1019,6 @@
       "swingCheckValveForwardFlow": "Swing check (forward flow)",
       "liftCheckValve": "Lift check valve",
       "waterMeterValve": "Water meter",
-      
       "elbow90StandardThreaded": "90° standard (threaded)",
       "elbow90StandardFlanged": "90° standard (flanged)",
       "elbow90LongRadiusThreaded": "90° long radius (threaded)",
@@ -1040,7 +1037,6 @@
       "returnBend180Threaded": "Return bend 180° (threaded)",
       "returnBend180Flanged": "Return bend 180° (flanged)",
       "ubend180": "U 180°",
-      
       "teeFlangedDividingLineFlow": "Line flow (flanged)",
       "teeThreadedDividingLineFlow": "Line flow (threaded)",
       "teeFlangedDividingBranchFlow": "Branch flow (flanged)",
@@ -1054,14 +1050,12 @@
       "crossBranchFlow": "Cross - branch flow",
       "wye45LineFlow": "Wye 45° - line flow",
       "wye45BranchFlow": "Wye 45° - branch flow",
-      
       "entranceSharpEdged": "Sharp-edged",
       "entranceProjecting": "Projecting",
       "entranceRounded": "Rounded",
       "entranceBellmouth": "Bellmouth",
       "exitDischargeToTank": "Discharge to tank",
       "exitRoundedAgainstBaffle": "Rounded against baffle",
-      
       "suddenContractionD2D1_080": "Sudden (D₂/D₁=0.80)",
       "suddenContractionD2D1_050": "Sudden (D₂/D₁=0.50)",
       "suddenContractionD2D1_020": "Sudden (D₂/D₁=0.20)",
@@ -1069,18 +1063,15 @@
       "conicalContractionD2D1_050": "Conical (D₂/D₁=0.50)",
       "conicalContractionD2D1_020": "Conical (D₂/D₁=0.20)",
       "suddenContractionGeneral": "Sudden (sharp inlet)",
-      
       "suddenExpansionD2D1_080": "Sudden (D₂/D₁=0.80)",
       "suddenExpansionD2D1_050": "Sudden (D₂/D₁=0.50)",
       "suddenExpansionD2D1_020": "Sudden (D₂/D₁=0.20)",
       "conicalExpansionD2D1_080": "Conical (D₂/D₁=0.80)",
       "conicalExpansionD2D1_050": "Conical (D₂/D₁=0.50)",
       "conicalExpansionD2D1_020": "Conical (D₂/D₁=0.20)",
-      
       "waterMeter": "Water",
       "orificeMeterSharpEdged": "Orifice (sharp-edged)",
       "venturiMeter": "Venturi",
-      
       "couplingUnionThreaded": "Coupling/Union (threaded)",
       "reducerEnlargerSudden": "Reducer/Enlarger sudden",
       "radiator": "Radiator",
@@ -1100,16 +1091,16 @@
     "calculator": "Calculator",
     "paramsSection": "DESIGN PARAMETERS",
     "energySection": "ENERGY CONDITIONS",
-    "resultLabel": "Q",
+    "resultLabel": "Flow rate",
     "labels": {
       "L": "Length",
       "D": "Diameter",
       "ks": "Roughness",
       "nu": "Kinematic viscosity",
       "Km": "Minor losses",
-      "z1": "z1 (upstream)",
-      "z2": "z2 (downstream)",
-      "g": "g (gravity)"
+      "z1": "Upstream elevation",
+      "z2": "Downstream elevation",
+      "g": "Gravity"
     },
     "table": {
       "title": "ITERATION TABLE",
@@ -1148,7 +1139,6 @@
     "paramsSection": "DESIGN PARAMETERS",
     "energySection": "ENERGY CONDITIONS",
     "resultLabel": "Design diameter",
-  
     "labels": {
       "L": "Length",
       "Ks": "Absolute roughness",
@@ -1158,7 +1148,6 @@
       "Km": "Minor losses",
       "g": "Gravity"
     },
-  
     "table": {
       "title": "ITERATION TABLE",
       "viewFull": "View",
@@ -1178,7 +1167,6 @@
         "Vp": "Vp [m/s]"
       }
     },
-  
     "toasts": {
       "missingFields": "Missing required fields",
       "noSolution": "No suitable diameter found in the commercial list",
@@ -1194,7 +1182,7 @@
     "title": "Power - Single pipe",
     "desc": "Calculate total head and pumping power considering friction and minor losses."
   },
-  "seriePotencia":{
+  "seriePotencia": {
     "title": "Power - Series pipes",
     "desc": "Calculates the power required by a pump in a series pipe system."
   },
@@ -1202,38 +1190,34 @@
     "calculator": "Calculator",
     "title": "SINGLE PIPE POWER",
     "saveToHistory": "Save to history",
-    "resultLabel": "P",
+    "resultLabel": "Required power",
     "includePresiones": "Include pressures at points",
     "infoText": "Complete all parameters and press Calculate to get results. The friction factor is solved using the Newton-Raphson method applied to the implicit Colebrook-White equation, with a convergence tolerance of 1e-20, so please note that it may take time to converge.",
     "resultsTitle": "RESULTS",
-
     "sections": {
       "pipe": "PIPE PARAMETERS",
       "fluid": "FLUID AND SYSTEM",
       "heights": "ELEVATIONS",
       "pressures": "PRESSURES"
     },
-
     "labels": {
-      "D": "Internal diameter D",
-      "Q": "Volumetric flow rate Q",
-      "ks": "Equivalent roughness ks",
-      "nu": "Kinematic viscosity ν",
-      "L": "Total system length L",
-      "km": "Minor loss coefficient km",
-      "gamma": "Fluid specific weight γ",
-      "eta": "Pump efficiency η (0 – 1)",
-      "z1": "Lower water surface elevation z₁",
-      "z2": "Upper water surface elevation z₂",
-      "p1": "Pressure at lower point p₁",
-      "p2": "Pressure at upper point p₂"
+      "D": "Internal diameter",
+      "Q": "Volumetric flow rate",
+      "ks": "Equivalent roughness",
+      "nu": "Kinematic viscosity",
+      "L": "Total system length",
+      "km": "Minor loss coefficient",
+      "gamma": "Fluid specific weight",
+      "eta": "Pump efficiency",
+      "z1": "Lower water surface elevation",
+      "z2": "Upper water surface elevation",
+      "p1": "Pressure at the lower point",
+      "p2": "Pressure at the upper point"
     },
-
     "table": {
       "parameter": "Parameter",
       "value": "Value"
     },
-
     "results": {
       "A": "Cross-sectional area A",
       "V": "Average velocity V",
@@ -1248,13 +1232,11 @@
       "Ph": "Hydraulic power Ph",
       "P": "Pump power P"
     },
-
     "regimen": {
       "laminar": "LAMINAR",
       "transicion": "TRANSITION",
       "turbulento": "TURBULENT"
     },
-
     "toasts": {
       "missingFields": "Complete all required fields.",
       "invalidValues": "Verify that the values are physically valid.",
@@ -1271,7 +1253,7 @@
     "infoText": "Note that this iterative process may take a few seconds depending on the number of sections. The algorithm proportionally adjusts friction losses in each iteration until the sum of total losses converges with the available head (ΔH = H1 − H2). Convergence parameters are defined in the code as tolerance = 1e-6 m and maximum of 200 iterations.",
     "calculator": "Calculator",
     "title": "SERIES PIPES VERIFICATION",
-    "resultLabel": "Q inlet (m³/s)",
+    "resultLabel": "Inlet flow rate",
     "globalParams": "Global parameters",
     "convergenceParams": "Convergence parameters",
     "tramosSection": "Sections",
@@ -1280,17 +1262,17 @@
     "iterations": "iterations",
     "notConverged": "Did not converge",
     "labels": {
-      "nu": "Kinematic viscosity ν",
-      "H1": "Upstream piezometric head H1",
-      "H2": "Downstream piezometric head H2",
+      "nu": "Kinematic viscosity",
+      "H1": "Upstream piezometric head",
+      "H2": "Downstream piezometric head",
       "TOL": "Tolerance [m]",
       "MAX_ITER": "Max. iterations",
-      "D": "Diameter D",
-      "L": "Length L",
-      "Km": "Minor loss coeff. Km",
-      "ks": "Absolute roughness ks",
-      "q_lat": "Lateral withdrawal q_lat",
-      "Q_entrada": "Q inlet (section 1)"
+      "D": "Diameter",
+      "L": "Length",
+      "Km": "Minor loss coeff.",
+      "ks": "Absolute roughness",
+      "q_lat": "Lateral extraction",
+      "Q_entrada": "Inlet flow rate"
     },
     "table": {
       "summaryTitle": "Final summary",
@@ -1330,19 +1312,19 @@
   "compParaleloCalc": {
     "calculator": "Calculator",
     "title": "PARALLEL PIPES VERIFICATION",
-    "resultLabel": "Q total [m³/s]",
+    "resultLabel": "Total flow rate",
     "globalParams": "Global parameters",
     "ramalesSection": "Branches",
     "ramalTitle": "Branch",
     "labels": {
-      "nu": "Kinematic viscosity ν",
-      "H1": "Upstream piezometric head H1",
-      "H2": "Downstream piezometric head H2",
-      "D": "Diameter D",
-      "L": "Length L",
-      "Km": "Minor loss coeff. Km",
-      "ks": "Absolute roughness ks",
-      "Q_total": "Q total (system)"
+      "nu": "Kinematic viscosity",
+      "H1": "Upstream piezometric head",
+      "H2": "Downstream piezometric head",
+      "D": "Diameter",
+      "L": "Length",
+      "Km": "Minor loss coeff.",
+      "ks": "Absolute roughness",
+      "Q_total": "Total system flow rate"
     },
     "table": {
       "summaryTitle": "Final summary",
@@ -1386,18 +1368,18 @@
     "globalParams": "Global parameters",
     "tramosSection": "Sections",
     "tramoTitle": "Section",
-    "resultLabel": "Required power [kW]",
+    "resultLabel": "Required power",
     "infoText": "Enter the global parameters and data for each section to calculate the required head and pump power in a series pipe system.",
     "labels": {
-      "eficiencia": "Efficiency η [%]",
-      "densidad": "Density ρ",
-      "viscosidad": "Dynamic viscosity μ",
-      "cabeza": "Total head H",
-      "D": "Diameter D",
-      "L": "Length L",
-      "ks": "Absolute roughness ks",
-      "Km": "Minor loss coeff. Km",
-      "Q": "Flow rate Q"
+      "eficiencia": "Efficiency",
+      "densidad": "Density",
+      "viscosidad": "Dynamic viscosity",
+      "cabeza": "Total head",
+      "D": "Diameter",
+      "L": "Length",
+      "ks": "Absolute roughness",
+      "Km": "Minor loss coeff.",
+      "Q": "Flow rate"
     },
     "balance": {
       "Qentrada": "Inlet flow rate Q:",
@@ -1438,17 +1420,17 @@
     "globalParams": "Global parameters",
     "tramosSection": "Pipes",
     "tramoTitle": "Pipe",
-    "resultLabel": "Required power [kW]",
+    "resultLabel": "Required power",
     "infoText": "Enter the global parameters and data for each pipe to calculate the flow distribution and power in a parallel pipe system.",
     "labels": {
-      "H_presion": "Total head H",
-      "rho": "Density ρ",
-      "nu": "Kinematic viscosity ν",
-      "Q_total": "Total flow rate Q",
-      "D": "Diameter D",
-      "L": "Length L",
-      "ks": "Absolute roughness ks",
-      "Km": "Minor loss coeff. Km"
+      "H_presion": "Total head",
+      "rho": "Density",
+      "nu": "Kinematic viscosity",
+      "Q_total": "Total flow rate",
+      "D": "Diameter",
+      "L": "Length",
+      "ks": "Absolute roughness",
+      "Km": "Minor loss coeff."
     },
     "balance": {
       "Hmetros": "Hydraulic head H:",

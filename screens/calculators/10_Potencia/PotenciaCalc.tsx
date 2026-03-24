@@ -242,6 +242,8 @@ const getDotColor = (hasUserValue: boolean, isInvalid: boolean): string => {
 };
 
 // ─── Main component ────────────────────────────────────────────────────────────
+const withSymbol = (label: string, symbol: string): string => `${label} (${symbol})`;
+
 const PotenciaCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber } = useContext(PrecisionDecimalContext);
@@ -1418,7 +1420,7 @@ const PotenciaCalc: React.FC = () => {
 
           {renderInput(
             'D',
-            t('potenciaCalc.labels.D'),
+            withSymbol(t('potenciaCalc.labels.D') || 'Diámetro interno', 'D'),
             state.D, state.DUnit, 'length',
             v => setState(prev => ({ ...prev, D: v })),
             u => setState(prev => ({ ...prev, DUnit: u })),
@@ -1426,7 +1428,7 @@ const PotenciaCalc: React.FC = () => {
 
           {renderInput(
             'Q',
-            t('potenciaCalc.labels.Q'),
+            withSymbol(t('potenciaCalc.labels.Q') || 'Caudal volumétrico', 'Q'),
             state.Q, state.QUnit, 'flow',
             v => setState(prev => ({ ...prev, Q: v })),
             u => setState(prev => ({ ...prev, QUnit: u })),
@@ -1434,7 +1436,7 @@ const PotenciaCalc: React.FC = () => {
 
           {renderInput(
             'ks',
-            t('potenciaCalc.labels.ks'),
+            withSymbol(t('potenciaCalc.labels.ks') || 'Rugosidad equivalente', 'kˢ'),
             state.ks, state.ksUnit, 'length',
             v => setState(prev => ({ ...prev, ks: v })),
             u => setState(prev => ({ ...prev, ksUnit: u })),
@@ -1442,7 +1444,7 @@ const PotenciaCalc: React.FC = () => {
 
           {renderInput(
             'nu',
-            t('potenciaCalc.labels.nu'),
+            withSymbol(t('potenciaCalc.labels.nu') || 'Viscosidad cinemática', 'ν'),
             state.nu, state.nuUnit, 'viscosity',
             v => setState(prev => ({ ...prev, nu: v })),
             u => setState(prev => ({ ...prev, nuUnit: u })),
@@ -1450,7 +1452,7 @@ const PotenciaCalc: React.FC = () => {
 
           {renderInput(
             'L',
-            t('potenciaCalc.labels.L'),
+            withSymbol(t('potenciaCalc.labels.L') || 'Longitud total del sistema', 'L'),
             state.L, state.LUnit, 'length',
             v => setState(prev => ({ ...prev, L: v })),
             u => setState(prev => ({ ...prev, LUnit: u })),
@@ -1473,14 +1475,14 @@ const PotenciaCalc: React.FC = () => {
 
           {renderSimpleInput(
             'km',
-            t('potenciaCalc.labels.km'),
+            withSymbol(t('potenciaCalc.labels.km') || 'Coeficiente de pérdida menor', 'Kᵐ'),
             state.km,
             v => setState(prev => ({ ...prev, km: v })),
           )}
 
           {renderInput(
             'gamma',
-            t('potenciaCalc.labels.gamma'),
+            withSymbol(t('potenciaCalc.labels.gamma') || 'Peso específico del fluido', 'γ'),
             state.gamma, state.gammaUnit, 'specificWeight',
             v => setState(prev => ({ ...prev, gamma: v })),
             u => setState(prev => ({ ...prev, gammaUnit: u })),
@@ -1488,7 +1490,7 @@ const PotenciaCalc: React.FC = () => {
 
           {renderSimpleInput(
             'eta',
-            t('potenciaCalc.labels.eta'),
+            withSymbol(t('potenciaCalc.labels.eta') || 'Eficiencia de la bomba', 'η'),
             state.eta,
             v => setState(prev => ({ ...prev, eta: v })),
           )}
@@ -1510,7 +1512,7 @@ const PotenciaCalc: React.FC = () => {
 
           {renderInput(
             'z1',
-            t('potenciaCalc.labels.z1'),
+            withSymbol(t('potenciaCalc.labels.z1') || 'Altura lámina de agua inferior', 'z₁'),
             state.z1, state.z1Unit, 'length',
             v => setState(prev => ({ ...prev, z1: v })),
             u => setState(prev => ({ ...prev, z1Unit: u })),
@@ -1518,7 +1520,7 @@ const PotenciaCalc: React.FC = () => {
 
           {renderInput(
             'z2',
-            t('potenciaCalc.labels.z2'),
+            withSymbol(t('potenciaCalc.labels.z2') || 'Altura lámina de agua superior', 'z₂'),
             state.z2, state.z2Unit, 'length',
             v => setState(prev => ({ ...prev, z2: v })),
             u => setState(prev => ({ ...prev, z2Unit: u })),
@@ -1557,7 +1559,7 @@ const PotenciaCalc: React.FC = () => {
 
               {renderInput(
                 'p1',
-                t('potenciaCalc.labels.p1'),
+                withSymbol(t('potenciaCalc.labels.p1') || 'Presión en el punto inferior', 'p₁'),
                 state.p1, state.p1Unit, 'pressure',
                 v => setState(prev => ({ ...prev, p1: v })),
                 u => setState(prev => ({ ...prev, p1Unit: u })),
@@ -1565,7 +1567,7 @@ const PotenciaCalc: React.FC = () => {
 
               {renderInput(
                 'p2',
-                t('potenciaCalc.labels.p2'),
+                withSymbol(t('potenciaCalc.labels.p2') || 'Presión en el punto superior', 'p₂'),
                 state.p2, state.p2Unit, 'pressure',
                 v => setState(prev => ({ ...prev, p2: v })),
                 u => setState(prev => ({ ...prev, p2Unit: u })),

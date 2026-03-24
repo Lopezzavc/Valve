@@ -76,7 +76,6 @@
     "inputs": "Entrées"
   },
   "continuidadCalc": {
-    "infoText": "Entrez 3 des 4 paramètres (A₁, v₁, A₂, v₂) pour calculer le débit et la variable inconnue.",
     "infoTextCaudal": "Le débit se calcule en multipliant l'aire de la section transversale par la vitesse moyenne du fluide. Q = A × v",
     "infoTextContinuidad": "Le principe de continuité établit que le débit est constant : A₁·v₁ = A₂·v₂. Lorsque la section varie, la vitesse s'ajuste de manière inverse.",
     "calculator": "Calculateur",
@@ -476,7 +475,11 @@
     "closedSystem": "SYSTÈME FERMÉ",
     "openSystem": "Système Ouvert",
     "vaporPressure": "PRESSION DE VAPEUR",
-    "cavitationStatus": "État de cavitation",
+    "cavitationStatus": {
+      "safe": "Sûr",
+      "lowMargin": "Marge faible",
+      "risk": "Risque de cavitation"
+    },
     "useRhoForGamma": "Utiliser la densité (ρ)",
     "useTempForPv": "Calculer Pv depuis la température",
     "title": "ÉNERGIE / BERNOULLI",
@@ -549,11 +552,6 @@
       "gammaCalculated": "γ calculé",
       "pvCalculated": "Pv calculé"
     },
-    "cavitationStatus": {
-      "safe": "Sûr",
-      "lowMargin": "Marge faible",
-      "risk": "Risque de cavitation"
-    },
     "includeBomba": "Inclure pompe",
     "includeTurbina": "Inclure turbine",
     "toasts": {
@@ -570,8 +568,8 @@
   },
   "geometriaSeccionesCalc": {
     "calculator": "Calculateur",
-    "cardTitle1":"Géométrie des Sections",
-    "cardDesc1":"Calcule l'aire, le périmètre et le rayon hydraulique de différents types de sections.",
+    "cardTitle1": "Géométrie des Sections",
+    "cardDesc1": "Calcule l'aire, le périmètre et le rayon hydraulique de différents types de sections.",
     "title": "GÉOMÉTRIE DES SECTIONS",
     "titlehistory": "Géométrie des Sections",
     "y2": "Hauteur d'eau (y₂)",
@@ -610,7 +608,7 @@
       "tirante": "Hauteur d'eau",
       "base": "Base",
       "talud": "Fruit de talus",
-      "K": "K",
+      "K": "Paramètre de forme",
       "A": "Aire",
       "P": "Périmètre",
       "R": "Rayon hydraulique",
@@ -729,14 +727,6 @@
       "references": "Références"
     },
     "terms": {
-      "A": {
-        "title": "Aire transversale (A)",
-        "description": "Représente la surface de la section géométrique coupée perpendiculairement à la direction du mouvement du fluide.\n\nDans le contexte de la mécanique des fluides, l'aire agit comme l'étranglement qui restreint ou permet le passage de l'écoulement. Son importance réside dans la relation inverse qu'elle entretient avec la vitesse : sous un débit constant, une réduction de l'aire transversale oblige les particules du fluide à accélérer pour permettre à la même masse de liquide de traverser la section dans le même intervalle de temps."
-      },
-      "V": {
-        "title": "Vitesse du fluide (V)",
-        "description": "Définit la rapidité moyenne avec laquelle les particules du fluide se déplacent à travers une section donnée.\n\nIl ne s'agit pas seulement d'une mesure de rapidité, mais d'un composant critique de l'énergie cinétique du système. Selon le principe de continuité pour les fluides incompressibles, la vitesse est une variable dépendante de la géométrie du conduit ; par conséquent, tout rétrécissement de la conduite se traduit immédiatement par une augmentation proportionnelle de la vitesse, garantissant que le bilan de masse reste inchangé."
-      },
       "1": {
         "title": "Section 1 (entrée)",
         "description": "Indice qui identifie les conditions du fluide au point d'entrée ou section amont. Les valeurs A₁ et V₁ décrivent l'état initial de l'écoulement."
@@ -744,6 +734,14 @@
       "2": {
         "title": "Section 2 (sortie)",
         "description": "Indice qui identifie les conditions du fluide au point de sortie ou section aval. Les valeurs A₂ et V₂ décrivent l'état final de l'écoulement."
+      },
+      "A": {
+        "title": "Aire transversale (A)",
+        "description": "Représente la surface de la section géométrique coupée perpendiculairement à la direction du mouvement du fluide.\n\nDans le contexte de la mécanique des fluides, l'aire agit comme l'étranglement qui restreint ou permet le passage de l'écoulement. Son importance réside dans la relation inverse qu'elle entretient avec la vitesse : sous un débit constant, une réduction de l'aire transversale oblige les particules du fluide à accélérer pour permettre à la même masse de liquide de traverser la section dans le même intervalle de temps."
+      },
+      "V": {
+        "title": "Vitesse du fluide (V)",
+        "description": "Définit la rapidité moyenne avec laquelle les particules du fluide se déplacent à travers une section donnée.\n\nIl ne s'agit pas seulement d'une mesure de rapidité, mais d'un composant critique de l'énergie cinétique du système. Selon le principe de continuité pour les fluides incompressibles, la vitesse est une variable dépendante de la géométrie du conduit ; par conséquent, tout rétrécissement de la conduite se traduit immédiatement par une augmentation proportionnelle de la vitesse, garantissant que le bilan de masse reste inchangé."
       },
       "π": {
         "title": "Pi (π)",
@@ -875,7 +873,7 @@
     "titleHistory": "Facteur de frottement",
     "calculator": "Calculateur",
     "saveToHistory": "Enregistrer dans l'historique",
-    "frictionFactor": "Facteur de frottement (f)",
+    "frictionFactor": "Facteur de friction",
     "equation": "Équation",
     "roughnessSection": "RUGOSITÉ RELATIVE",
     "moodyDiagramHint": "Ouverture du diagramme de Moody…",
@@ -885,10 +883,10 @@
     },
     "labels": {
       "equation": "Équation",
-      "Re": "Nombre de Reynolds Re",
-      "epsilon": "Rugosité absolue ε",
-      "diameter": "Diamètre D",
-      "epsilonOverD": "Rugosité relative ε/D"
+      "Re": "Nombre de Reynolds",
+      "epsilon": "Rugosité absolue",
+      "diameter": "Diamètre",
+      "epsilonOverD": "Rugosité relative"
     },
     "equations": {
       "colebrook-white": "Colebrook-White (Numérique itératif)",
@@ -946,37 +944,31 @@
     "title": "PERTES DE CHARGE LOCALISÉES",
     "calculator": "Calculateur",
     "modec": "Mode",
-
     "mode": {
       "normal": "Normal",
       "equivalent": "L. Équivalente",
       "advanced": "Avancé"
     },
-
     "globalParams": "Paramètres Globaux",
     "accessories": "ACCESSOIRES",
     "accessoryTitle": "Accessoire",
     "addAccessory": "Ajouter un accessoire",
     "tableTitle": "TABLEAU DES RÉSULTATS",
     "totalLoss": "hL total (m)",
-
     "fittingType": "Type d'accessoire",
     "selectFitting": "Sélectionner un accessoire...",
-
     "labels": {
-      "K": "Coefficient de perte K",
-      "V": "Vitesse V",
-      "g": "Gravité g",
-      "D": "Diamètre D",
-      "f": "Facteur de frottement f"
+      "K": "Coefficient de perte",
+      "V": "Vitesse",
+      "g": "Gravité",
+      "D": "Diamètre",
+      "f": "Facteur de friction"
     },
-
     "table": {
       "name": "Accessoire",
       "total": "Total",
       "totalLeq": "Longueur équivalente totale"
     },
-
     "toasts": {
       "copied": "Copié dans le presse-papiers",
       "saved": "Enregistré dans l'historique",
@@ -1027,7 +1019,6 @@
       "swingCheckValveForwardFlow": "Clapet de non-retour à battant (flux direct)",
       "liftCheckValve": "Clapet de non-retour à levage",
       "waterMeterValve": "Compteur d'eau",
-
       "elbow90StandardThreaded": "Coude 90° standard (fileté)",
       "elbow90StandardFlanged": "Coude 90° standard (bridé)",
       "elbow90LongRadiusThreaded": "Coude 90° grand rayon (fileté)",
@@ -1046,7 +1037,6 @@
       "returnBend180Threaded": "Coude de retour 180° (fileté)",
       "returnBend180Flanged": "Coude de retour 180° (bridé)",
       "ubend180": "Coude en U 180°",
-
       "teeFlangedDividingLineFlow": "Té (flux en ligne, bridé)",
       "teeThreadedDividingLineFlow": "Té (flux en ligne, fileté)",
       "teeFlangedDividingBranchFlow": "Té (flux en dérivation, bridé)",
@@ -1060,14 +1050,12 @@
       "crossBranchFlow": "Croix (flux en dérivation)",
       "wye45LineFlow": "Y 45° (flux en ligne)",
       "wye45BranchFlow": "Y 45° (flux en dérivation)",
-
       "entranceSharpEdged": "Entrée à arête vive",
       "entranceProjecting": "Entrée saillante",
       "entranceRounded": "Entrée arrondie",
       "entranceBellmouth": "Entrée évasée (trompette)",
       "exitDischargeToTank": "Sortie (décharge dans un réservoir)",
       "exitRoundedAgainstBaffle": "Sortie arrondie contre déflecteur",
-
       "suddenContractionD2D1_080": "Contraction brusque (D₂/D₁=0.80)",
       "suddenContractionD2D1_050": "Contraction brusque (D₂/D₁=0.50)",
       "suddenContractionD2D1_020": "Contraction brusque (D₂/D₁=0.20)",
@@ -1075,18 +1063,15 @@
       "conicalContractionD2D1_050": "Contraction conique (D₂/D₁=0.50)",
       "conicalContractionD2D1_020": "Contraction conique (D₂/D₁=0.20)",
       "suddenContractionGeneral": "Contraction brusque (entrée à arête vive)",
-
       "suddenExpansionD2D1_080": "Expansion brusque (D₂/D₁=0.80)",
       "suddenExpansionD2D1_050": "Expansion brusque (D₂/D₁=0.50)",
       "suddenExpansionD2D1_020": "Expansion brusque (D₂/D₁=0.20)",
       "conicalExpansionD2D1_080": "Expansion conique (D₂/D₁=0.80)",
       "conicalExpansionD2D1_050": "Expansion conique (D₂/D₁=0.50)",
       "conicalExpansionD2D1_020": "Expansion conique (D₂/D₁=0.20)",
-
       "waterMeter": "Compteur d'eau",
       "orificeMeterSharpEdged": "Diaphragme (à arête vive)",
       "venturiMeter": "Tube de Venturi",
-
       "couplingUnionThreaded": "Raccord / Manchon (fileté)",
       "reducerEnlargerSudden": "Réducteur / Élargisseur brusque",
       "radiator": "Radiateur",
@@ -1106,16 +1091,16 @@
     "calculator": "Calculateur",
     "paramsSection": "PARAMÈTRES DE CONCEPTION",
     "energySection": "CONDITIONS D'ÉNERGIE",
-    "resultLabel": "Q",
+    "resultLabel": "Débit",
     "labels": {
       "L": "Longueur",
       "D": "Diamètre",
       "ks": "Rugosité",
       "nu": "Viscosité cinématique",
       "Km": "Pertes mineures",
-      "z1": "z1 (amont)",
-      "z2": "z2 (aval)",
-      "g": "g (gravité)"
+      "z1": "Cote amont",
+      "z2": "Cote aval",
+      "g": "Gravité"
     },
     "table": {
       "title": "TABLEAU DES ITÉRATIONS",
@@ -1154,7 +1139,6 @@
     "paramsSection": "PARAMÈTRES DE CONCEPTION",
     "energySection": "CONDITIONS D'ÉNERGIE",
     "resultLabel": "Diamètre de conception",
-
     "labels": {
       "L": "Longueur",
       "Ks": "Rugosité absolue",
@@ -1164,7 +1148,6 @@
       "Km": "Pertes mineures",
       "g": "Gravité"
     },
-
     "table": {
       "title": "TABLEAU DES ITÉRATIONS",
       "viewFull": "Voir",
@@ -1184,7 +1167,6 @@
         "Vp": "Vp [m/s]"
       }
     },
-
     "toasts": {
       "missingFields": "Champs obligatoires manquants",
       "noSolution": "Aucun diamètre approprié trouvé dans la liste commerciale",
@@ -1194,15 +1176,13 @@
       "saveError": "Erreur lors de l'enregistrement",
       "nothingToSave": "Effectuez d'abord un calcul"
     },
-
     "infoText": "Veuillez noter que ce processus itératif peut prendre quelques secondes, car il évalue plusieurs diamètres commerciaux jusqu'à atteindre la convergence. Ces critères de tolérance sont définis dans le code comme (tolérance de charge = 1e-5, tolérance de vitesse = 1e-3)"
   },
-
   "potenciaCalcHm": {
     "title": "Puissance - Conduite simple",
     "desc": "Calculer la charge totale et la puissance de pompage en tenant compte du frottement et des pertes mineures."
   },
-  "seriePotencia":{
+  "seriePotencia": {
     "title": "Puissance - Conduites en série",
     "desc": "Calcule la puissance requise par une pompe dans un système de conduites en série."
   },
@@ -1210,38 +1190,34 @@
     "calculator": "Calculateur",
     "title": "PUISSANCE CONDUITE SIMPLE",
     "saveToHistory": "Enregistrer dans l'historique",
-    "resultLabel": "P",
+    "resultLabel": "Puissance requise",
     "includePresiones": "Inclure les pressions aux points",
     "infoText": "Remplissez tous les paramètres et appuyez sur Calculer pour obtenir les résultats. Le facteur de frottement est résolu par la méthode de Newton-Raphson appliquée à l'équation implicite de Colebrook-White, avec une tolérance de convergence de 1e-20, veuillez noter que la convergence peut prendre du temps.",
     "resultsTitle": "RÉSULTATS",
-
     "sections": {
       "pipe": "PARAMÈTRES DE LA CONDUITE",
       "fluid": "FLUIDE ET SYSTÈME",
       "heights": "HAUTEURS",
       "pressures": "PRESSIONS"
     },
-
     "labels": {
-      "D": "Diamètre intérieur D",
-      "Q": "Débit volumétrique Q",
-      "ks": "Rugosité équivalente ks",
-      "nu": "Viscosité cinématique ν",
-      "L": "Longueur totale du système L",
-      "km": "Coefficient de perte mineure km",
-      "gamma": "Poids spécifique du fluide γ",
-      "eta": "Efficacité de la pompe η (0 – 1)",
-      "z1": "Hauteur de la lame d'eau inférieure z₁",
-      "z2": "Hauteur de la lame d'eau supérieure z₂",
-      "p1": "Pression au point inférieur p₁",
-      "p2": "Pression au point supérieur p₂"
+      "D": "Diamètre intérieur",
+      "Q": "Débit volumique",
+      "ks": "Rugosité équivalente",
+      "nu": "Viscosité cinématique",
+      "L": "Longueur totale du système",
+      "km": "Coefficient de perte mineure",
+      "gamma": "Poids spécifique du fluide",
+      "eta": "Rendement de la pompe",
+      "z1": "Hauteur de la nappe inférieure",
+      "z2": "Hauteur de la nappe supérieure",
+      "p1": "Pression au point inférieur",
+      "p2": "Pression au point supérieur"
     },
-
     "table": {
       "parameter": "Paramètre",
       "value": "Valeur"
     },
-
     "results": {
       "A": "Aire transversale A",
       "V": "Vitesse moyenne V",
@@ -1256,13 +1232,11 @@
       "Ph": "Puissance hydraulique Ph",
       "P": "Puissance de la pompe P"
     },
-
     "regimen": {
       "laminar": "LAMINAIRE",
       "transicion": "TRANSITION",
       "turbulento": "TURBULENT"
     },
-
     "toasts": {
       "missingFields": "Remplissez tous les champs requis.",
       "invalidValues": "Vérifiez que les valeurs sont physiquement valides.",
@@ -1279,7 +1253,7 @@
     "infoText": "Veuillez noter que ce processus itératif peut prendre quelques secondes selon le nombre de tronçons. L'algorithme ajuste proportionnellement les pertes par frottement à chaque itération jusqu'à ce que la somme des pertes totales converge vers la charge disponible (ΔH = H1 − H2). Les paramètres de convergence sont définis dans le code comme tolérance = 1e-6 m et maximum de 200 itérations.",
     "calculator": "Calculateur",
     "title": "VÉRIFICATION CONDUITES EN SÉRIE",
-    "resultLabel": "Q entrée (m³/s)",
+    "resultLabel": "Débit d’entrée",
     "globalParams": "Paramètres globaux",
     "convergenceParams": "Paramètres de convergence",
     "tramosSection": "Tronçons",
@@ -1288,17 +1262,17 @@
     "iterations": "itérations",
     "notConverged": "Pas de convergence",
     "labels": {
-      "nu": "Viscosité cinématique ν",
-      "H1": "Charge piézométrique amont H1",
-      "H2": "Charge piézométrique aval H2",
+      "nu": "Viscosité cinématique",
+      "H1": "Charge piézométrique amont",
+      "H2": "Charge piézométrique aval",
       "TOL": "Tolérance [m]",
       "MAX_ITER": "Max. itérations",
-      "D": "Diamètre D",
-      "L": "Longueur L",
-      "Km": "Coeff. pertes mineures Km",
-      "ks": "Rugosité absolue ks",
-      "q_lat": "Extraction latérale q_lat",
-      "Q_entrada": "Q entrée (tronçon 1)"
+      "D": "Diamètre",
+      "L": "Longueur",
+      "Km": "Coef. pertes mineures",
+      "ks": "Rugosité absolue",
+      "q_lat": "Prélèvement latéral",
+      "Q_entrada": "Débit d’entrée"
     },
     "table": {
       "summaryTitle": "Résumé final",
@@ -1338,19 +1312,19 @@
   "compParaleloCalc": {
     "calculator": "Calculateur",
     "title": "VÉRIFICATION CONDUITES EN PARALLÈLE",
-    "resultLabel": "Q total [m³/s]",
+    "resultLabel": "Débit total",
     "globalParams": "Paramètres globaux",
     "ramalesSection": "Branches",
     "ramalTitle": "Branche",
     "labels": {
-      "nu": "Viscosité cinématique ν",
-      "H1": "Charge piézométrique amont H1",
-      "H2": "Charge piézométrique aval H2",
-      "D": "Diamètre D",
-      "L": "Longueur L",
-      "Km": "Coeff. pertes mineures Km",
-      "ks": "Rugosité absolue ks",
-      "Q_total": "Q total (système)"
+      "nu": "Viscosité cinématique",
+      "H1": "Charge piézométrique amont",
+      "H2": "Charge piézométrique aval",
+      "D": "Diamètre",
+      "L": "Longueur",
+      "Km": "Coef. pertes mineures",
+      "ks": "Rugosité absolue",
+      "Q_total": "Débit total du système"
     },
     "table": {
       "summaryTitle": "Résumé final",
@@ -1394,18 +1368,18 @@
     "globalParams": "Paramètres globaux",
     "tramosSection": "Tronçons",
     "tramoTitle": "Tronçon",
-    "resultLabel": "Puissance requise [kW]",
+    "resultLabel": "Puissance requise",
     "infoText": "Entrez les paramètres globaux et les données de chaque tronçon pour calculer la hauteur manométrique requise et la puissance de la pompe dans un système de conduites en série.",
     "labels": {
-      "eficiencia": "Efficacité η [%]",
-      "densidad": "Densité ρ",
-      "viscosidad": "Viscosité dynamique μ",
-      "cabeza": "Hauteur manométrique totale H",
-      "D": "Diamètre D",
-      "L": "Longueur L",
-      "ks": "Rugosité absolue ks",
-      "Km": "Coeff. pertes mineures Km",
-      "Q": "Débit Q"
+      "eficiencia": "Rendement",
+      "densidad": "Densité",
+      "viscosidad": "Viscosité dynamique",
+      "cabeza": "Charge totale",
+      "D": "Diamètre",
+      "L": "Longueur",
+      "ks": "Rugosité absolue",
+      "Km": "Coef. pertes mineures",
+      "Q": "Débit"
     },
     "balance": {
       "Qentrada": "Débit d'entrée Q :",
@@ -1446,17 +1420,17 @@
     "globalParams": "Paramètres globaux",
     "tramosSection": "Conduites",
     "tramoTitle": "Conduite",
-    "resultLabel": "Puissance requise [kW]",
+    "resultLabel": "Puissance requise",
     "infoText": "Entrez les paramètres globaux et les données de chaque conduite pour calculer la distribution des débits et la puissance dans un système de conduites en parallèle.",
     "labels": {
-      "H_presion": "Hauteur manométrique totale H",
-      "rho": "Densité ρ",
-      "nu": "Viscosité cinématique ν",
-      "Q_total": "Débit total Q",
-      "D": "Diamètre D",
-      "L": "Longueur L",
-      "ks": "Rugosité absolue ks",
-      "Km": "Coeff. pertes mineures Km"
+      "H_presion": "Charge totale",
+      "rho": "Densité",
+      "nu": "Viscosité cinématique",
+      "Q_total": "Débit total",
+      "D": "Diamètre",
+      "L": "Longueur",
+      "ks": "Rugosité absolue",
+      "Km": "Coef. pertes mineures"
     },
     "balance": {
       "Hmetros": "Hauteur hydraulique H :",

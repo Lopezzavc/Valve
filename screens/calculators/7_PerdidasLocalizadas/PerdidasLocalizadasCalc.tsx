@@ -137,6 +137,8 @@ const getDotColor = (hasValue: boolean, isInvalid: boolean): string => {
 };
 
 // ─── Main component ───────────────────────────────────────────────────────────
+const withSymbol = (label: string, symbol: string): string => `${label} (${symbol})`;
+
 const PerdidasLocalizadasCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber } = useContext(PrecisionDecimalContext);
@@ -1037,7 +1039,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
 
           {/* K */}
           {renderSimpleInput(
-            t('perdidasLocalizadasCalc.labels.K') || 'K',
+            withSymbol(t('perdidasLocalizadasCalc.labels.K') || 'Coeficiente de pérdida', 'K'),
             acc.K,
             `accessory-${acc.id}-K`,
             (text) => updateAccessory(acc.id, { K: text })
@@ -1046,7 +1048,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
           {/* f – equivalent mode per-accessory */}
           {state.mode === 'equivalent' &&
             renderSimpleInput(
-              t('perdidasLocalizadasCalc.labels.f') || 'f (factor de fricción)',
+              withSymbol(t('perdidasLocalizadasCalc.labels.f') || 'Factor de fricción', 'f'),
               acc.f,
               `accessory-${acc.id}-f`,
               (text) => updateAccessory(acc.id, { f: text })
@@ -1055,7 +1057,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
           {/* D – equivalent mode per-accessory */}
           {state.mode === 'equivalent' &&
             renderInputWithUnit(
-              t('perdidasLocalizadasCalc.labels.D') || 'D (diámetro)',
+              withSymbol(t('perdidasLocalizadasCalc.labels.D') || 'Diámetro', 'D'),
               acc.D,
               acc.DUnit,
               'length',
@@ -1073,7 +1075,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
 
           {/* V */}
           {renderInputWithUnit(
-            t('perdidasLocalizadasCalc.labels.V') || 'V',
+            withSymbol(t('perdidasLocalizadasCalc.labels.V') || 'Velocidad', 'V'),
             acc.V,
             acc.VUnit,
             'velocity',
@@ -1091,7 +1093,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
 
           {/* g */}
           {renderInputWithUnit(
-            t('perdidasLocalizadasCalc.labels.g') || 'g',
+            withSymbol(t('perdidasLocalizadasCalc.labels.g') || 'Gravedad', 'g'),
             acc.g,
             acc.gUnit,
             'acceleration',

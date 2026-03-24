@@ -426,6 +426,8 @@ const getDotColor = (hasUserValue: boolean, isInvalid: boolean, isAutoCalculated
   return 'rgb(200,200,200)';
 };
 
+const withSymbol = (label: string, symbol: string): string => `${label} (${symbol})`;
+
 const GeometriaSeccionesCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber } = useContext(PrecisionDecimalContext);
@@ -612,38 +614,38 @@ const GeometriaSeccionesCalc: React.FC = () => {
     switch (state.sectionType) {
       case 'circular-llena':
       case 'circular-parcial':
-        fields.push({ id: 'diametro', label: t('geometriaSeccionesCalc.labels.diametro'), unit: state.diametroUnit, category: 'length' });
+        fields.push({ id: 'diametro', label: withSymbol(t('geometriaSeccionesCalc.labels.diametro') || 'Diámetro', 'D'), unit: state.diametroUnit, category: 'length' });
         if (state.sectionType === 'circular-parcial') {
-          fields.push({ id: 'tirante', label: t('geometriaSeccionesCalc.labels.tirante'), unit: state.tiranteUnit, category: 'length' });
+          fields.push({ id: 'tirante', label: withSymbol(t('geometriaSeccionesCalc.labels.tirante') || 'Tirante', 'y'), unit: state.tiranteUnit, category: 'length' });
         }
         break;
       case 'rectangular':
-        fields.push({ id: 'base', label: t('geometriaSeccionesCalc.labels.base'), unit: state.baseUnit, category: 'length' });
-        fields.push({ id: 'tirante', label: t('geometriaSeccionesCalc.labels.tirante'), unit: state.tiranteUnit, category: 'length' });
+        fields.push({ id: 'base', label: withSymbol(t('geometriaSeccionesCalc.labels.base') || 'Base', 'b'), unit: state.baseUnit, category: 'length' });
+        fields.push({ id: 'tirante', label: withSymbol(t('geometriaSeccionesCalc.labels.tirante') || 'Tirante', 'y'), unit: state.tiranteUnit, category: 'length' });
         break;
       case 'trapezoidal':
-        fields.push({ id: 'base', label: t('geometriaSeccionesCalc.labels.base'), unit: state.baseUnit, category: 'length' });
-        fields.push({ id: 'tirante', label: t('geometriaSeccionesCalc.labels.tirante'), unit: state.tiranteUnit, category: 'length' });
-        fields.push({ id: 'talud', label: t('geometriaSeccionesCalc.labels.talud'), unit: '', category: 'length' }); // talud es adimensional
+        fields.push({ id: 'base', label: withSymbol(t('geometriaSeccionesCalc.labels.base') || 'Base', 'b'), unit: state.baseUnit, category: 'length' });
+        fields.push({ id: 'tirante', label: withSymbol(t('geometriaSeccionesCalc.labels.tirante') || 'Tirante', 'y'), unit: state.tiranteUnit, category: 'length' });
+        fields.push({ id: 'talud', label: withSymbol(t('geometriaSeccionesCalc.labels.talud') || 'Talud', 'z'), unit: '', category: 'length' }); // talud es adimensional
         break;
       case 'triangular':
-        fields.push({ id: 'tirante', label: t('geometriaSeccionesCalc.labels.tirante'), unit: state.tiranteUnit, category: 'length' });
-        fields.push({ id: 'talud', label: t('geometriaSeccionesCalc.labels.talud'), unit: '', category: 'length' });
+        fields.push({ id: 'tirante', label: withSymbol(t('geometriaSeccionesCalc.labels.tirante') || 'Tirante', 'y'), unit: state.tiranteUnit, category: 'length' });
+        fields.push({ id: 'talud', label: withSymbol(t('geometriaSeccionesCalc.labels.talud') || 'Talud', 'z'), unit: '', category: 'length' });
         break;
       case 'parabolico':
-        fields.push({ id: 'tirante', label: t('geometriaSeccionesCalc.labels.tirante'), unit: state.tiranteUnit, category: 'length' });
-        fields.push({ id: 'K', label: t('geometriaSeccionesCalc.labels.K'), unit: state.KUnit, category: 'length' });
+        fields.push({ id: 'tirante', label: withSymbol(t('geometriaSeccionesCalc.labels.tirante') || 'Tirante', 'y'), unit: state.tiranteUnit, category: 'length' });
+        fields.push({ id: 'K', label: withSymbol(t('geometriaSeccionesCalc.labels.K') || 'Parámetro de forma', 'K'), unit: state.KUnit, category: 'length' });
         break;
     }
     return fields;
   }, [state.sectionType, state.diametroUnit, state.tiranteUnit, state.baseUnit, state.KUnit, t]);
 
   const getResultFields = useCallback((): { id: string; label: string; unit: string; category: 'area' | 'length' }[] => [
-    { id: 'A', label: t('geometriaSeccionesCalc.labels.A'), unit: state.AUnit, category: 'area' },
-    { id: 'P', label: t('geometriaSeccionesCalc.labels.P'), unit: state.PUnit, category: 'length' },
-    { id: 'R', label: t('geometriaSeccionesCalc.labels.R'), unit: state.RUnit, category: 'length' },
-    { id: 'T', label: t('geometriaSeccionesCalc.labels.T'), unit: state.TUnit, category: 'length' },
-    { id: 'Dh', label: t('geometriaSeccionesCalc.labels.Dh'), unit: state.DhUnit, category: 'length' },
+    { id: 'A', label: withSymbol(t('geometriaSeccionesCalc.labels.A') || 'Área', 'A'), unit: state.AUnit, category: 'area' },
+    { id: 'P', label: withSymbol(t('geometriaSeccionesCalc.labels.P') || 'Perímetro', 'P'), unit: state.PUnit, category: 'length' },
+    { id: 'R', label: withSymbol(t('geometriaSeccionesCalc.labels.R') || 'Radio hidráulico', 'R'), unit: state.RUnit, category: 'length' },
+    { id: 'T', label: withSymbol(t('geometriaSeccionesCalc.labels.T') || 'Ancho superficial', 'T'), unit: state.TUnit, category: 'length' },
+    { id: 'Dh', label: withSymbol(t('geometriaSeccionesCalc.labels.Dh') || 'Profundidad hidráulica', 'Dʰ'), unit: state.DhUnit, category: 'length' },
   ], [state.AUnit, state.PUnit, state.RUnit, state.TUnit, state.DhUnit, t]);
 
   const getAllFields = useCallback(() => {
@@ -1469,7 +1471,7 @@ const GeometriaSeccionesCalc: React.FC = () => {
       const unit = state.unknownVariable.unit ? ` (${state.unknownVariable.unit})` : '';
       return `${state.unknownVariable.label} ${unit}`;
     }
-    return t('geometriaSeccionesCalc.result');
+    return withSymbol(t('geometriaSeccionesCalc.result') || 'Radio hidráulico', 'R');
   }, [state.unknownVariable, t]);
 
   const getMainResultValue = useCallback(() => {

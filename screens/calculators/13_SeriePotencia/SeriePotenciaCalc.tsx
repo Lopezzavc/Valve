@@ -295,6 +295,8 @@ const initialState = (): CalculatorState => ({
 });
 
 // ─── Main component ───────────────────────────────────────────────────────────
+const withSymbol = (label: string, symbol: string): string => `${label} (${symbol})`;
+
 const SeriePotenciaCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber }            = useContext(PrecisionDecimalContext);
@@ -831,7 +833,7 @@ const SeriePotenciaCalc: React.FC = () => {
           {/* D — Diámetro */}
           {renderInputWithUnit(
             `tramo-${tramo.id}-D`,
-            t('seriePotenciaCalc.labels.D'),
+            withSymbol(t('seriePotenciaCalc.labels.D') || 'Diámetro', 'D'),
             tramo.D,
             tramo.DUnit,
             'length',
@@ -845,7 +847,7 @@ const SeriePotenciaCalc: React.FC = () => {
           {/* L — Longitud */}
           {renderInputWithUnit(
             `tramo-${tramo.id}-L`,
-            t('seriePotenciaCalc.labels.L'),
+            withSymbol(t('seriePotenciaCalc.labels.L') || 'Longitud', 'L'),
             tramo.L,
             tramo.LUnit,
             'length',
@@ -859,7 +861,7 @@ const SeriePotenciaCalc: React.FC = () => {
           {/* ks — Rugosidad absoluta */}
           {renderInputWithUnit(
             `tramo-${tramo.id}-ks`,
-            t('seriePotenciaCalc.labels.ks'),
+            withSymbol(t('seriePotenciaCalc.labels.ks') || 'Rugosidad absoluta', 'kˢ'),
             tramo.ks,
             tramo.ksUnit,
             'length',
@@ -873,7 +875,7 @@ const SeriePotenciaCalc: React.FC = () => {
           {/* Km — Coeficiente de pérdidas menores */}
           {renderSimpleInput(
             `tramo-${tramo.id}-Km`,
-            t('seriePotenciaCalc.labels.Km'),
+            withSymbol(t('seriePotenciaCalc.labels.Km') || 'Coef. pérdidas menores', 'Kᵐ'),
             tramo.Km,
             text => updateTramo(tramo.id, { Km: text })
           )}
@@ -881,7 +883,7 @@ const SeriePotenciaCalc: React.FC = () => {
           {/* Q — Caudal del tramo */}
           {renderInputWithUnit(
             `tramo-${tramo.id}-Q`,
-            t('seriePotenciaCalc.labels.Q'),
+            withSymbol(t('seriePotenciaCalc.labels.Q') || 'Caudal', 'Q'),
             tramo.Q,
             tramo.QUnit,
             'flow',
@@ -1612,7 +1614,7 @@ const SeriePotenciaCalc: React.FC = () => {
                     >
                       {!hasResult
                         ? 'な'
-                        : t('seriePotenciaCalc.resultLabel')}
+                        : `${t('seriePotenciaCalc.resultLabel') || 'Potencia requerida'} (kW)`}
                     </Text>
                   </View>
                   <View style={styles.flowValueContainer}>
@@ -1724,7 +1726,7 @@ const SeriePotenciaCalc: React.FC = () => {
           {/* Eficiencia [%] */}
           {renderSimpleInput(
             'eficiencia',
-            t('seriePotenciaCalc.labels.eficiencia'),
+            withSymbol(t('seriePotenciaCalc.labels.eficiencia') || 'Eficiencia', 'η'),
             state.eficiencia,
             text =>
               setState(prev => ({ ...prev, eficiencia: text }))
@@ -1733,7 +1735,7 @@ const SeriePotenciaCalc: React.FC = () => {
           {/* Densidad */}
           {renderInputWithUnit(
             'densidad',
-            t('seriePotenciaCalc.labels.densidad'),
+            withSymbol(t('seriePotenciaCalc.labels.densidad') || 'Densidad', 'ρ'),
             state.densidad,
             state.densidadUnit,
             'density',
@@ -1756,7 +1758,7 @@ const SeriePotenciaCalc: React.FC = () => {
           {/* Viscosidad dinámica */}
           {renderInputWithUnit(
             'viscosidad',
-            t('seriePotenciaCalc.labels.viscosidad'),
+            withSymbol(t('seriePotenciaCalc.labels.viscosidad') || 'Viscosidad dinámica', 'μ'),
             state.viscosidad,
             state.viscosidadUnit,
             'dynamicViscosity',
@@ -1779,7 +1781,7 @@ const SeriePotenciaCalc: React.FC = () => {
           {/* Cabeza total */}
           {renderInputWithUnit(
             'cabeza',
-            t('seriePotenciaCalc.labels.cabeza'),
+            withSymbol(t('seriePotenciaCalc.labels.cabeza') || 'Cabeza total', 'H'),
             state.cabeza,
             state.cabezaUnit,
             'length',

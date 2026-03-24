@@ -42,7 +42,7 @@ const InfoScreen = () => {
           </View>
         </View>
         <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Beta 26M03.17.01 [Build IDK]</Text>
+          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Beta 26M03.23.02 [Build IDK_F]</Text>
         </View>
         <View style={{ height: 150 }} />
       </ScrollView>
@@ -51,22 +51,23 @@ const InfoScreen = () => {
           <Text style={styles.boldText}>データ</Text>
         </Text>
 
-        <View style={styles.separation}/>      
-        
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
-          <Text style={styles.boldText}>{t('infoScreen.creadoPor')}</Text>
-        </Text>
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Andrés Felipe López</Text>
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Vanesa Alejandra Martínez</Text>
-
         <View style={styles.separation}/>
 
         <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
           <Text style={styles.boldText}>VALVE Mobile App</Text>
         </Text>
         <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
-          Andrés Felipe López <Text style={styles.boldText}>App Developer</Text>
+          Andrés Felipe López <Text style={styles.boldText}>Main App Developer 一 UI/UX Designer</Text>
         </Text>
+
+        <View style={styles.separation}/>
+
+        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
+          <Text style={styles.boldText}>{t('infoScreen.creadoPor')}</Text>
+        </Text>
+        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Andrés Felipe López</Text>
+        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Vanesa Alejandra Martínez</Text>
+
         <View style={styles.separation}/>
       </View>
     </View>

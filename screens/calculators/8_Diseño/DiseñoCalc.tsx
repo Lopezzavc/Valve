@@ -145,20 +145,20 @@ interface CalculatorState {
 }
 
 const initialState = (): CalculatorState => ({
-  L: '150',
+  L: '',
   LUnit: 'm',
-  D: '200e-3',
+  D: '',
   DUnit: 'm',
-  ks: '0.0015e-3',
+  ks: '',
   ksUnit: 'm',
-  nu: '1e-6',
+  nu: '',
   nuUnit: 'm²/s',
-  Km: '2.12',
-  z1: '25',
+  Km: '',
+  z1: '',
   z1Unit: 'm',
-  z2: '10',
+  z2: '',
   z2Unit: 'm',
-  g: '9.81',
+  g: '9.807',
   gUnit: 'm/s²',
   invalidFields: [],
   resultQ: 0,
@@ -1246,7 +1246,7 @@ const DiseñoCalc: React.FC = () => {
           {/* L */}
           {renderInputWithUnit(
             'L',
-            `${t('diseñoCalc.labels.L') || 'Longitud'} L`,  // ← AGREGAR " L" al final
+            `${t('diseñoCalc.labels.L') || 'Longitud'} (L)`,
             state.L,
             state.LUnit,
             'length',
@@ -1260,7 +1260,7 @@ const DiseñoCalc: React.FC = () => {
           {/* D */}
           {renderInputWithUnit(
             'D',
-            `${t('diseñoCalc.labels.D') || 'Diámetro'} D`,  // ← AGREGAR " D" al final
+            `${t('diseñoCalc.labels.D') || 'Diámetro'} (D)`,
             state.D,
             state.DUnit,
             'length',
@@ -1274,7 +1274,7 @@ const DiseñoCalc: React.FC = () => {
           {/* ks */}
           {renderInputWithUnit(
             'ks',
-            `${t('diseñoCalc.labels.ks') || 'Rugosidad'} ks`,  // ← AGREGAR " ks" al final
+            `${t('diseñoCalc.labels.ks') || 'Rugosidad'} (kˢ)`,
             state.ks,
             state.ksUnit,
             'length',
@@ -1288,7 +1288,7 @@ const DiseñoCalc: React.FC = () => {
           {/* nu */}
           {renderInputWithUnit(
             'nu',
-            `${t('diseñoCalc.labels.nu') || 'Viscosidad cinemática'} ν`,  // ← AGREGAR " ν" al final (nu griega)
+            `${t('diseñoCalc.labels.nu') || 'Viscosidad cinemática'} (ν)`,
             state.nu,
             state.nuUnit,
             'viscosity',
@@ -1302,7 +1302,7 @@ const DiseñoCalc: React.FC = () => {
           {/* Km – dimensionless */}
           {renderSimpleInput(
             'Km',
-            `${t('diseñoCalc.labels.Km') || 'Pérdidas menores'} Km`,  // ← AGREGAR " Km" al final
+            `${t('diseñoCalc.labels.Km') || 'Pérdidas menores'} (Kᵐ)`,
             state.Km,
             (text) => setState(prev => ({ ...prev, Km: text }))
           )}
@@ -1316,7 +1316,7 @@ const DiseñoCalc: React.FC = () => {
           {/* z1 */}
           {renderInputWithUnit(
             'z1',
-            `${t('diseñoCalc.labels.z1') || 'z1 (aguas arriba)'} z₁`,  // ← AGREGAR " z₁" al final (usar subíndice)
+            `${t('diseñoCalc.labels.z1') || 'Cota aguas arriba'} (z₁)`,
             state.z1,
             state.z1Unit,
             'length',
@@ -1330,7 +1330,7 @@ const DiseñoCalc: React.FC = () => {
           {/* z2 */}
           {renderInputWithUnit(
             'z2',
-            `${t('diseñoCalc.labels.z2') || 'z2 (aguas abajo)'} z₂`,  // ← AGREGAR " z₂" al final (usar subíndice)
+            `${t('diseñoCalc.labels.z2') || 'Cota aguas abajo'} (z₂)`,
             state.z2,
             state.z2Unit,
             'length',
@@ -1344,7 +1344,7 @@ const DiseñoCalc: React.FC = () => {
           {/* g */}
           {renderInputWithUnit(
             'g',
-            `${t('diseñoCalc.labels.g') || 'g (gravedad)'} g`,  // ← AGREGAR " g" al final
+            `${t('diseñoCalc.labels.g') || 'Gravedad'} (g)`,
             state.g,
             state.gUnit,
             'acceleration',

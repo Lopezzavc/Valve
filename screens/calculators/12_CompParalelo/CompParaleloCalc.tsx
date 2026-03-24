@@ -311,6 +311,8 @@ const initialState = (): CalculatorState => ({
 });
 
 // ─── Main component ───────────────────────────────────────────────────────────
+const withSymbol = (label: string, symbol: string): string => `${label} (${symbol})`;
+
 const CompParaleloCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber }            = useContext(PrecisionDecimalContext);
@@ -687,7 +689,7 @@ const CompParaleloCalc: React.FC = () => {
           {/* D */}
           {renderInputWithUnit(
             `ramal-${ramal.id}-D`,
-            t('compParaleloCalc.labels.D') || 'Diámetro D',
+            withSymbol(t('compParaleloCalc.labels.D') || 'Diámetro', 'D'),
             ramal.D, ramal.DUnit, 'length',
             text => updateRamal(ramal.id, { D: text }),
             (newUnit, oldUnit) => {
@@ -699,7 +701,7 @@ const CompParaleloCalc: React.FC = () => {
           {/* L */}
           {renderInputWithUnit(
             `ramal-${ramal.id}-L`,
-            t('compParaleloCalc.labels.L') || 'Longitud L',
+            withSymbol(t('compParaleloCalc.labels.L') || 'Longitud', 'L'),
             ramal.L, ramal.LUnit, 'length',
             text => updateRamal(ramal.id, { L: text }),
             (newUnit, oldUnit) => {
@@ -711,7 +713,7 @@ const CompParaleloCalc: React.FC = () => {
           {/* Km */}
           {renderSimpleInput(
             `ramal-${ramal.id}-Km`,
-            t('compParaleloCalc.labels.Km') || 'Km',
+            withSymbol(t('compParaleloCalc.labels.Km') || 'Coef. pérdidas menores', 'Kᵐ'),
             ramal.Km,
             text => updateRamal(ramal.id, { Km: text })
           )}
@@ -719,7 +721,7 @@ const CompParaleloCalc: React.FC = () => {
           {/* ks */}
           {renderInputWithUnit(
             `ramal-${ramal.id}-ks`,
-            t('compParaleloCalc.labels.ks') || 'Rugosidad ks',
+            withSymbol(t('compParaleloCalc.labels.ks') || 'Rugosidad absoluta', 'kˢ'),
             ramal.ks, ramal.ksUnit, 'length',
             text => updateRamal(ramal.id, { ks: text }),
             (newUnit, oldUnit) => {
@@ -1342,7 +1344,7 @@ const CompParaleloCalc: React.FC = () => {
                   )}
                   <View style={styles.caudalLabel}>
                     <Text style={[styles.flowLabel, { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 16 * fontSizeFactor }]}>
-                      {!hasResult ? 'な' : t('compParaleloCalc.resultLabel') || 'Q total [m³/s]'}
+                      {!hasResult ? 'な' : `${t('compParaleloCalc.resultLabel') || 'Caudal total'} (m³/s)`}
                     </Text>
                   </View>
                   <View style={styles.flowValueContainer}>
@@ -1391,7 +1393,7 @@ const CompParaleloCalc: React.FC = () => {
 
           {renderInputWithUnit(
             'nu',
-            t('compParaleloCalc.labels.nu') || 'Viscosidad cinemática ν',
+            withSymbol(t('compParaleloCalc.labels.nu') || 'Viscosidad cinemática', 'ν'),
             state.nu, state.nuUnit, 'viscosity',
             text => setState(prev => ({ ...prev, nu: text })),
             (newUnit, oldUnit) => {
@@ -1402,7 +1404,7 @@ const CompParaleloCalc: React.FC = () => {
 
           {renderInputWithUnit(
             'H1',
-            t('compParaleloCalc.labels.H1') || 'Carga piezométrica aguas arriba H1',
+            withSymbol(t('compParaleloCalc.labels.H1') || 'Carga piezométrica aguas arriba', 'H₁'),
             state.H1, state.H1Unit, 'length',
             text => setState(prev => ({ ...prev, H1: text })),
             (newUnit, oldUnit) => {
@@ -1413,7 +1415,7 @@ const CompParaleloCalc: React.FC = () => {
 
           {renderInputWithUnit(
             'H2',
-            t('compParaleloCalc.labels.H2') || 'Carga piezométrica aguas abajo H2',
+            withSymbol(t('compParaleloCalc.labels.H2') || 'Carga piezométrica aguas abajo', 'H₂'),
             state.H2, state.H2Unit, 'length',
             text => setState(prev => ({ ...prev, H2: text })),
             (newUnit, oldUnit) => {

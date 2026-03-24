@@ -190,6 +190,8 @@ const getDotColor = (
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
+const withSymbol = (label: string, symbol: string): string => `${label} (${symbol})`;
+
 const FactorFriccionCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { formatNumber } = useContext(PrecisionDecimalContext);
@@ -1321,7 +1323,7 @@ const FactorFriccionCalc: React.FC = () => {
             val => setState(prev => ({ ...prev, isManualEditRe: val })),
             'Re',
             undefined,
-            t('factorFriccionCalc.labels.Re') || 'Número de Reynolds (Re)',
+            withSymbol(t('factorFriccionCalc.labels.Re') || 'Número de Reynolds', 'Re'),
             undefined,
             true // no unit
           )}
@@ -1347,7 +1349,7 @@ const FactorFriccionCalc: React.FC = () => {
               val => setState(prev => ({ ...prev, isManualEditEpsilon: val })),
               'epsilon',
               undefined,
-              t('factorFriccionCalc.labels.epsilon') || 'Rugosidad absoluta (ε)',
+              withSymbol(t('factorFriccionCalc.labels.epsilon') || 'Rugosidad absoluta', 'ε'),
               state.epsilonUnit
             )}
 
@@ -1359,7 +1361,7 @@ const FactorFriccionCalc: React.FC = () => {
               val => setState(prev => ({ ...prev, isManualEditDiameter: val })),
               'diameter',
               undefined,
-              t('factorFriccionCalc.labels.diameter') || 'Diámetro (D)',
+              withSymbol(t('factorFriccionCalc.labels.diameter') || 'Diámetro', 'D'),
               state.diameterUnit
             )}
 
@@ -1375,7 +1377,7 @@ const FactorFriccionCalc: React.FC = () => {
                 })),
               'epsilonOverD',
               autoCalcEoDResult,
-              t('factorFriccionCalc.labels.epsilonOverD') || 'Rugosidad relativa (ε/D)',
+              withSymbol(t('factorFriccionCalc.labels.epsilonOverD') || 'Rugosidad relativa', 'ε/D'),
               undefined,
               true // no unit
             )}
@@ -1546,7 +1548,7 @@ const FactorFriccionCalc: React.FC = () => {
                       ]}
                     >
                       {state.resultPrincipal
-                        ? t('factorFriccionCalc.frictionFactor') || 'f'
+                        ? withSymbol(t('factorFriccionCalc.frictionFactor') || 'Factor de fricción', 'f')
                         : 'な'}
                     </Text>
                   </View>

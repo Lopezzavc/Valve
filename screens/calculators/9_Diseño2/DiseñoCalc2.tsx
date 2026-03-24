@@ -1253,7 +1253,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* L — Pipe length */}
           {renderInputWithUnit(
             'L',
-            `${t('diseñoCalc2.labels.L') || 'Longitud'} L`,  // ← AGREGAR " L" al final
+            `${t('diseñoCalc2.labels.L') || 'Longitud'} (L)`,
             state.L,
             state.LUnit,
             'length',
@@ -1267,7 +1267,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* Ks — Absolute roughness */}
           {renderInputWithUnit(
             'Ks',
-            `${t('diseñoCalc2.labels.Ks') || 'Rugosidad absoluta'} Ks`,  // ← AGREGAR " Ks" al final
+            `${t('diseñoCalc2.labels.Ks') || 'Rugosidad absoluta'} (Kˢ)`,
             state.Ks,
             state.KsUnit,
             'length',
@@ -1281,7 +1281,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* Qd — Design flow rate */}
           {renderInputWithUnit(
             'Qd',
-            `${t('diseñoCalc2.labels.Qd') || 'Caudal de diseño'} Qd`,  // ← AGREGAR " Qd" al final
+            `${t('diseñoCalc2.labels.Qd') || 'Caudal de diseño'} (Qᵈ)`,
             state.Qd,
             state.QdUnit,
             'flow',
@@ -1295,7 +1295,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* mu — Kinematic viscosity */}
           {renderInputWithUnit(
             'mu',
-            `${t('diseñoCalc2.labels.mu') || 'Viscosidad cinemática'} μ`,  // ← AGREGAR " μ" al final (nota: es mu griega)
+            `${t('diseñoCalc2.labels.mu') || 'Viscosidad cinemática'} (ν)`,
             state.mu,
             state.muUnit,
             'viscosity',
@@ -1315,7 +1315,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* H — Total available head */}
           {renderInputWithUnit(
             'H',
-            `${t('diseñoCalc2.labels.H') || 'Carga disponible'} H`,  // ← AGREGAR " H" al final
+            `${t('diseñoCalc2.labels.H') || 'Carga disponible'} (H)`,
             state.H,
             state.HUnit,
             'length',
@@ -1329,7 +1329,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* Km — Minor loss coefficient */}
           {renderSimpleInput(
             'Km',
-            `${t('diseñoCalc2.labels.Km') || 'Pérdidas menores'} Km`,  // ← AGREGAR " Km" al final
+            `${t('diseñoCalc2.labels.Km') || 'Pérdidas menores'} (Kᵐ)`,
             state.Km,
             (text) => setState(prev => ({ ...prev, Km: text }))
           )}
@@ -1337,7 +1337,7 @@ const DiseñoCalc2: React.FC = () => {
           {/* g — Gravity */}
           {renderInputWithUnit(
             'g',
-            `${t('diseñoCalc2.labels.g') || 'g (gravedad)'} g`,  // ← AGREGAR " g" al final
+            `${t('diseñoCalc2.labels.g') || 'Gravedad'} (g)`,
             state.g,
             state.gUnit,
             'acceleration',

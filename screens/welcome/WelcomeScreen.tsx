@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Pressable, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -11,11 +11,7 @@ type WelcomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Welc
 
 const WelcomeScreen = () => {
   const navigation = useNavigation<WelcomeScreenNavigationProp>();
-  const { t, selectedLanguage } = useContext(LanguageContext);
-
-  const handleNavigatetoMainTabs = () => {
-    navigation.navigate('ThemeInitialConfig');
-  };
+  const { t } = useContext(LanguageContext);
 
   const handleStart = async () => {
     try {
@@ -45,8 +41,13 @@ const WelcomeScreen = () => {
       <View style={styles.overlay}>
         <View style={styles.safeArea}>
           <View style={styles.container}>
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>VALVE</Text>
+            <View style={styles.titleRow}>
+              <View style={styles.titleContainer}>
+                <Text style={styles.title}>VALVE</Text>
+              </View>
+              <View style={styles.titleYearContainer}>
+                <Text style={styles.titleYear}>2026</Text>
+              </View>
             </View>
             <View style={styles.subtitleContainer}>
               <Text style={styles.subtitle}>
@@ -54,34 +55,24 @@ const WelcomeScreen = () => {
               </Text>
             </View>
             <View style={styles.buttonContainer}>
-              <Pressable onPress={handleNavigatetoMainTabs}>
-                <Pressable onPress={handleStart}>
-                  <View style={styles.RedBackgroundSquare} />
-                  <MaskedView
-                    style={styles.maskedView}
-                    maskElement={
-                      <View style={styles.TransparentSquare} />
-                    }
-                  >
-                    <View style={styles.RedSquare} />
-                  </MaskedView>
-                  <View style={styles.transparentSquare2}>
-                    <Text style={styles.centeredText}>Comenzar</Text>
-                  </View>
-                  <View style={styles.transparentSquare3}>
-                    <Text style={{
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontSize: 18,
-                      textAlign: 'center',
-                      textAlignVertical: 'center',
-                      flex: 1,
-                      fontFamily: 'SFUIDisplay-Medium',
-                      filter: 'blur(4px)'
-                    }}>
-                      Comenzar
-                    </Text>
-                  </View>
-                </Pressable>
+              <Pressable onPress={handleStart}>
+                <View style={styles.RedBackgroundSquare} />
+                <MaskedView
+                  style={styles.maskedView}
+                  maskElement={
+                    <View style={styles.TransparentSquare} />
+                  }
+                >
+                  <View style={styles.RedSquare} />
+                </MaskedView>
+                <View style={styles.transparentSquare2}>
+                  <Text style={styles.centeredText}>Comenzar</Text>
+                </View>
+                <View style={styles.transparentSquare3}>
+                  <Text style={styles.centeredTextBlurred}>
+                    Comenzar
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -115,16 +106,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
-  titleContainer: {
+  titleRow: {
+    flexDirection: 'row',
+    alignSelf: 'flex-start',
     marginBottom: -15,
     backgroundColor: 'transparent',
-    alignSelf: 'flex-start',
+  },
+  titleContainer: {
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 60,
     fontFamily: 'SFUIDisplay-Bold',
     color: 'rgb(255, 255, 255)',
     textAlign: 'left',
+  },
+  titleYearContainer: {
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    paddingBottom: 30.5,
+    marginLeft: 5,
+  },
+  titleYear: {
+    fontSize: 20,
+    fontFamily: 'SFUIDisplay-Bold',
+    color: 'rgb(255, 255, 255)',
   },
   subtitleContainer: {
     marginTop: 10,
@@ -200,6 +207,15 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     flex: 1,
     fontFamily: 'SFUIDisplay-Medium',
+  },
+  centeredTextBlurred: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 18,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    flex: 1,
+    fontFamily: 'SFUIDisplay-Medium',
+    filter: 'blur(4px)',
   },
 });
 

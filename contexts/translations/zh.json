@@ -76,7 +76,6 @@
     "inputs": "输入"
   },
   "continuidadCalc": {
-    "infoText": "输入4个参数（A₁, v₁, A₂, v₂）中的3个来计算流量和未知变量。",
     "infoTextCaudal": "流量通过将横截面积乘以流体平均速度来计算。Q = A × v",
     "infoTextContinuidad": "连续性原理表明流量保持不变：A₁·v₁ = A₂·v₂。当截面发生变化时，速度会成反比调整。",
     "calculator": "计算器",
@@ -167,7 +166,7 @@
       "success": "历史记录已导出为 Excel",
       "error": "无法导出历史记录",
       "noHistory": "没有可导出的历史记录"
-  }
+    }
   },
   "theoryContinuity": {
     "subtitle": "什么是连续性方程？",
@@ -476,7 +475,11 @@
     "closedSystem": "封闭系统",
     "openSystem": "开放系统",
     "vaporPressure": "蒸汽压力",
-    "cavitationStatus": "汽蚀状态",
+    "cavitationStatus": {
+      "safe": "安全",
+      "lowMargin": "裕度低",
+      "risk": "存在汽蚀风险"
+    },
     "useRhoForGamma": "使用密度 (ρ)",
     "useTempForPv": "从温度计算 Pv",
     "title": "能量 / 伯努利",
@@ -549,11 +552,6 @@
       "gammaCalculated": "计算出的γ",
       "pvCalculated": "计算出的Pv"
     },
-    "cavitationStatus": {
-      "safe": "安全",
-      "lowMargin": "裕度低",
-      "risk": "存在汽蚀风险"
-    },
     "includeBomba": "包含泵",
     "includeTurbina": "包含涡轮",
     "toasts": {
@@ -570,8 +568,8 @@
   },
   "geometriaSeccionesCalc": {
     "calculator": "计算器",
-    "cardTitle1":"截面几何特性",
-    "cardDesc1":"计算不同类型截面的面积、湿周和水力半径。",
+    "cardTitle1": "截面几何特性",
+    "cardDesc1": "计算不同类型截面的面积、湿周和水力半径。",
     "title": "截面几何特性",
     "titlehistory": "截面几何特性",
     "y2": "水深 (y₂)",
@@ -610,7 +608,7 @@
       "tirante": "水深",
       "base": "底宽",
       "talud": "边坡系数",
-      "K": "K",
+      "K": "形状参数",
       "A": "面积",
       "P": "湿周",
       "R": "水力半径",
@@ -729,14 +727,6 @@
       "references": "参考文献"
     },
     "terms": {
-      "A": {
-        "title": "横截面积 (A)",
-        "description": "表示垂直于流体运动方向切割的几何截面的表面积。\n\n在流体力学的背景下，面积充当“漏斗”，限制或允许流动通过。其重要性在于它与速度成反比关系：在恒定流量下，横截面积的减小迫使流体质点加速，以便在相同的时间间隔内，相同质量的液体能够通过该截面。"
-      },
-      "V": {
-        "title": "流体速度 (V)",
-        "description": "定义了流体质点通过特定截面的平均速率。\n\n这不仅仅是速率的度量，而是系统动能的关键组成部分。根据不可压缩流体的连续性原理，速度是依赖于管道几何形状的变量；因此，管道中的任何收缩都会立即导致速度成比例增加，确保质量平衡保持不变。"
-      },
       "1": {
         "title": "截面 1 (入口)",
         "description": "标识入口点或上游截面处流体条件的下标。值 A₁ 和 V₁ 描述了流动的初始状态。"
@@ -744,6 +734,14 @@
       "2": {
         "title": "截面 2 (出口)",
         "description": "标识出口点或下游截面处流体条件的下标。值 A₂ 和 V₂ 描述了流动的最终状态。"
+      },
+      "A": {
+        "title": "横截面积 (A)",
+        "description": "表示垂直于流体运动方向切割的几何截面的表面积。\n\n在流体力学的背景下，面积充当“漏斗”，限制或允许流动通过。其重要性在于它与速度成反比关系：在恒定流量下，横截面积的减小迫使流体质点加速，以便在相同的时间间隔内，相同质量的液体能够通过该截面。"
+      },
+      "V": {
+        "title": "流体速度 (V)",
+        "description": "定义了流体质点通过特定截面的平均速率。\n\n这不仅仅是速率的度量，而是系统动能的关键组成部分。根据不可压缩流体的连续性原理，速度是依赖于管道几何形状的变量；因此，管道中的任何收缩都会立即导致速度成比例增加，确保质量平衡保持不变。"
       },
       "π": {
         "title": "圆周率 (π)",
@@ -875,7 +873,7 @@
     "titleHistory": "摩擦系数",
     "calculator": "计算器",
     "saveToHistory": "保存到历史记录",
-    "frictionFactor": "摩擦系数 (f)",
+    "frictionFactor": "摩阻系数",
     "equation": "方程",
     "roughnessSection": "相对粗糙度",
     "moodyDiagramHint": "正在打开穆迪图……",
@@ -885,10 +883,10 @@
     },
     "labels": {
       "equation": "方程",
-      "Re": "雷诺数 Re",
-      "epsilon": "绝对粗糙度 ε",
-      "diameter": "直径 D",
-      "epsilonOverD": "相对粗糙度 ε/D"
+      "Re": "雷诺数",
+      "epsilon": "绝对粗糙度",
+      "diameter": "直径",
+      "epsilonOverD": "相对粗糙度"
     },
     "equations": {
       "colebrook-white": "Colebrook-White (迭代数值法)",
@@ -946,37 +944,31 @@
     "title": "局部损失",
     "calculator": "计算器",
     "modec": "模式",
-
     "mode": {
       "normal": "标准",
       "equivalent": "等效长度",
       "advanced": "高级"
     },
-
     "globalParams": "全局参数",
     "accessories": "配件",
     "accessoryTitle": "配件",
     "addAccessory": "添加配件",
     "tableTitle": "结果表",
     "totalLoss": "总 hL (米)",
-
     "fittingType": "配件类型",
     "selectFitting": "选择配件...",
-
     "labels": {
-      "K": "损失系数 K",
-      "V": "速度 V",
-      "g": "重力加速度 g",
-      "D": "直径 D",
-      "f": "摩擦系数 f"
+      "K": "损失系数",
+      "V": "流速",
+      "g": "重力加速度",
+      "D": "直径",
+      "f": "摩阻系数"
     },
-
     "table": {
       "name": "配件",
       "total": "总计",
       "totalLeq": "总等效长度"
     },
-
     "toasts": {
       "copied": "已复制到剪贴板",
       "saved": "已保存到历史记录",
@@ -1027,7 +1019,6 @@
       "swingCheckValveForwardFlow": "旋启式止回阀 (正向流)",
       "liftCheckValve": "升降式止回阀",
       "waterMeterValve": "水表",
-      
       "elbow90StandardThreaded": "90° 标准弯头 (螺纹)",
       "elbow90StandardFlanged": "90° 标准弯头 (法兰)",
       "elbow90LongRadiusThreaded": "90° 长半径弯头 (螺纹)",
@@ -1046,7 +1037,6 @@
       "returnBend180Threaded": "180° 回弯头 (螺纹)",
       "returnBend180Flanged": "180° 回弯头 (法兰)",
       "ubend180": "180° U型弯",
-      
       "teeFlangedDividingLineFlow": "三通 (分支流, 法兰, 直流)",
       "teeThreadedDividingLineFlow": "三通 (分支流, 螺纹, 直流)",
       "teeFlangedDividingBranchFlow": "三通 (分支流, 法兰, 支流)",
@@ -1060,14 +1050,12 @@
       "crossBranchFlow": "四通 (支流)",
       "wye45LineFlow": "45° Y型三通 (直流)",
       "wye45BranchFlow": "45° Y型三通 (支流)",
-      
       "entranceSharpEdged": "入口 (锐缘)",
       "entranceProjecting": "入口 (伸出)",
       "entranceRounded": "入口 (圆角)",
       "entranceBellmouth": "入口 (喇叭口)",
       "exitDischargeToTank": "出口 (排放至水箱)",
       "exitRoundedAgainstBaffle": "出口 (圆角, 朝向挡板)",
-      
       "suddenContractionD2D1_080": "突然收缩 (D₂/D₁=0.80)",
       "suddenContractionD2D1_050": "突然收缩 (D₂/D₁=0.50)",
       "suddenContractionD2D1_020": "突然收缩 (D₂/D₁=0.20)",
@@ -1075,18 +1063,15 @@
       "conicalContractionD2D1_050": "锥形收缩 (D₂/D₁=0.50)",
       "conicalContractionD2D1_020": "锥形收缩 (D₂/D₁=0.20)",
       "suddenContractionGeneral": "突然收缩 (锐缘入口)",
-      
       "suddenExpansionD2D1_080": "突然扩张 (D₂/D₁=0.80)",
       "suddenExpansionD2D1_050": "突然扩张 (D₂/D₁=0.50)",
       "suddenExpansionD2D1_020": "突然扩张 (D₂/D₁=0.20)",
       "conicalExpansionD2D1_080": "锥形扩张 (D₂/D₁=0.80)",
       "conicalExpansionD2D1_050": "锥形扩张 (D₂/D₁=0.50)",
       "conicalExpansionD2D1_020": "锥形扩张 (D₂/D₁=0.20)",
-      
       "waterMeter": "水表",
       "orificeMeterSharpEdged": "孔板流量计 (锐缘)",
       "venturiMeter": "文丘里流量计",
-      
       "couplingUnionThreaded": "联轴器/管接头 (螺纹)",
       "reducerEnlargerSudden": "异径管/扩径管 (突然)",
       "radiator": "散热器",
@@ -1106,16 +1091,16 @@
     "calculator": "计算器",
     "paramsSection": "设计参数",
     "energySection": "能量条件",
-    "resultLabel": "Q",
+    "resultLabel": "流量",
     "labels": {
       "L": "长度",
       "D": "直径",
       "ks": "粗糙度",
       "nu": "运动粘度",
       "Km": "局部损失系数",
-      "z1": "z1 (上游)",
-      "z2": "z2 (下游)",
-      "g": "g (重力加速度)"
+      "z1": "上游高程",
+      "z2": "下游高程",
+      "g": "重力加速度"
     },
     "table": {
       "title": "迭代表",
@@ -1154,7 +1139,6 @@
     "paramsSection": "设计参数",
     "energySection": "能量条件",
     "resultLabel": "设计直径",
-  
     "labels": {
       "L": "长度",
       "Ks": "绝对粗糙度",
@@ -1164,7 +1148,6 @@
       "Km": "局部损失系数",
       "g": "重力加速度"
     },
-  
     "table": {
       "title": "迭代表",
       "viewFull": "查看",
@@ -1184,7 +1167,6 @@
         "Vp": "Vp [米/秒]"
       }
     },
-  
     "toasts": {
       "missingFields": "缺少必填字段",
       "noSolution": "在商业直径列表中未找到合适的直径",
@@ -1194,15 +1176,13 @@
       "saveError": "保存时出错",
       "nothingToSave": "请先进行计算"
     },
-
     "infoText": "请注意，此迭代过程可能需要几秒钟，因为它会评估多个商用直径直到收敛。这些容差标准在代码中定义为 (水头容差 = 1e-5，速度容差 = 1e-3)"
   },
-
   "potenciaCalcHm": {
     "title": "功率 - 简单管道",
     "desc": "计算考虑摩擦和局部损失的总水头和泵功率。"
   },
-  "seriePotencia":{
+  "seriePotencia": {
     "title": "功率 - 串联管道",
     "desc": "计算串联管道系统中泵所需的功率。"
   },
@@ -1210,38 +1190,34 @@
     "calculator": "计算器",
     "title": "简单管道功率",
     "saveToHistory": "保存到历史记录",
-    "resultLabel": "P",
+    "resultLabel": "所需功率",
     "includePresiones": "包含点压力",
     "infoText": "填写所有参数并点击计算以获得结果。摩擦系数通过应用牛顿-拉弗森法求解隐式 Colebrook-White 方程来求解，收敛容差为 1e-20，因此请注意可能需要时间才能收敛。",
     "resultsTitle": "结果",
-
     "sections": {
       "pipe": "管道参数",
       "fluid": "流体与系统",
       "heights": "高度",
       "pressures": "压力"
     },
-
     "labels": {
-      "D": "内径 D",
-      "Q": "体积流量 Q",
-      "ks": "等效粗糙度 ks",
-      "nu": "运动粘度 ν",
-      "L": "系统总长度 L",
-      "km": "局部损失系数 km",
-      "gamma": "流体重度 γ",
-      "eta": "泵效率 η (0 – 1)",
-      "z1": "下游水位高度 z₁",
-      "z2": "上游水位高度 z₂",
-      "p1": "下游点压力 p₁",
-      "p2": "上游点压力 p₂"
+      "D": "内径",
+      "Q": "体积流量",
+      "ks": "当量粗糙度",
+      "nu": "运动黏度",
+      "L": "系统总长度",
+      "km": "局部损失系数",
+      "gamma": "流体重度",
+      "eta": "水泵效率",
+      "z1": "下部水面的高程",
+      "z2": "上部水面的高程",
+      "p1": "下部点压力",
+      "p2": "上部点压力"
     },
-
     "table": {
       "parameter": "参数",
       "value": "值"
     },
-
     "results": {
       "A": "横截面积 A",
       "V": "平均流速 V",
@@ -1256,13 +1232,11 @@
       "Ph": "水力功率 Ph",
       "P": "泵功率 P"
     },
-
     "regimen": {
       "laminar": "层流",
       "transicion": "过渡流",
       "turbulento": "湍流"
     },
-
     "toasts": {
       "missingFields": "请填写所有必填字段。",
       "invalidValues": "请检查数值在物理上是否有效。",
@@ -1279,7 +1253,7 @@
     "infoText": "请注意，此迭代过程可能需要几秒钟，具体取决于管段数量。算法在每次迭代中按比例调整摩擦损失，直到总损失之和收敛于可用水头 (ΔH = H1 − H2)。收敛参数在代码中定义为容差 = 1e-6 米，最大迭代次数 = 200。",
     "calculator": "计算器",
     "title": "串联管道校核",
-    "resultLabel": "入口 Q (立方米/秒)",
+    "resultLabel": "入口流量",
     "globalParams": "全局参数",
     "convergenceParams": "收敛参数",
     "tramosSection": "管段",
@@ -1288,17 +1262,17 @@
     "iterations": "次迭代",
     "notConverged": "未收敛",
     "labels": {
-      "nu": "运动粘度 ν",
-      "H1": "上游测压管水头 H1",
-      "H2": "下游测压管水头 H2",
+      "nu": "运动黏度",
+      "H1": "上游测压水头",
+      "H2": "下游测压水头",
       "TOL": "容差 [米]",
       "MAX_ITER": "最大迭代次数",
-      "D": "直径 D",
-      "L": "长度 L",
-      "Km": "局部损失系数 Km",
-      "ks": "绝对粗糙度 ks",
-      "q_lat": "侧向取水 q_lat",
-      "Q_entrada": "入口 Q (管段 1)"
+      "D": "直径",
+      "L": "长度",
+      "Km": "局部损失系数",
+      "ks": "绝对粗糙度",
+      "q_lat": "侧向取水量",
+      "Q_entrada": "入口流量"
     },
     "table": {
       "summaryTitle": "最终汇总",
@@ -1338,19 +1312,19 @@
   "compParaleloCalc": {
     "calculator": "计算器",
     "title": "并联管道校核",
-    "resultLabel": "总 Q [立方米/秒]",
+    "resultLabel": "总流量",
     "globalParams": "全局参数",
     "ramalesSection": "支路",
     "ramalTitle": "支路",
     "labels": {
-      "nu": "运动粘度 ν",
-      "H1": "上游测压管水头 H1",
-      "H2": "下游测压管水头 H2",
-      "D": "直径 D",
-      "L": "长度 L",
-      "Km": "局部损失系数 Km",
-      "ks": "绝对粗糙度 ks",
-      "Q_total": "总 Q (系统)"
+      "nu": "运动黏度",
+      "H1": "上游测压水头",
+      "H2": "下游测压水头",
+      "D": "直径",
+      "L": "长度",
+      "Km": "局部损失系数",
+      "ks": "绝对粗糙度",
+      "Q_total": "系统总流量"
     },
     "table": {
       "summaryTitle": "最终汇总",
@@ -1394,18 +1368,18 @@
     "globalParams": "全局参数",
     "tramosSection": "管段",
     "tramoTitle": "管段",
-    "resultLabel": "所需功率 [千瓦]",
+    "resultLabel": "所需功率",
     "infoText": "输入全局参数和每段管道的数据，以计算串联管道系统中泵所需的水头和功率。",
     "labels": {
-      "eficiencia": "效率 η [%]",
-      "densidad": "密度 ρ",
-      "viscosidad": "动力粘度 μ",
-      "cabeza": "总水头 H",
-      "D": "直径 D",
-      "L": "长度 L",
-      "ks": "绝对粗糙度 ks",
-      "Km": "局部损失系数 Km",
-      "Q": "流量 Q"
+      "eficiencia": "效率",
+      "densidad": "密度",
+      "viscosidad": "动力黏度",
+      "cabeza": "总扬程",
+      "D": "直径",
+      "L": "长度",
+      "ks": "绝对粗糙度",
+      "Km": "局部损失系数",
+      "Q": "流量"
     },
     "balance": {
       "Qentrada": "入口流量 Q:",
@@ -1446,17 +1420,17 @@
     "globalParams": "全局参数",
     "tramosSection": "管道",
     "tramoTitle": "管道",
-    "resultLabel": "所需功率 [千瓦]",
+    "resultLabel": "所需功率",
     "infoText": "输入全局参数和每条管道的数据，以计算并联管道系统中的流量分配和功率。",
     "labels": {
-      "H_presion": "总水头 H",
-      "rho": "密度 ρ",
-      "nu": "运动粘度 ν",
-      "Q_total": "总流量 Q",
-      "D": "直径 D",
-      "L": "长度 L",
-      "ks": "绝对粗糙度 ks",
-      "Km": "局部损失系数 Km"
+      "H_presion": "总扬程",
+      "rho": "密度",
+      "nu": "运动黏度",
+      "Q_total": "总流量",
+      "D": "直径",
+      "L": "长度",
+      "ks": "绝对粗糙度",
+      "Km": "局部损失系数"
     },
     "balance": {
       "Hmetros": "水力水头 H:",

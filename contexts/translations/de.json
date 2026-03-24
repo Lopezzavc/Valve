@@ -76,7 +76,6 @@
     "inputs": "Eingaben"
   },
   "continuidadCalc": {
-    "infoText": "Geben Sie 3 der 4 Parameter (A₁, v₁, A₂, v₂) ein, um den Durchfluss und die unbekannte Variable zu berechnen.",
     "infoTextCaudal": "Der Durchfluss wird berechnet, indem die Querschnittsfläche mit der mittleren Strömungsgeschwindigkeit des Fluids multipliziert wird. Q = A × v",
     "infoTextContinuidad": "Das Kontinuitätsprinzip besagt, dass der Durchfluss konstant ist: A₁·v₁ = A₂·v₂. Wenn sich der Querschnitt ändert, passt sich die Geschwindigkeit umgekehrt proportional an.",
     "calculator": "Rechner",
@@ -476,7 +475,11 @@
     "closedSystem": "GESCHLOSSENES SYSTEM",
     "openSystem": "Offenes System",
     "vaporPressure": "DAMPFDRUCK",
-    "cavitationStatus": "Kavitationszustand",
+    "cavitationStatus": {
+      "safe": "Sicher",
+      "lowMargin": "Geringe Sicherheitsmarge",
+      "risk": "Kavitationsrisiko"
+    },
     "useRhoForGamma": "Dichte (ρ) verwenden",
     "useTempForPv": "Pv aus Temperatur berechnen",
     "title": "ENERGIE / BERNOULLI",
@@ -549,11 +552,6 @@
       "gammaCalculated": "γ berechnet",
       "pvCalculated": "Pv berechnet"
     },
-    "cavitationStatus": {
-      "safe": "Sicher",
-      "lowMargin": "Geringe Sicherheitsmarge",
-      "risk": "Kavitationsrisiko"
-    },
     "includeBomba": "Pumpe einbeziehen",
     "includeTurbina": "Turbine einbeziehen",
     "toasts": {
@@ -610,7 +608,7 @@
       "tirante": "Wassertiefe",
       "base": "Sohlenbreite",
       "talud": "Böschungsneigung",
-      "K": "K",
+      "K": "Formparameter",
       "A": "Fläche",
       "P": "Umfang",
       "R": "Hydraulischer Radius",
@@ -729,14 +727,6 @@
       "references": "Referenzen"
     },
     "terms": {
-      "A": {
-        "title": "Querschnittsfläche (A)",
-        "description": "Stellt die Oberfläche des geometrischen Querschnitts dar, der senkrecht zur Bewegungsrichtung des Fluids geschnitten wird.\n\nIm Kontext der Strömungsmechanik fungiert die Fläche als der 'Trichter', der den Durchfluss einschränkt oder ermöglicht. Ihre Bedeutung liegt in der umgekehrten Beziehung, die sie zur Geschwindigkeit unterhält: Bei konstantem Durchfluss zwingt eine Verringerung der Querschnittsfläche die Fluidpartikel dazu, zu beschleunigen, damit dieselbe Flüssigkeitsmasse den Querschnitt im gleichen Zeitintervall durchqueren kann."
-      },
-      "V": {
-        "title": "Geschwindigkeit des Fluids (V)",
-        "description": "Definiert die durchschnittliche Geschwindigkeit, mit der sich die Fluidpartikel durch einen bestimmten Querschnitt bewegen.\n\nEs handelt sich nicht nur um ein Maß für die Schnelligkeit, sondern um eine kritische Komponente der kinetischen Energie des Systems. Nach dem Kontinuitätsprinzip für inkompressible Fluide ist die Geschwindigkeit eine von der Geometrie des Kanals abhängige Variable; daher führt jede Verengung des Rohrs sofort zu einer proportionalen Zunahme der Geschwindigkeit, um sicherzustellen, dass die Massenbilanz unverändert bleibt."
-      },
       "1": {
         "title": "Abschnitt 1 (Eintritt)",
         "description": "Index, der die Bedingungen des Fluids am Eintrittspunkt oder am stromaufwärtigen Querschnitt kennzeichnet. Die Werte A₁ und V₁ beschreiben den Anfangszustand der Strömung."
@@ -744,6 +734,14 @@
       "2": {
         "title": "Abschnitt 2 (Austritt)",
         "description": "Index, der die Bedingungen des Fluids am Austrittspunkt oder am stromabwärtigen Querschnitt kennzeichnet. Die Werte A₂ und V₂ beschreiben den Endzustand der Strömung."
+      },
+      "A": {
+        "title": "Querschnittsfläche (A)",
+        "description": "Stellt die Oberfläche des geometrischen Querschnitts dar, der senkrecht zur Bewegungsrichtung des Fluids geschnitten wird.\n\nIm Kontext der Strömungsmechanik fungiert die Fläche als der 'Trichter', der den Durchfluss einschränkt oder ermöglicht. Ihre Bedeutung liegt in der umgekehrten Beziehung, die sie zur Geschwindigkeit unterhält: Bei konstantem Durchfluss zwingt eine Verringerung der Querschnittsfläche die Fluidpartikel dazu, zu beschleunigen, damit dieselbe Flüssigkeitsmasse den Querschnitt im gleichen Zeitintervall durchqueren kann."
+      },
+      "V": {
+        "title": "Geschwindigkeit des Fluids (V)",
+        "description": "Definiert die durchschnittliche Geschwindigkeit, mit der sich die Fluidpartikel durch einen bestimmten Querschnitt bewegen.\n\nEs handelt sich nicht nur um ein Maß für die Schnelligkeit, sondern um eine kritische Komponente der kinetischen Energie des Systems. Nach dem Kontinuitätsprinzip für inkompressible Fluide ist die Geschwindigkeit eine von der Geometrie des Kanals abhängige Variable; daher führt jede Verengung des Rohrs sofort zu einer proportionalen Zunahme der Geschwindigkeit, um sicherzustellen, dass die Massenbilanz unverändert bleibt."
       },
       "π": {
         "title": "Pi (π)",
@@ -875,7 +873,7 @@
     "titleHistory": "Reibungsfaktor",
     "calculator": "Rechner",
     "saveToHistory": "Im Verlauf speichern",
-    "frictionFactor": "Reibungsfaktor (f)",
+    "frictionFactor": "Reibungsfaktor",
     "equation": "Gleichung",
     "roughnessSection": "RELATIVE RAUHEIT",
     "moodyDiagramHint": "Öffne Moody-Diagramm...",
@@ -885,10 +883,10 @@
     },
     "labels": {
       "equation": "Gleichung",
-      "Re": "Reynolds-Zahl Re",
-      "epsilon": "Absolute Rauheit ε",
-      "diameter": "Durchmesser D",
-      "epsilonOverD": "Relative Rauheit ε/D"
+      "Re": "Reynolds-Zahl",
+      "epsilon": "Absolute Rauheit",
+      "diameter": "Durchmesser",
+      "epsilonOverD": "Relative Rauheit"
     },
     "equations": {
       "colebrook-white": "Colebrook-White (Numerisch iterativ)",
@@ -960,11 +958,11 @@
     "fittingType": "Art des Formstücks",
     "selectFitting": "Formstück auswählen...",
     "labels": {
-      "K": "Verlustbeiwert K",
-      "V": "Geschwindigkeit V",
-      "g": "Erdbeschleunigung g",
-      "D": "Durchmesser D",
-      "f": "Reibungsfaktor f"
+      "K": "Verlustbeiwert",
+      "V": "Geschwindigkeit",
+      "g": "Erdbeschleunigung",
+      "D": "Durchmesser",
+      "f": "Reibungsfaktor"
     },
     "table": {
       "name": "Formstück",
@@ -1093,16 +1091,16 @@
     "calculator": "Rechner",
     "paramsSection": "AUSLEGUNGSPARAMETER",
     "energySection": "ENERGIEBEDINGUNGEN",
-    "resultLabel": "Q",
+    "resultLabel": "Durchfluss",
     "labels": {
       "L": "Länge",
       "D": "Durchmesser",
       "ks": "Rauheit",
       "nu": "Kinematische Viskosität",
       "Km": "Einzelverluste",
-      "z1": "z1 (stromaufwärts)",
-      "z2": "z2 (stromabwärts)",
-      "g": "g (Erdbeschleunigung)"
+      "z1": "Höhe stromaufwärts",
+      "z2": "Höhe stromabwärts",
+      "g": "Erdbeschleunigung"
     },
     "table": {
       "title": "ITERATIONSTABELLE",
@@ -1192,7 +1190,7 @@
     "calculator": "Rechner",
     "title": "LEISTUNG EINFACHE ROHRLEITUNG",
     "saveToHistory": "Im Verlauf speichern",
-    "resultLabel": "P",
+    "resultLabel": "Erforderliche Leistung",
     "includePresiones": "Drücke an den Punkten einbeziehen",
     "infoText": "Füllen Sie alle Parameter aus und drücken Sie Berechnen, um die Ergebnisse zu erhalten. Der Reibungsfaktor wird mittels des Newton-Raphson-Verfahrens, angewendet auf die implizite Colebrook-White-Gleichung, mit einer Konvergenztoleranz von 1e-20 gelöst. Bitte beachten Sie, dass die Konvergenz einige Zeit in Anspruch nehmen kann.",
     "resultsTitle": "ERGEBNISSE",
@@ -1203,18 +1201,18 @@
       "pressures": "DRÜCKE"
     },
     "labels": {
-      "D": "Innendurchmesser D",
-      "Q": "Volumenstrom Q",
-      "ks": "Äquivalente Rauheit ks",
-      "nu": "Kinematische Viskosität ν",
-      "L": "Gesamtlänge des Systems L",
-      "km": "Beiwert Einzelverluste km",
-      "gamma": "Wichte des Fluids γ",
-      "eta": "Pumpenwirkungsgrad η (0 – 1)",
-      "z1": "Höhe unterer Wasserspiegel z₁",
-      "z2": "Höhe oberer Wasserspiegel z₂",
-      "p1": "Druck am unteren Punkt p₁",
-      "p2": "Druck am oberen Punkt p₂"
+      "D": "Innendurchmesser",
+      "Q": "Volumenstrom",
+      "ks": "Äquivalente Rauheit",
+      "nu": "Kinematische Viskosität",
+      "L": "Gesamtlänge des Systems",
+      "km": "Beiwert Einzelverluste",
+      "gamma": "Spezifisches Gewicht des Fluids",
+      "eta": "Pumpenwirkungsgrad",
+      "z1": "Höhe des unteren Wasserspiegels",
+      "z2": "Höhe des oberen Wasserspiegels",
+      "p1": "Druck am unteren Punkt",
+      "p2": "Druck am oberen Punkt"
     },
     "table": {
       "parameter": "Parameter",
@@ -1255,7 +1253,7 @@
     "infoText": "Bitte beachten Sie, dass dieser iterative Prozess je nach Anzahl der Abschnitte einige Sekunden dauern kann. Der Algorithmus passt die Reibungsverluste in jeder Iteration proportional an, bis die Summe der Gesamtverluste mit der verfügbaren Druckhöhe (ΔH = H1 − H2) konvergiert. Die Konvergenzparameter sind im Code definiert als Toleranz = 1e-6 m und maximal 200 Iterationen.",
     "calculator": "Rechner",
     "title": "ÜBERPRÜFUNG ROHRLEITUNGEN IN REIHE",
-    "resultLabel": "Q Eintritt (m³/s)",
+    "resultLabel": "Eintrittsdurchfluss",
     "globalParams": "Globale Parameter",
     "convergenceParams": "Konvergenzparameter",
     "tramosSection": "Abschnitte",
@@ -1264,17 +1262,17 @@
     "iterations": "Iterationen",
     "notConverged": "Nicht konvergiert",
     "labels": {
-      "nu": "Kinematische Viskosität ν",
-      "H1": "Piezometrische Druckhöhe stromaufwärts H1",
-      "H2": "Piezometrische Druckhöhe stromabwärts H2",
+      "nu": "Kinematische Viskosität",
+      "H1": "Piezometrische Druckhöhe stromaufwärts",
+      "H2": "Piezometrische Druckhöhe stromabwärts",
       "TOL": "Toleranz [m]",
       "MAX_ITER": "Max. Iterationen",
-      "D": "Durchmesser D",
-      "L": "Länge L",
-      "Km": "Beiwert Einzelverluste Km",
-      "ks": "Absolute Rauheit ks",
-      "q_lat": "Seitliche Entnahme q_lat",
-      "Q_entrada": "Q Eintritt (Abschnitt 1)"
+      "D": "Durchmesser",
+      "L": "Länge",
+      "Km": "Beiwert Einzelverluste",
+      "ks": "Absolute Rauheit",
+      "q_lat": "Seitliche Entnahme",
+      "Q_entrada": "Eintrittsdurchfluss"
     },
     "table": {
       "summaryTitle": "Endzusammenfassung",
@@ -1314,19 +1312,19 @@
   "compParaleloCalc": {
     "calculator": "Rechner",
     "title": "ÜBERPRÜFUNG ROHRLEITUNGEN PARALLEL",
-    "resultLabel": "Q gesamt [m³/s]",
+    "resultLabel": "Gesamtdurchfluss",
     "globalParams": "Globale Parameter",
     "ramalesSection": "Stränge",
     "ramalTitle": "Strang",
     "labels": {
-      "nu": "Kinematische Viskosität ν",
-      "H1": "Piezometrische Druckhöhe stromaufwärts H1",
-      "H2": "Piezometrische Druckhöhe stromabwärts H2",
-      "D": "Durchmesser D",
-      "L": "Länge L",
-      "Km": "Beiwert Einzelverluste Km",
-      "ks": "Absolute Rauheit ks",
-      "Q_total": "Q gesamt (System)"
+      "nu": "Kinematische Viskosität",
+      "H1": "Piezometrische Druckhöhe stromaufwärts",
+      "H2": "Piezometrische Druckhöhe stromabwärts",
+      "D": "Durchmesser",
+      "L": "Länge",
+      "Km": "Beiwert Einzelverluste",
+      "ks": "Absolute Rauheit",
+      "Q_total": "Gesamtdurchfluss des Systems"
     },
     "table": {
       "summaryTitle": "Endzusammenfassung",
@@ -1370,18 +1368,18 @@
     "globalParams": "Globale Parameter",
     "tramosSection": "Abschnitte",
     "tramoTitle": "Abschnitt",
-    "resultLabel": "Erforderliche Leistung [kW]",
+    "resultLabel": "Erforderliche Leistung",
     "infoText": "Geben Sie die globalen Parameter und die Daten für jeden Abschnitt ein, um die erforderliche Förderhöhe und die Pumpenleistung in einem System von Rohrleitungen in Reihe zu berechnen.",
     "labels": {
-      "eficiencia": "Wirkungsgrad η [%]",
-      "densidad": "Dichte ρ",
-      "viscosidad": "Dynamische Viskosität μ",
-      "cabeza": "Gesamtförderhöhe H",
-      "D": "Durchmesser D",
-      "L": "Länge L",
-      "ks": "Absolute Rauheit ks",
-      "Km": "Beiwert Einzelverluste Km",
-      "Q": "Durchfluss Q"
+      "eficiencia": "Wirkungsgrad",
+      "densidad": "Dichte",
+      "viscosidad": "Dynamische Viskosität",
+      "cabeza": "Gesamtförderhöhe",
+      "D": "Durchmesser",
+      "L": "Länge",
+      "ks": "Absolute Rauheit",
+      "Km": "Beiwert Einzelverluste",
+      "Q": "Durchfluss"
     },
     "balance": {
       "Qentrada": "Eintrittsdurchfluss Q:",
@@ -1422,17 +1420,17 @@
     "globalParams": "Globale Parameter",
     "tramosSection": "Rohrleitungen",
     "tramoTitle": "Rohrleitung",
-    "resultLabel": "Erforderliche Leistung [kW]",
+    "resultLabel": "Erforderliche Leistung",
     "infoText": "Geben Sie die globalen Parameter und die Daten für jede Rohrleitung ein, um die Durchflussverteilung und die Leistung in einem parallelen Rohrleitungssystem zu berechnen.",
     "labels": {
-      "H_presion": "Gesamtförderhöhe H",
-      "rho": "Dichte ρ",
-      "nu": "Kinematische Viskosität ν",
-      "Q_total": "Gesamtdurchfluss Q",
-      "D": "Durchmesser D",
-      "L": "Länge L",
-      "ks": "Absolute Rauheit ks",
-      "Km": "Beiwert Einzelverluste Km"
+      "H_presion": "Gesamtförderhöhe",
+      "rho": "Dichte",
+      "nu": "Kinematische Viskosität",
+      "Q_total": "Gesamtdurchfluss",
+      "D": "Durchmesser",
+      "L": "Länge",
+      "ks": "Absolute Rauheit",
+      "Km": "Beiwert Einzelverluste"
     },
     "balance": {
       "Hmetros": "Hydraulische Förderhöhe H:",

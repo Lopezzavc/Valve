@@ -166,7 +166,7 @@
       "success": "Historial exportado como Excel",
       "error": "No se pudo exportar el historial",
       "noHistory": "No hay historial para exportar"
-  }
+    }
   },
   "theoryContinuity": {
     "subtitle": "¿Qué es?",
@@ -475,7 +475,11 @@
     "closedSystem": "SISTEMA CERRADO",
     "openSystem": "Sistema Abierto",
     "vaporPressure": "PRESIÓN DE VAPOR",
-    "cavitationStatus": "Estado de cavitación",
+    "cavitationStatus": {
+      "safe": "Seguro",
+      "lowMargin": "Margen bajo",
+      "risk": "Riesgo de cavitación"
+    },
     "useRhoForGamma": "Usar densidad (ρ)",
     "useTempForPv": "Calcular Pv desde temperatura",
     "title": "ENERGÍA / BERNOULLI",
@@ -548,11 +552,6 @@
       "gammaCalculated": "γ calculado",
       "pvCalculated": "Pv calculado"
     },
-    "cavitationStatus": {
-      "safe": "Seguro",
-      "lowMargin": "Margen bajo",
-      "risk": "Riesgo de cavitación"
-    },
     "includeBomba": "Incluir bomba",
     "includeTurbina": "Incluir turbina",
     "toasts": {
@@ -569,8 +568,8 @@
   },
   "geometriaSeccionesCalc": {
     "calculator": "Calculadora",
-    "cardTitle1":"Geometría de Secciones",
-    "cardDesc1":"Calcula área, perímetro y radio hidráulico de diferentes tipos de secciones.",
+    "cardTitle1": "Geometría de Secciones",
+    "cardDesc1": "Calcula área, perímetro y radio hidráulico de diferentes tipos de secciones.",
     "title": "GEOMETRÍA DE SECCIONES",
     "titlehistory": "Geometría de Secciones",
     "y2": "Tirante (y₂)",
@@ -609,7 +608,7 @@
       "tirante": "Tirante",
       "base": "Base",
       "talud": "Talud",
-      "K": "K",
+      "K": "Parámetro de forma",
       "A": "Área",
       "P": "Perímetro",
       "R": "Radio hidráulico",
@@ -695,28 +694,28 @@
     "selectTermPlaceholder": "Selecciona un término de la ecuación para ver su descripción.",
     "references": {
       "reference1": {
-        "title": "Turbulent Flow in Pipes with Particular Reference to the Transition Region Between the Smooth and Rough Pipe Laws",
-        "author": "C. F. Colebrook",
-        "year": "1939",
-        "url": "https://www.sciepub.com/reference/127554"
+        "title": "Experiments with Fluid Friction in Roughened Pipes",
+        "author": "C. F. Colebrook y C. M. White",
+        "year": "1937",
+        "url": "https://royalsocietypublishing.org/rspa/article/161/906/367/5650/Experiments-with-fluid-friction-in-roughened-pipes"
       },
       "reference2": {
-        "title": "Friction factors for pipe flow",
-        "author": "L. F. Moody",
-        "year": "1944",
-        "url": "https://cir.nii.ac.jp/crid/1573668924921271808"
+        "title": "Turbulent Flow in Pipes, with Particular Reference to the Transition Region between the Smooth and Rough Pipe Laws",
+        "author": "C. F. Colebrook",
+        "year": "1939",
+        "url": "https://www.emerald.com/jince/article-abstract/11/4/133/417643/TURBULENT-FLOW-IN-PIPES-WITH-PARTICULAR-REFERENCE"
       },
       "reference3": {
-        "title": "Laws of Flow in Rough Pipes",
-        "author": "J. Nikuradse",
-        "year": "1950",
-        "url": "https://ntrs.nasa.gov/citations/19930093938"
+        "title": "Friction Factors for Pipe Flow",
+        "author": "Lewis F. Moody",
+        "year": "1944",
+        "url": "https://asmedigitalcollection.asme.org/fluidsengineering/article-abstract/66/8/671/1153865/Friction-Factors-for-Pipe-Flow"
       },
       "reference4": {
-        "title": "Roughness effects in turbulent pipe flow",
-        "author": "M. A. Shockling, J. J. Allen, A. J. Smits",
-        "year": "2006",
-        "url": "https://collaborate.princeton.edu/en/publications/roughness-effects-in-turbulent-pipe-flow/"
+        "title": "Review of explicit approximations to the Colebrook relation for flow friction",
+        "author": "Dejan Brkić",
+        "year": "2011",
+        "url": "https://www.sciencedirect.com/science/article/pii/S092041051100043X"
       }
     },
     "terms": {
@@ -780,14 +779,6 @@
       "references": "Referencias"
     },
     "terms": {
-      "A": {
-        "title": "Área transversal (A)",
-        "description": "Representa la superficie de la sección geométrica cortada perpendicularmente a la dirección del movimiento del fluido.\n\nEn el contexto de la mecánica de fluidos, el área actúa como el 'embudo' que restringe o permite el paso del flujo. Su importancia radica en la relación inversa que mantiene con la velocidad: bajo un caudal constante, una reducción en el área transversal obliga a las partículas del fluido a acelerarse para permitir que la misma masa de líquido atraviese la sección en el mismo intervalo de tiempo."
-      },
-      "V": {
-        "title": "Velocidad del fluido (V)",
-        "description": "Define la rapidez promedio con la que las partículas del fluido se desplazan a través de una sección determinada.\n\nNo se trata solo de una medida de rapidez, sino de un componente crítico de la energía cinética del sistema. Según el principio de continuidad para fluidos incompresibles, la velocidad es una variable dependiente de la geometría del conducto; por lo tanto, cualquier estrechamiento en la tubería se traduce inmediatamente en un incremento proporcional de la velocidad, asegurando que el balance de masa se mantenga inalterado."
-      },
       "1": {
         "title": "Sección 1 (entrada)",
         "description": "Subíndice que identifica las condiciones del fluido en el punto de entrada o sección aguas arriba. Los valores A₁ y V₁ describen el estado inicial del flujo."
@@ -795,6 +786,14 @@
       "2": {
         "title": "Sección 2 (salida)",
         "description": "Subíndice que identifica las condiciones del fluido en el punto de salida o sección aguas abajo. Los valores A₂ y V₂ describen el estado final del flujo."
+      },
+      "A": {
+        "title": "Área transversal (A)",
+        "description": "Representa la superficie de la sección geométrica cortada perpendicularmente a la dirección del movimiento del fluido.\n\nEn el contexto de la mecánica de fluidos, el área actúa como el 'embudo' que restringe o permite el paso del flujo. Su importancia radica en la relación inversa que mantiene con la velocidad: bajo un caudal constante, una reducción en el área transversal obliga a las partículas del fluido a acelerarse para permitir que la misma masa de líquido atraviese la sección en el mismo intervalo de tiempo."
+      },
+      "V": {
+        "title": "Velocidad del fluido (V)",
+        "description": "Define la rapidez promedio con la que las partículas del fluido se desplazan a través de una sección determinada.\n\nNo se trata solo de una medida de rapidez, sino de un componente crítico de la energía cinética del sistema. Según el principio de continuidad para fluidos incompresibles, la velocidad es una variable dependiente de la geometría del conducto; por lo tanto, cualquier estrechamiento en la tubería se traduce inmediatamente en un incremento proporcional de la velocidad, asegurando que el balance de masa se mantenga inalterado."
       },
       "π": {
         "title": "Pi (π)",
@@ -874,7 +873,7 @@
     "titleHistory": "Factor de fricción",
     "calculator": "Calculadora",
     "saveToHistory": "Guardar en historial",
-    "frictionFactor": "Factor de fricción (f)",
+    "frictionFactor": "Factor de fricción",
     "equation": "Ecuación",
     "roughnessSection": "RUGOSIDAD RELATIVA",
     "moodyDiagramHint": "Abriendo diagrama de Moody…",
@@ -884,10 +883,10 @@
     },
     "labels": {
       "equation": "Ecuación",
-      "Re": "Número de Reynolds Re",
-      "epsilon": "Rugosidad absoluta ε",
-      "diameter": "Diámetro D",
-      "epsilonOverD": "Rugosidad relativa ε/D"
+      "Re": "Número de Reynolds",
+      "epsilon": "Rugosidad absoluta",
+      "diameter": "Diámetro",
+      "epsilonOverD": "Rugosidad relativa"
     },
     "equations": {
       "colebrook-white": "Colebrook-White (Numérico iterativo)",
@@ -945,37 +944,31 @@
     "title": "PÉRDIDAS LOCALIZADAS",
     "calculator": "Calculadora",
     "modec": "Modo",
-
     "mode": {
       "normal": "Normal",
       "equivalent": "L. Equivalente",
       "advanced": "Avanzado"
     },
-
     "globalParams": "Parámetros Globales",
     "accessories": "ACCESORIOS",
     "accessoryTitle": "Accesorio",
     "addAccessory": "Agregar accesorio",
     "tableTitle": "TABLA DE RESULTADOS",
     "totalLoss": "hL total (m)",
-
     "fittingType": "Tipo de accesorio",
     "selectFitting": "Seleccionar accesorio...",
-
     "labels": {
-      "K": "Coeficiente de pérdida K",
-      "V": "Velocidad V",
-      "g": "Gravedad g",
-      "D": "Diámetro D",
-      "f": "Factor de fricción f"
+      "K": "Coeficiente de pérdida",
+      "V": "Velocidad",
+      "g": "Gravedad",
+      "D": "Diámetro",
+      "f": "Factor de fricción"
     },
-
     "table": {
       "name": "Accesorio",
       "total": "Total",
       "totalLeq": "Longitud equivalente total"
     },
-
     "toasts": {
       "copied": "Copiado al portapapeles",
       "saved": "Guardado en historial",
@@ -1026,7 +1019,6 @@
       "swingCheckValveForwardFlow": "Retención oscilante (flujo directo)",
       "liftCheckValve": "Retención de elevación",
       "waterMeterValve": "Medidor de agua",
-      
       "elbow90StandardThreaded": "90° estándar (roscado)",
       "elbow90StandardFlanged": "90° estándar (bridado)",
       "elbow90LongRadiusThreaded": "90° radio largo (roscado)",
@@ -1045,7 +1037,6 @@
       "returnBend180Threaded": "Retorno 180° (roscado)",
       "returnBend180Flanged": "Retorno 180° (bridado)",
       "ubend180": "U 180°",
-      
       "teeFlangedDividingLineFlow": "Flujo en línea (bridada)",
       "teeThreadedDividingLineFlow": "Flujo en línea (roscada)",
       "teeFlangedDividingBranchFlow": "Flujo en ramal (bridada)",
@@ -1059,14 +1050,12 @@
       "crossBranchFlow": "Cruz - flujo en ramal",
       "wye45LineFlow": "Y 45° - flujo en línea",
       "wye45BranchFlow": "Y 45° - flujo en ramal",
-      
       "entranceSharpEdged": "Borde afilado",
       "entranceProjecting": "Saliente",
       "entranceRounded": "Redondeada",
       "entranceBellmouth": "Abocinada",
       "exitDischargeToTank": "Descarga a tanque",
       "exitRoundedAgainstBaffle": "Bordes redondeados contra deflector",
-      
       "suddenContractionD2D1_080": "Súbita (D₂/D₁=0.80)",
       "suddenContractionD2D1_050": "Súbita (D₂/D₁=0.50)",
       "suddenContractionD2D1_020": "Súbita (D₂/D₁=0.20)",
@@ -1074,18 +1063,15 @@
       "conicalContractionD2D1_050": "Cónica (D₂/D₁=0.50)",
       "conicalContractionD2D1_020": "Cónica (D₂/D₁=0.20)",
       "suddenContractionGeneral": "Súbita (entrada afilada)",
-      
       "suddenExpansionD2D1_080": "Súbita (D₂/D₁=0.80)",
       "suddenExpansionD2D1_050": "Súbita (D₂/D₁=0.50)",
       "suddenExpansionD2D1_020": "Súbita (D₂/D₁=0.20)",
       "conicalExpansionD2D1_080": "Cónica (D₂/D₁=0.80)",
       "conicalExpansionD2D1_050": "Cónica (D₂/D₁=0.50)",
       "conicalExpansionD2D1_020": "Cónica (D₂/D₁=0.20)",
-      
       "waterMeter": "Agua",
       "orificeMeterSharpEdged": "Orificio (borde afilado)",
       "venturiMeter": "Venturi",
-      
       "couplingUnionThreaded": "Acoplamiento/Unión (roscado)",
       "reducerEnlargerSudden": "Reductor/Ampliador súbito",
       "radiator": "Radiador",
@@ -1105,16 +1091,16 @@
     "calculator": "Calculadora",
     "paramsSection": "PARÁMETROS DE DISEÑO",
     "energySection": "CONDICIONES DE ENERGÍA",
-    "resultLabel": "Q",
+    "resultLabel": "Caudal",
     "labels": {
       "L": "Longitud",
       "D": "Diámetro",
       "ks": "Rugosidad",
       "nu": "Viscosidad cinemática",
       "Km": "Pérdidas menores",
-      "z1": "z1 (aguas arriba)",
-      "z2": "z2 (aguas abajo)",
-      "g": "g (gravedad)"
+      "z1": "Cota aguas arriba",
+      "z2": "Cota aguas abajo",
+      "g": "Gravedad"
     },
     "table": {
       "title": "TABLA DE ITERACIONES",
@@ -1153,7 +1139,6 @@
     "paramsSection": "PARÁMETROS DE DISEÑO",
     "energySection": "CONDICIONES DE ENERGÍA",
     "resultLabel": "Diámetro de diseño",
-  
     "labels": {
       "L": "Longitud",
       "Ks": "Rugosidad absoluta",
@@ -1163,7 +1148,6 @@
       "Km": "Pérdidas menores",
       "g": "Gravedad"
     },
-  
     "table": {
       "title": "TABLA DE ITERACIONES",
       "viewFull": "Ver",
@@ -1183,7 +1167,6 @@
         "Vp": "Vp [m/s]"
       }
     },
-  
     "toasts": {
       "missingFields": "Faltan campos obligatorios",
       "noSolution": "No se encontró un diámetro adecuado en la lista comercial",
@@ -1193,15 +1176,13 @@
       "saveError": "Error al guardar",
       "nothingToSave": "Primero realiza un cálculo"
     },
-
     "infoText": "Tenga en cuenta que este proceso iterativo puede tomar algunos segundos, ya que evalúa múltiples diámetros comerciales hasta alcanzar la convergencia. Estos criterios de tolerancia están definidos en el código como (tolerancia de carga = 1e-5, tolerancia de velocidad = 1e-3)"
   },
-
   "potenciaCalcHm": {
     "title": "Potencia - Tubería simple",
     "desc": "Calcular carga total y potencia de bombeo considerando fricción y pérdidas menores."
   },
-  "seriePotencia":{
+  "seriePotencia": {
     "title": "Potencia - Tuberías en serie",
     "desc": "Calcula la potencia requerida por una bomba en un sistema de tuberías en serie."
   },
@@ -1209,38 +1190,34 @@
     "calculator": "Calculadora",
     "title": "POTENCIA TUBERÍA SIMPLE",
     "saveToHistory": "Guardar en historial",
-    "resultLabel": "P",
+    "resultLabel": "Potencia requerida",
     "includePresiones": "Incluir presiones en los puntos",
     "infoText": "Completa todos los parámetros y pulsa Calcular para obtener los resultados. El factor de fricción se resuelve mediante el método de Newton-Raphson aplicado a la ecuación implícita de Colebrook-White, con una tolerancia de convergencia de 1e-20, por lo que tenga en cuenta que puede tardar en converger.",
     "resultsTitle": "RESULTADOS",
-
     "sections": {
       "pipe": "PARÁMETROS DE TUBERÍA",
       "fluid": "FLUIDO Y SISTEMA",
       "heights": "ALTURAS",
       "pressures": "PRESIONES"
     },
-
     "labels": {
-      "D": "Diámetro interno D",
-      "Q": "Caudal volumétrico Q",
-      "ks": "Rugosidad equivalente ks",
-      "nu": "Viscosidad cinemática ν",
-      "L": "Longitud total del sistema L",
-      "km": "Coeficiente de pérdida menor km",
-      "gamma": "Peso específico del fluido γ",
-      "eta": "Eficiencia de la bomba η (0 – 1)",
-      "z1": "Altura lámina de agua inferior z₁",
-      "z2": "Altura lámina de agua superior z₂",
-      "p1": "Presión en el punto inferior p₁",
-      "p2": "Presión en el punto superior p₂"
+      "D": "Diámetro interno",
+      "Q": "Caudal volumétrico",
+      "ks": "Rugosidad equivalente",
+      "nu": "Viscosidad cinemática",
+      "L": "Longitud total del sistema",
+      "km": "Coeficiente de pérdida menor",
+      "gamma": "Peso específico del fluido",
+      "eta": "Eficiencia de la bomba",
+      "z1": "Altura lámina de agua inferior",
+      "z2": "Altura lámina de agua superior",
+      "p1": "Presión en el punto inferior",
+      "p2": "Presión en el punto superior"
     },
-
     "table": {
       "parameter": "Parámetro",
       "value": "Valor"
     },
-
     "results": {
       "A": "Área transversal A",
       "V": "Velocidad media V",
@@ -1255,13 +1232,11 @@
       "Ph": "Potencia hidráulica Ph",
       "P": "Potencia de bomba P"
     },
-
     "regimen": {
       "laminar": "LAMINAR",
       "transicion": "TRANSICIÓN",
       "turbulento": "TURBULENTO"
     },
-
     "toasts": {
       "missingFields": "Completa todos los campos requeridos.",
       "invalidValues": "Verifica que los valores sean físicamente válidos.",
@@ -1278,7 +1253,7 @@
     "infoText": "Tenga en cuenta que este proceso iterativo puede tomar algunos segundos dependiendo del número de tramos. El algoritmo ajusta proporcionalmente las pérdidas por fricción en cada iteración hasta que la suma de pérdidas totales converja con la carga disponible (ΔH = H1 − H2). Los parámetros de convergencia están definidos en el código como tolerancia = 1e-6 m y máximo de 200 iteraciones.",
     "calculator": "Calculadora",
     "title": "COMPROBACIÓN TUBERÍAS EN SERIE",
-    "resultLabel": "Q entrada (m³/s)",
+    "resultLabel": "Caudal de entrada",
     "globalParams": "Parámetros globales",
     "convergenceParams": "Parámetros de convergencia",
     "tramosSection": "Tramos",
@@ -1287,17 +1262,17 @@
     "iterations": "iteraciones",
     "notConverged": "No convergió",
     "labels": {
-      "nu": "Viscosidad cinemática ν",
-      "H1": "Carga piezométrica aguas arriba H1",
-      "H2": "Carga piezométrica aguas abajo H2",
+      "nu": "Viscosidad cinemática",
+      "H1": "Carga piezométrica aguas arriba",
+      "H2": "Carga piezométrica aguas abajo",
       "TOL": "Tolerancia [m]",
       "MAX_ITER": "Máx. iteraciones",
-      "D": "Diámetro D",
-      "L": "Longitud L",
-      "Km": "Coef. pérdidas menores Km",
-      "ks": "Rugosidad absoluta ks",
-      "q_lat": "Extracción lateral q_lat",
-      "Q_entrada": "Q entrada (tramo 1)"
+      "D": "Diámetro",
+      "L": "Longitud",
+      "Km": "Coef. pérdidas menores",
+      "ks": "Rugosidad absoluta",
+      "q_lat": "Extracción lateral",
+      "Q_entrada": "Caudal de entrada"
     },
     "table": {
       "summaryTitle": "Resumen final",
@@ -1337,19 +1312,19 @@
   "compParaleloCalc": {
     "calculator": "Calculadora",
     "title": "COMPROBACIÓN TUBERÍAS EN PARALELO",
-    "resultLabel": "Q total [m³/s]",
+    "resultLabel": "Caudal total",
     "globalParams": "Parámetros globales",
     "ramalesSection": "Ramales",
     "ramalTitle": "Ramal",
     "labels": {
-      "nu": "Viscosidad cinemática ν",
-      "H1": "Carga piezométrica aguas arriba H1",
-      "H2": "Carga piezométrica aguas abajo H2",
-      "D": "Diámetro D",
-      "L": "Longitud L",
-      "Km": "Coef. pérdidas menores Km",
-      "ks": "Rugosidad absoluta ks",
-      "Q_total": "Q total (sistema)"
+      "nu": "Viscosidad cinemática",
+      "H1": "Carga piezométrica aguas arriba",
+      "H2": "Carga piezométrica aguas abajo",
+      "D": "Diámetro",
+      "L": "Longitud",
+      "Km": "Coef. pérdidas menores",
+      "ks": "Rugosidad absoluta",
+      "Q_total": "Caudal total del sistema"
     },
     "table": {
       "summaryTitle": "Resumen final",
@@ -1393,18 +1368,18 @@
     "globalParams": "Parámetros globales",
     "tramosSection": "Tramos",
     "tramoTitle": "Tramo",
-    "resultLabel": "Potencia requerida [kW]",
+    "resultLabel": "Potencia requerida",
     "infoText": "Ingresa los parámetros globales y los datos de cada tramo para calcular la cabeza requerida y la potencia de la bomba en un sistema de tuberías en serie.",
     "labels": {
-      "eficiencia": "Eficiencia η [%]",
-      "densidad": "Densidad ρ",
-      "viscosidad": "Viscosidad dinámica μ",
-      "cabeza": "Cabeza total H",
-      "D": "Diámetro D",
-      "L": "Longitud L",
-      "ks": "Rugosidad absoluta ks",
-      "Km": "Coef. pérdidas menores Km",
-      "Q": "Caudal Q"
+      "eficiencia": "Eficiencia",
+      "densidad": "Densidad",
+      "viscosidad": "Viscosidad dinámica",
+      "cabeza": "Cabeza total",
+      "D": "Diámetro",
+      "L": "Longitud",
+      "ks": "Rugosidad absoluta",
+      "Km": "Coef. pérdidas menores",
+      "Q": "Caudal"
     },
     "balance": {
       "Qentrada": "Caudal de entrada Q:",
@@ -1445,17 +1420,17 @@
     "globalParams": "Parámetros globales",
     "tramosSection": "Tuberías",
     "tramoTitle": "Tubería",
-    "resultLabel": "Potencia requerida [kW]",
+    "resultLabel": "Potencia requerida",
     "infoText": "Ingresa los parámetros globales y los datos de cada tubería para calcular la distribución de caudales y la potencia en un sistema de tuberías en paralelo.",
     "labels": {
-      "H_presion": "Cabeza total H",
-      "rho": "Densidad ρ",
-      "nu": "Viscosidad cinemática ν",
-      "Q_total": "Caudal total Q",
-      "D": "Diámetro D",
-      "L": "Longitud L",
-      "ks": "Rugosidad absoluta ks",
-      "Km": "Coef. pérdidas menores Km"
+      "H_presion": "Cabeza total",
+      "rho": "Densidad",
+      "nu": "Viscosidad cinemática",
+      "Q_total": "Caudal total",
+      "D": "Diámetro",
+      "L": "Longitud",
+      "ks": "Rugosidad absoluta",
+      "Km": "Coef. pérdidas menores"
     },
     "balance": {
       "Hmetros": "Cabeza hidráulica H:",
