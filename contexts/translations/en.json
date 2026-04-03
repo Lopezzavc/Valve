@@ -1,6 +1,7 @@
 {
   "infoScreen": {
-    "creadoPor": "Created by"
+    "creadoPor": "Created by",
+    "revisadoPor": "Reviewed by"
   },
   "settings": {
     "title": "Settings",

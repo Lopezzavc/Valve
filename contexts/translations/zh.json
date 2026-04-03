@@ -1,6 +1,7 @@
 {
   "infoScreen": {
-    "creadoPor": "创建者"
+    "creadoPor": "创建者",
+    "revisadoPor": "已审核"
   },
   "settings": {
     "title": "设置",

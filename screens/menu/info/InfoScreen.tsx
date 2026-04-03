@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, ImageBackground } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import { LanguageContext } from '../../../contexts/LanguageContext';
@@ -11,73 +11,98 @@ const InfoScreen = () => {
   const { fontSizeFactor } = useContext(FontSizeContext);
 
   return (
-    <View style={styles.safeArea}>
-      <ScrollView>
-        <View style={styles.headerContainer}>
-          <View style={styles.iconWrapper}>
-            <Pressable
-              style={styles.iconContainer}
-              onPress={() => navigation.goBack()}
-            >
-              <Icon name="chevron-left" size={22} color="rgba(255, 255, 255, 1)" />
-              <Icon
-                name="chevron-left"
-                size={22}
-                color="rgba(255, 255, 255, 0.4)"
-                style={{
-                  position: 'absolute',
-                  filter: 'blur(4px)',
-                }}
-              />
-            </Pressable>
+    <View style={styles.background}>
+      <ImageBackground
+        source={require('../../../assets/ImagesBackground/blackhole_1.webp')}
+        style={{
+          ...StyleSheet.absoluteFillObject,
+          filter: `
+            saturate(100%)
+          `
+        }}
+        resizeMode="cover"
+      />
+      <View style={styles.safeArea}>
+        <ScrollView>
+          <View style={styles.headerContainer}>
+            <View style={styles.iconWrapper}>
+              <Pressable
+                style={styles.iconContainer}
+                onPress={() => navigation.goBack()}
+              >
+                <Icon name="chevron-left" size={22} color="rgba(255, 255, 255, 1)" />
+                <Icon
+                  name="chevron-left"
+                  size={22}
+                  color="rgba(255, 255, 255, 0.4)"
+                  style={{
+                    position: 'absolute',
+                    filter: 'blur(4px)',
+                  }}
+                />
+              </Pressable>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.containerMain}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>VALVE</Text>
+          <View style={styles.containerMain}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.titleText}>VALVE</Text>
+            </View>
+            <View style={styles.titleContainer2}>
+              <Text style={styles.titleText2}>2026</Text>
+            </View>
           </View>
-          <View style={styles.titleContainer2}>
-            <Text style={styles.titleText2}>2026</Text>
+          <View style={styles.versionContainer}>
+            <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Beta 26M03.27.01 [Build IDK_F]</Text>
           </View>
+          <View style={{ height: 150 }} />
+        </ScrollView>
+        <View style={styles.creditsContainer}>
+          <Text style={[styles.creditsText2, { fontSize: 22 * fontSizeFactor }]}>
+            <Text style={styles.boldText}></Text>
+          </Text>
+
+          <View style={styles.separation}/>
+
+          <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
+            <Text style={styles.boldText}>VALVE Mobile App</Text>
+          </Text>
+          <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
+            Andrés Felipe López <Text style={styles.boldText}>App Developer 一 UI/UX Designer</Text>
+          </Text>
+
+          <View style={styles.separation}/>
+
+          <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
+            <Text style={styles.boldText}>{t('infoScreen.creadoPor')}</Text>
+          </Text>
+          <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Andrés Felipe López</Text>
+          <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Vanesa Alejandra Martínez</Text>
+
+          <View style={styles.separation}/>
+
+          <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
+            <Text style={styles.boldText}>{t('infoScreen.revisadoPor')}</Text>
+          </Text>
+          <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Ing. Felipe Santamaría</Text>
+
+          <View style={styles.separation}/>
         </View>
-        <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { fontSize: 15 * fontSizeFactor }]}>Beta 26M03.23.02 [Build IDK_F]</Text>
-        </View>
-        <View style={{ height: 150 }} />
-      </ScrollView>
-      <View style={styles.creditsContainer}>
-        <Text style={[styles.creditsText2, { fontSize: 22 * fontSizeFactor }]}>
-          <Text style={styles.boldText}>データ</Text>
-        </Text>
-
-        <View style={styles.separation}/>
-
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
-          <Text style={styles.boldText}>VALVE Mobile App</Text>
-        </Text>
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
-          Andrés Felipe López <Text style={styles.boldText}>Main App Developer 一 UI/UX Designer</Text>
-        </Text>
-
-        <View style={styles.separation}/>
-
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>
-          <Text style={styles.boldText}>{t('infoScreen.creadoPor')}</Text>
-        </Text>
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Andrés Felipe López</Text>
-        <Text style={[styles.creditsText, { fontSize: 16 * fontSizeFactor }]}>Vanesa Alejandra Martínez</Text>
-
-        <View style={styles.separation}/>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 1)',
+  },
   safeArea: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 1)',
+    backgroundColor: 'transparent',
   },
   headerContainer: {
     flexDirection: 'row',

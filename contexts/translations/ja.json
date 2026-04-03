@@ -1,6 +1,7 @@
 {
   "infoScreen": {
-    "creadoPor": "開発者"
+    "creadoPor": "開発者",
+    "revisadoPor": "レビュー済み"
   },
   "settings": {
     "title": "設定",

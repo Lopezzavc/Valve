@@ -52,14 +52,6 @@ const InitialConfigSetup = () => {
         {/* 2. Fijo en la parte inferior */}
         <View style={styles.bottomContainer}>
           <View style={styles.poweredByContainer}>
-            <Text style={styles.poweredByText}>Developed in:</Text>
-            <View style={styles.logoContainer}>
-              <Image
-                source={require('../../../assets/icon/easteregg.webp')}
-                style={styles.bottomImage}
-                resizeMode="contain"
-              />
-            </View>
           </View>
         </View>
 
