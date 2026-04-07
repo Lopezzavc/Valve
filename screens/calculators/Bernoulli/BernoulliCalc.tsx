@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import IconFavorite from 'react-native-vector-icons/FontAwesome';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from "@d11/react-native-fast-image";
 import { Keyboard, LayoutAnimation } from 'react-native';
@@ -29,9 +31,8 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 
 // Tipos de navegación
 type RootStackParamList = {
-  OptionsScreenBernoulli: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
-  HistoryScreenBernoulli: undefined;
-  BernoulliTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 // Imagen de fondo para el contenedor de resultados
@@ -107,54 +108,8 @@ interface CalculatorState {
 }
 
 // Factores de conversión
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  density: {
-    'kg/m³': 1,                          // exacto
-    'g/cm³': 1000,                       // exacto
-    'lb/ft³': 16.018463373960139580,     // exacto (lb = 0.45359237 kg; ft = 0.3048 m)
-    'g/L': 1,                            // exacto
-    'kg/L': 1000,                        // exacto
-  },
-  pressure: {
-    'Pa': 1,                             // exacto
-    'kPa': 1000,                         // exacto
-    'MPa': 1000000,                      // exacto
-    'bar': 100000,                       // exacto
-    'psi': 6894.7572931683613367,        // exacto (lbf/in²; g₀ = 9.80665 m/s²)
-    'atm': 101325,                       // exacto
-    'mmHg': 133.322387415,               // convención (≈; columna de Hg a 0 °C)
-    'Torr': 133.32236842105263158,       // exacto (= atm/760)
-  },
-  length: {
-    'm': 1,                              // exacto
-    'mm': 0.001,                         // exacto
-    'cm': 0.01,                          // exacto
-    'km': 1000,                          // exacto
-    'in': 0.0254,                        // exacto
-    'ft': 0.3048,                        // exacto
-    'yd': 0.9144,                        // exacto
-    'mi': 1609.344,                      // exacto
-  },
-  velocity: {
-    'm/s': 1,                            // exacto
-    'km/h': 0.27777777777777777778,      // exacto (= 1/3.6)
-    'ft/s': 0.3048,                      // exacto
-    'mph': 0.44704,                      // exacto
-    'kn': 0.51444444444444444444,        // exacto (1 nmi/h; nmi = 1852 m)
-    'cm/s': 0.01,                        // exacto
-    'in/s': 0.0254,                      // exacto
-  },
-  flowRate: {
-    'm³/s': 1,                           // exacto
-    'L/s': 0.001,                        // exacto (1 L = 1 dm³)
-    'L/min': 0.00001666666666666666667,  // exacto (= 1e-3/60)
-    'gal/min': 0.0000630901964,          // exacto (US gal = 231 in³)
-    'ft³/s': 0.028316846592,             // exacto
-    'cm³/s': 0.000001,                   // exacto
-  }
-  };
+const conversionFactors = UNIT_FACTORS;
 
-// Configuración del Toast
 const toastConfig = {
   success: (props: BaseToastProps) => (
     <BaseToast
@@ -175,6 +130,7 @@ const toastConfig = {
     />
   ),
 };
+
 
 const initialState = (): CalculatorState => ({
   // Propiedades del fluido
@@ -740,7 +696,14 @@ const BernoulliCalc: React.FC = () => {
 
   // Navegar a selector de opciones/unidades
   const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string) => {
-    navigation.navigate('OptionsScreenBernoulli', { category, onSelectOption, selectedOption });
+    navigation.navigate({
+      name: 'CalculatorOptionsScreen',
+      params: buildCalculatorOptionsParams('bernoulli', {
+        category,
+        onSelectOption,
+        selectedOption,
+      }),
+    });
   }, [navigation]);
 
   // Render de input numérico con etiqueta
@@ -1437,3 +1400,6 @@ const styles = StyleSheet.create({
 });
 
 export default BernoulliCalc;
+
+
+

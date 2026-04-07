@@ -18,6 +18,8 @@ import IconCheck from 'react-native-vector-icons/Octicons';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from '@d11/react-native-fast-image';
 import Decimal from 'decimal.js';
@@ -46,56 +48,13 @@ Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 
 // ─── Navigation types ──────────────────────────────────────────────────────────
 type RootStackParamList = {
-  OptionsScreenPotencia: {
-    category: string;
-    onSelectOption?: (option: string) => void;
-    selectedOption?: string;
-  };
-  HistoryScreenPotencia: undefined;
-  PotenciaTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 // ─── Conversion factors ────────────────────────────────────────────────────────
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  length: {
-    'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-  },
-  flow: {
-    'm³/s': 1,
-    'L/s': 0.001,
-    'm³/h': 1 / 3600,
-    'ft³/s': 0.028316846592,
-    'gal/min': 6.30902e-5,
-  },
-  viscosity: {
-    'm²/s': 1,
-    'cm²/s': 0.0001,
-    'mm²/s': 0.000001,
-    'ft²/s': 0.09290304,
-    'cSt': 0.000001,
-  },
-  specificWeight: {
-    'N/m³': 1,
-    'kN/m³': 1000,
-    'lbf/ft³': 157.08746061538463,
-  },
-  pressure: {
-    'Pa': 1,
-    'kPa': 1000,
-    'MPa': 1000000,
-    'bar': 100000,
-    'atm': 101325,
-    'psi': 6894.757293178,
-    'mmHg': 133.32236842105263,
-    'mca': 9806.65,
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // ─── Toast config ──────────────────────────────────────────────────────────────
 const toastConfig = {
@@ -695,10 +654,13 @@ const PotenciaCalc: React.FC = () => {
       onSelectOption: (opt: string) => void,
       selectedOption?: string,
     ) => {
-      navigation.navigate('OptionsScreenPotencia', {
-        category,
-        onSelectOption,
-        selectedOption,
+      navigation.navigate({
+        name: 'CalculatorOptionsScreen',
+        params: buildCalculatorOptionsParams('potencia', {
+          category,
+          onSelectOption,
+          selectedOption,
+        }),
       });
     },
     [navigation],

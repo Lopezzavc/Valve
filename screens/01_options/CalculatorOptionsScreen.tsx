@@ -8,42 +8,28 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
-  ScrollView
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteProp } from '@react-navigation/native';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { LanguageContext } from '../../../contexts/LanguageContext';
-import { FontSizeContext } from '../../../contexts/FontSizeContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { LanguageContext } from '../../contexts/LanguageContext';
+import { FontSizeContext } from '../../contexts/FontSizeContext';
+import type {
+  CalculatorOptionsScreenParams,
+  SharedOptionItem,
+  SharedOptionSection,
+} from './optionsConfig';
+import { SHARED_OPTIONS_REGISTRY } from './optionsConfig';
 
 type RootStackParamList = {
-  OptionsScreenCompParaleloCalc: {
-    category: string;
-    onSelectOption?: (option: string) => void;
-    selectedOption?: string;
-  };
-};
-
-const OPTIONS_DATA: Record<string, string[]> = {
-  length:    ['m', 'mm', 'cm', 'km', 'in', 'ft', 'μm'],
-  viscosity: ['m²/s', 'mm²/s', 'cm²/s', 'ft²/s'],
-};
-
-const TITLE_I18N_KEY: Record<string, string> = {
-  length:    'optionsScreen.titles.length',
-  viscosity: 'optionsScreen.titles.viscosity',
-};
-
-const SUBTITLE_I18N_KEY: Record<string, string> = {
-  length:    'optionsScreen.subtitles.units',
-  viscosity: 'optionsScreen.subtitles.units',
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams | undefined;
 };
 
 type OptionItemProps = {
-  option: string;
-  displayLabel: string;
+  item: SharedOptionItem;
   isSelected: boolean;
   onPress: (option: string) => void;
   textColor: string;
@@ -53,15 +39,23 @@ type OptionItemProps = {
 };
 
 const OptionItem = React.memo(
-  ({ option, displayLabel, isSelected, onPress, textColor, textSelectedColor, checkColor, fontSizeFactor }: OptionItemProps) => {
-    const handlePress = useCallback(() => onPress(option), [onPress, option]);
+  ({
+    item,
+    isSelected,
+    onPress,
+    textColor,
+    textSelectedColor,
+    checkColor,
+    fontSizeFactor,
+  }: OptionItemProps) => {
+    const handlePress = useCallback(() => onPress(item.option), [onPress, item.option]);
 
     return (
       <Pressable
         onPress={handlePress}
         style={[styles.optionItem, isSelected && styles.selectedOptionItem]}
       >
-        <View style={styles.optionLeft}>
+        <View style={[styles.optionLeft, { flex: 1 }]}>
           <Text
             style={[
               styles.optionText,
@@ -70,14 +64,30 @@ const OptionItem = React.memo(
               isSelected && [
                 styles.selectedOptionText,
                 { color: textSelectedColor },
-                { fontSize: 18 * fontSizeFactor },
               ],
             ]}
           >
-            {displayLabel}
+            {item.label}
           </Text>
         </View>
         <View style={styles.optionRight}>
+          {item.rightLabel ? (
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.optionText,
+                { color: textColor },
+                { fontSize: 16 * fontSizeFactor },
+                { textAlign: 'right' },
+                isSelected && [
+                  styles.selectedOptionText,
+                  { color: textSelectedColor },
+                ],
+              ]}
+            >
+              {item.rightLabel}
+            </Text>
+          ) : null}
           {isSelected && (
             <View style={styles.iconSelected}>
               <Icon name="check" size={20} color={checkColor} />
@@ -88,19 +98,20 @@ const OptionItem = React.memo(
     );
   },
   (prev, next) =>
-    prev.option === next.option &&
-    prev.displayLabel === next.displayLabel &&
+    prev.item.option === next.item.option &&
+    prev.item.label === next.item.label &&
+    prev.item.rightLabel === next.item.rightLabel &&
     prev.isSelected === next.isSelected &&
     prev.textColor === next.textColor &&
     prev.textSelectedColor === next.textSelectedColor &&
     prev.checkColor === next.checkColor &&
-    prev.fontSizeFactor === next.fontSizeFactor
+    prev.fontSizeFactor === next.fontSizeFactor,
 );
 
-const OptionsScreenCompParaleloCalc = () => {
+const CalculatorOptionsScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'OptionsScreenCompParaleloCalc'>>();
-  const params = route.params ?? { category: 'length' };
+  const route = useRoute<RouteProp<RootStackParamList, 'CalculatorOptionsScreen'>>();
+  const params = route.params ?? { configKey: 'length' as const };
 
   const { currentTheme } = useTheme();
   const { t } = useContext(LanguageContext);
@@ -117,10 +128,12 @@ const OptionsScreenCompParaleloCalc = () => {
         icon: 'rgb(245,245,245)',
         checkIcon: 'rgb(12,12,12)',
         accentChip: 'rgb(194, 254, 12)',
-        gradient: 'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
+        gradient:
+          'linear-gradient(to bottom right, rgb(170, 170, 170) 30%, rgb(58, 58, 58) 45%, rgb(58, 58, 58) 55%, rgb(170, 170, 170)) 70%',
         cardGradient: 'linear-gradient(to bottom, rgb(24,24,24), rgb(14,14,14))',
       };
     }
+
     return {
       background: 'rgba(255, 255, 255, 1)',
       card: 'rgba(255, 255, 255, 1)',
@@ -130,14 +143,13 @@ const OptionsScreenCompParaleloCalc = () => {
       icon: 'rgb(0, 0, 0)',
       checkIcon: 'rgb(0, 0, 0)',
       accentChip: 'rgb(194, 254, 12)',
-      gradient: 'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
+      gradient:
+        'linear-gradient(to bottom right, rgb(235, 235, 235) 25%, rgb(190, 190, 190), rgb(223, 223, 223) 80%)',
       cardGradient: 'linear-gradient(to bottom, rgb(255,255,255), rgb(250,250,250))',
     };
   }, [currentTheme]);
 
-  const category = params.category ?? 'length';
-  const onSelectOption = params.onSelectOption;
-  const selectedFromParams = params.selectedOption;
+  const config = SHARED_OPTIONS_REGISTRY[params.configKey];
 
   useEffect(() => {
     if (
@@ -148,53 +160,95 @@ const OptionsScreenCompParaleloCalc = () => {
     }
   }, []);
 
-  const options = useMemo(() => OPTIONS_DATA[category] ?? [], [category]);
+  const flatItems = useMemo(
+    () => (config?.kind === 'flat' ? config.getItems(t) : []),
+    [config, t],
+  );
+
+  const sectionItems = useMemo<SharedOptionSection[]>(
+    () => (config?.kind === 'sectioned' ? config.getSections(t) : []),
+    [config, t],
+  );
+
+  const allOptions = useMemo(
+    () =>
+      config?.kind === 'sectioned'
+        ? sectionItems.flatMap((section) => section.items.map((item) => item.option))
+        : flatItems.map((item) => item.option),
+    [config?.kind, flatItems, sectionItems],
+  );
+
+  const hasMatchingOption = useCallback(
+    (candidate?: string) => {
+      if (!candidate) {
+        return false;
+      }
+
+      return allOptions.some((itemOption) =>
+        config?.isSelected ? config.isSelected(itemOption, candidate) : itemOption === candidate,
+      );
+    },
+    [allOptions, config],
+  );
 
   const title = useMemo(
-    () => t(TITLE_I18N_KEY[category] ?? 'optionsScreen.titles.generic'),
-    [category, t]
+    () => t(params.titleKey ?? config?.titleKey ?? 'optionsScreen.titles.generic'),
+    [config?.titleKey, params.titleKey, t],
   );
+
   const subtitle = useMemo(
-    () => t(SUBTITLE_I18N_KEY[category] ?? 'optionsScreen.subtitles.generic'),
-    [category, t]
+    () => t(config?.subtitleKey ?? 'optionsScreen.subtitles.generic'),
+    [config?.subtitleKey, t],
   );
 
   const [selectedOptionState, setSelectedOption] = useState<string>(
-    selectedFromParams && options.includes(selectedFromParams)
-      ? selectedFromParams
-      : (options[0] ?? '')
+    hasMatchingOption(params.selectedOption)
+      ? params.selectedOption || ''
+      : allOptions[0] ?? params.selectedOption ?? '',
   );
 
   useEffect(() => {
-    if (selectedOptionState && !options.includes(selectedOptionState)) {
-      setSelectedOption(options[0] ?? '');
+    if (hasMatchingOption(params.selectedOption)) {
+      setSelectedOption(params.selectedOption || '');
+      return;
     }
-  }, [options]);
+
+    setSelectedOption((current) => {
+      if (hasMatchingOption(current)) {
+        return current;
+      }
+
+      return allOptions[0] ?? params.selectedOption ?? '';
+    });
+  }, [allOptions, hasMatchingOption, params.selectedOption]);
+
+  const isSelected = useCallback(
+    (itemOption: string) =>
+      config?.isSelected
+        ? config.isSelected(itemOption, selectedOptionState)
+        : itemOption === selectedOptionState,
+    [config, selectedOptionState],
+  );
 
   const handleOptionSelect = useCallback(
     (option: string) => {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setSelectedOption(option);
-      onSelectOption?.(option);
+      params.onSelectOption?.(option);
       navigation.goBack();
     },
-    [navigation, onSelectOption]
+    [navigation, params],
   );
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const getDisplayLabel = useCallback((_cat: string, value: string): string => {
-    return value;
-  }, []);
-
   const renderItem = useCallback(
-    ({ item }: { item: string }) => (
+    ({ item }: { item: SharedOptionItem }) => (
       <OptionItem
-        option={item}
-        displayLabel={getDisplayLabel(category, item)}
-        isSelected={item === selectedOptionState}
+        item={item}
+        isSelected={isSelected(item.option)}
         onPress={handleOptionSelect}
         textColor={themeColors.text}
         textSelectedColor={themeColors.textStrong}
@@ -202,23 +256,75 @@ const OptionsScreenCompParaleloCalc = () => {
         fontSizeFactor={fontSizeFactor}
       />
     ),
-    [selectedOptionState, handleOptionSelect, themeColors.text, themeColors.textStrong, themeColors.checkIcon, category, getDisplayLabel, fontSizeFactor]
+    [
+      fontSizeFactor,
+      handleOptionSelect,
+      isSelected,
+      themeColors.checkIcon,
+      themeColors.text,
+      themeColors.textStrong,
+    ],
   );
 
-  const keyExtractor = useCallback((item: string) => item, []);
+  const keyExtractor = useCallback((item: SharedOptionItem) => item.option, []);
 
   const ItemSeparator = useCallback(
     () => <View style={[styles.separator, { backgroundColor: themeColors.separator }]} />,
-    [themeColors.separator]
+    [themeColors.separator],
   );
 
   const getItemLayout = useCallback(
-    (_: any, index: number) => ({
+    (_: unknown, index: number) => ({
       length: 46,
       offset: 47 * index,
       index,
     }),
-    []
+    [],
+  );
+
+  const renderOptionsBlock = useCallback(
+    (items: SharedOptionItem[]) => (
+      <View
+        style={[
+          styles.optionsContainerMain,
+          { experimental_backgroundImage: themeColors.gradient },
+        ]}
+      >
+        <View
+          style={[
+            styles.optionsContainer,
+            {
+              backgroundColor: 'transparent',
+              experimental_backgroundImage: themeColors.cardGradient,
+            },
+          ]}
+        >
+          <FlatList
+            data={items}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            ItemSeparatorComponent={ItemSeparator}
+            extraData={selectedOptionState}
+            initialNumToRender={12}
+            windowSize={5}
+            maxToRenderPerBatch={8}
+            updateCellsBatchingPeriod={16}
+            removeClippedSubviews
+            getItemLayout={getItemLayout}
+            scrollEnabled={false}
+          />
+        </View>
+      </View>
+    ),
+    [
+      ItemSeparator,
+      getItemLayout,
+      keyExtractor,
+      renderItem,
+      selectedOptionState,
+      themeColors.cardGradient,
+      themeColors.gradient,
+    ],
   );
 
   return (
@@ -227,7 +333,6 @@ const OptionsScreenCompParaleloCalc = () => {
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.rightIconsContainer}>
           <View
@@ -252,12 +357,12 @@ const OptionsScreenCompParaleloCalc = () => {
         </View>
       </View>
 
-      {/* Títulos */}
       <View style={styles.titlesContainer}>
         <Text
           style={[
             styles.subtitle,
-            { color: themeColors.text, fontSize: 18 * fontSizeFactor },
+            { color: themeColors.text },
+            { fontSize: 18 * fontSizeFactor },
           ]}
         >
           {subtitle}
@@ -265,45 +370,32 @@ const OptionsScreenCompParaleloCalc = () => {
         <Text
           style={[
             styles.title,
-            { color: themeColors.textStrong, fontSize: 30 * fontSizeFactor },
+            { color: themeColors.textStrong },
+            { fontSize: 30 * fontSizeFactor },
           ]}
         >
           {title}
         </Text>
       </View>
 
-      {/* Lista de opciones */}
-      <View
-        style={[
-          styles.optionsContainerMain,
-          { experimental_backgroundImage: themeColors.gradient },
-        ]}
-      >
-        <View
-          style={[
-            styles.optionsContainer,
-            {
-              backgroundColor: 'transparent',
-              experimental_backgroundImage: themeColors.cardGradient,
-            },
-          ]}
-        >
-          <FlatList
-            data={options}
-            keyExtractor={keyExtractor}
-            renderItem={renderItem}
-            ItemSeparatorComponent={ItemSeparator}
-            extraData={selectedOptionState}
-            initialNumToRender={12}
-            windowSize={5}
-            maxToRenderPerBatch={8}
-            updateCellsBatchingPeriod={16}
-            removeClippedSubviews
-            getItemLayout={getItemLayout}
-            scrollEnabled={false}
-          />
-        </View>
-      </View>
+      {config?.kind === 'sectioned'
+        ? sectionItems.map((section) => (
+            <React.Fragment key={section.key}>
+              <View style={styles.titlesContainer}>
+                <Text
+                  style={[
+                    styles.subtitle,
+                    { color: themeColors.text },
+                    { fontSize: 18 * fontSizeFactor },
+                  ]}
+                >
+                  {section.title}
+                </Text>
+              </View>
+              {renderOptionsBlock(section.items)}
+            </React.Fragment>
+          ))
+        : renderOptionsBlock(flatItems)}
 
       <View style={styles.spaceEndPage} />
     </ScrollView>
@@ -416,7 +508,6 @@ const styles = StyleSheet.create({
   selectedOptionText: {
     color: 'rgb(0, 0, 0)',
     fontFamily: 'SFUIDisplay-Regular',
-    fontSize: 18,
   },
   separator: {
     height: 1,
@@ -429,4 +520,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OptionsScreenCompParaleloCalc;
+export default CalculatorOptionsScreen;

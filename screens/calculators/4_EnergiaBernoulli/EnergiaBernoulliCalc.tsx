@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import IconCheck from 'react-native-vector-icons/Octicons';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from "@d11/react-native-fast-image";
 import Decimal from 'decimal.js';
@@ -52,9 +54,8 @@ const DECIMAL_TEMP_MAX_C = new Decimal('374');
 
 // Tipos de rutas disponibles desde esta pantalla
 type RootStackParamList = {
-  OptionsScreenEnergiaBernoulli: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string; fieldLabel?: string };
-  HistoryScreenEnergiaBernoulli: undefined;
-  EnergiaBernoulliTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
@@ -198,69 +199,8 @@ interface CalculatorState {
 }
 
 // Factores de conversión a unidades SI agrupados por categoría de magnitud física
-const conversionFactors: { [key: string]: { [key: string]: string } } = {
-  length: {
-    'm': '1',
-    'mm': '0.001',
-    'cm': '0.01',
-    'km': '1000',
-    'in': '0.0254',
-    'ft': '0.3048',
-    'yd': '0.9144',
-    'mi': '1609.344',
-  },
-  velocity: {
-    'm/s': '1',
-    'km/h': '0.2777777777777778',
-    'ft/s': '0.3048',
-    'mph': '0.44704',
-    'kn': '0.5144444444444445',
-    'cm/s': '0.01',
-    'in/s': '0.0254',
-  },
-  area: {
-    'm²': '1',
-    'cm²': '0.0001',
-    'mm²': '0.000001',
-    'km²': '1000000',
-    'ha': '10000',
-    'in²': '0.00064516',
-    'ft²': '0.09290304',
-    'yd²': '0.83612736',
-    'mi²': '2589988.110336',
-    'acre': '4046.8564224',
-  },
-  pressure: {
-    'Pa': '1',
-    'kPa': '1000',
-    'MPa': '1000000',
-    'bar': '100000',
-    'atm': '101325',
-    'psi': '6894.757293178',
-    'mmHg': '133.32236842105263',
-    'mca': '9806.65',
-  },
-  density: {
-    'kg/m³': '1',
-    'g/cm³': '1000',
-    'lb/ft³': '16.018463373',
-  },
-  acceleration: {
-    'm/s²': '1',
-    'ft/s²': '0.3048',
-    'g': '9.80665',
-  },
-  temperature: {
-    '°C': '1',
-    '°F': '1',
-    'K': '1',
-  },
-  specificWeight: {
-    'N/m³': '1',
-    'kN/m³': '1000',
-    'lbf/ft³': '157.08746061538463',
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 const isValidDecimalString = (val: string): boolean => {
   if (!val || val.trim() === '') return false;
@@ -2328,7 +2268,15 @@ const EnergiaBernoulliCalc: React.FC = () => {
 
   // Navega a la pantalla de selección de unidades para el campo indicado
   const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string, fieldLabel?: string) => {
-    navigation.navigate('OptionsScreenEnergiaBernoulli', { category, onSelectOption, selectedOption, fieldLabel });
+    navigation.navigate({
+      name: 'CalculatorOptionsScreen',
+      params: buildCalculatorOptionsParams('energiaBernoulli', {
+        category,
+        onSelectOption,
+        selectedOption,
+        fieldLabel,
+      }),
+    });
   }, [navigation]);
 
   // ── Handlers del teclado personalizado ──────────────────────────────────────
@@ -3937,4 +3885,8 @@ const styles = StyleSheet.create({
 });
 
 export default EnergiaBernoulliCalc;
+
+
+
+
 

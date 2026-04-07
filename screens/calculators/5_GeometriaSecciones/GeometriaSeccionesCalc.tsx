@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,8 @@ import IconFavorite from 'react-native-vector-icons/FontAwesome';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from "@d11/react-native-fast-image";
 import Decimal from 'decimal.js';
@@ -251,9 +253,8 @@ Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 
 // Tipos de navegación
 type RootStackParamList = {
-  OptionsScreenGeometria: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
-  HistoryScreenGeometriaSecciones: undefined;
-  GeometriaSeccionesTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
@@ -322,30 +323,8 @@ interface CalculatorState {
 }
 
 // Factores de conversión (copiados de EnergiaBernoulliCalc y ampliados con área)
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  length: {
-    'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.344,
-  },
-  area: {
-    'm²': 1,
-    'cm²': 0.0001,
-    'mm²': 0.000001,
-    'km²': 1000000,
-    'ha': 10000,
-    'in²': 0.00064516,
-    'ft²': 0.09290304,
-    'yd²': 0.83612736,
-    'mi²': 2589988.110336,
-    'acre': 4046.8564224,
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // Configuración de Toast
 const toastConfig = {
@@ -1180,7 +1159,14 @@ const GeometriaSeccionesCalc: React.FC = () => {
   }, [state, formatResult, t]);
 
   const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string) => {
-    navigation.navigate('OptionsScreenGeometria', { category, onSelectOption, selectedOption });
+    navigation.navigate({
+      name: 'CalculatorOptionsScreen',
+      params: buildCalculatorOptionsParams('geometria', {
+        category,
+        onSelectOption,
+        selectedOption,
+      }),
+    });
   }, [navigation]);
 
   // ── Handlers del teclado custom ──────────────────────────────────────────────
@@ -2034,3 +2020,7 @@ const styles = StyleSheet.create({
 });
 
 export default GeometriaSeccionesCalc;
+
+
+
+

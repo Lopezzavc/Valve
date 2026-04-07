@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Clipboard, ScrollView, Animated, Dimensions } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
@@ -7,6 +7,8 @@ import Decimal from 'decimal.js';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from "@d11/react-native-fast-image";
 
@@ -32,9 +34,8 @@ const logoLight = require('../../../assets/icon/iconblack.webp');
 const logoDark  = require('../../../assets/icon/iconwhite.webp');
 
 type RootStackParamList = {
-  OptionsScreenFroude: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
-  HistoryScreenFroude: undefined;
-  FroudeTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
@@ -67,43 +68,8 @@ interface CalculatorState {
 // Factores de conversión para cada tipo de magnitud, expresados respecto a la unidad base del SI.
 // Nota: el factor km/h² (0.00007716049382716) está truncado respecto al valor exacto
 // (0.0000771604938271604938...) pero no se corrige aquí para preservar la lógica original.
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  area: {
-    'm²': 1,
-    'cm²': 0.0001,
-    'mm²': 0.000001,
-    'km²': 1000000,
-    'ft²': 0.09290304,
-    'in²': 0.00064516,
-    'yd²': 0.83612736,
-    'mi²': 2589988.110336,
-  },
-  length: {
-    'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.344,
-  },
-  velocity: {
-    'm/s': 1,
-    'km/h': 0.27777777777777777778,
-    'ft/s': 0.3048,
-    'mph': 0.44704,
-    'kn': 0.51444444444444444444,
-    'cm/s': 0.01,
-    'in/s': 0.0254,
-  },
-  acceleration: {
-    'm/s²': 1,
-    'ft/s²': 0.3048,
-    'km/h²': 0.00007716049382716,
-    'cm/s²': 0.01,
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // Configuración visual de los mensajes toast que aparecen en pantalla
 const toastConfig = {
@@ -502,7 +468,14 @@ const FroudeCalc: React.FC = () => {
   }, [state, formatResult, t]);
 
   const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string) => {
-    navigation.navigate('OptionsScreenFroude', { category, onSelectOption, selectedOption });
+    navigation.navigate({
+      name: 'CalculatorOptionsScreen',
+      params: buildCalculatorOptionsParams('froude', {
+        category,
+        onSelectOption,
+        selectedOption,
+      }),
+    });
   }, [navigation]);
 
   // Utilidades del teclado personalizado: lectura del valor activo y despacho al handler correcto
@@ -1203,3 +1176,6 @@ const styles = StyleSheet.create({
 });
 
 export default FroudeCalc;
+
+
+

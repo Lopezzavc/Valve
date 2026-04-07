@@ -6,7 +6,10 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import IconFavorite from 'react-native-vector-icons/FontAwesome';
+import MaskedView from '@react-native-masked-view/masked-view';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from '@d11/react-native-fast-image';
 import Decimal from 'decimal.js';
@@ -33,9 +36,8 @@ Decimal.set({ precision: 20, rounding: Decimal.ROUND_HALF_EVEN });
 
 // Tipos de navegación del stack
 type RootStackParamList = {
-  OptionsScreenReynolds: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
-  HistoryScreenReynolds: undefined;
-  ReynoldsTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 // Estructura del estado central de la calculadora
@@ -66,52 +68,8 @@ interface CalculatorState {
 }
 
 // Factores de conversión de cada magnitud física hacia su unidad base del SI
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  velocity: {
-    'm/s':  1,
-    'km/h': 0.27777777777777777778,
-    'ft/s': 0.3048,
-    'mph':  0.44704,
-    'kn':   0.51444444444444444444,
-    'cm/s': 0.01,
-    'in/s': 0.0254,
-  },
-  length: {
-    'm':  1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.344,
-  },
-  density: {
-    'kg/m³': 1,
-    'g/cm³': 1000,
-    'lb/ft³': 16.018463373960139580,
-    'g/L':   1,
-    'kg/L':  1000,
-  },
-  dynamicViscosity: {
-    'Pa·s':      1,
-    'cP':        0.001,
-    'P':         0.1,
-    'mPa·s':     0.001,
-    'kg/(m·s)':  1,
-    'lb/(ft·s)': 1.4881639435695538,
-    'lb/(ft·h)': 0.00041338443155264994,
-  },
-  kinematicViscosity: {
-    'm²/s':  1,
-    'cSt':   0.000001,
-    'St':    0.0001,
-    'mm²/s': 0.000001,
-    'cm²/s': 0.0001,
-    'ft²/s': 0.09290304,
-    'ft²/h': 0.000025806400000000000,
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // Propiedades físicas de fluidos comunes a temperaturas específicas, en unidades SI (kg/m³ y Pa·s).
 const PRESET_FLUID_PROPS: Record<string, { rho: number; mu: number }> = {
@@ -187,6 +145,50 @@ const initialState = (): CalculatorState => ({
   autoCalculatedField: null,
   presetFluid: 'custom',
 });
+
+const INACTIVE_ACTION_ICON_GRADIENT = 'linear-gradient(to bottom right, rgba(120, 120, 120, 0.8) 20%, rgba(80, 80, 80, 0.8) 80%)';
+
+const ActionButtonIcon: React.FC<{
+  icon: string;
+  size: number;
+  isActive: boolean;
+}> = ({ icon, size, isActive }) => {
+  if (isActive) {
+    return (
+      <>
+        <Icon name={icon} size={size} color="rgb(255, 255, 255)" />
+        <Icon
+          name={icon}
+          size={size}
+          color="rgba(255, 255, 255, 0.5)"
+          style={{ position: 'absolute', filter: 'blur(4px)' }}
+        />
+      </>
+    );
+  }
+
+  return (
+    <MaskedView
+      style={{ width: size, height: size }}
+      maskElement={
+        <View style={styles.actionIconMask}>
+          <Icon name={icon} size={size} color="black" />
+        </View>
+      }
+    >
+      <View
+        style={{
+          width: size,
+          height: size,
+          experimental_backgroundImage: INACTIVE_ACTION_ICON_GRADIENT,
+        }}
+      />
+    </MaskedView>
+  );
+};
+
+const ACTION_BUTTON_GROUP_GAP = 10;
+const CONSOLE_BUTTON_GROUP_GAP = 30;
 
 const ReynoldsCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -308,6 +310,36 @@ const ReynoldsCalc: React.FC = () => {
     return 'reynoldsCalc.regime.turbulent';
   }, [state.resultReynolds]);
 
+  const regimeBadgeStyle = React.useMemo(() => {
+    switch (regimeKey) {
+      case 'reynoldsCalc.regime.laminar':
+        return {
+          backgroundColor: 'rgba(52, 199, 89, 0.15)',
+          borderColor: 'rgba(52, 199, 89, 0.3)',
+        };
+      case 'reynoldsCalc.regime.transitional':
+        return {
+          backgroundColor: 'rgba(255, 215, 0, 0.15)',
+          borderColor: 'rgba(255, 215, 0, 0.3)',
+        };
+      case 'reynoldsCalc.regime.turbulent':
+        return {
+          backgroundColor: 'rgba(255, 59, 48, 0.15)',
+          borderColor: 'rgba(255, 59, 48, 0.3)',
+        };
+      default:
+        return {
+          backgroundColor: 'rgba(142, 142, 142, 0.02)',
+          borderColor: 'rgba(104, 104, 104, 0.12)',
+        };
+    }
+  }, [regimeKey]);
+
+  const hasCalculatedResults = state.resultReynolds !== 0
+    || !!state.resultDensity
+    || !!state.resultDynamicViscosity
+    || !!state.resultKinematicViscosity;
+
   // Formateo de un número para mostrar, eliminando ceros decimales finales con Decimal para mayor precisión
   const formatResult = useCallback((num: number): string => {
     if (!Number.isFinite(num)) return '';
@@ -428,8 +460,7 @@ const ReynoldsCalc: React.FC = () => {
 
   // Copia de resultados e inputs al portapapeles como texto formateado
   const handleCopy = useCallback(() => {
-    const hasResults = state.resultReynolds !== 0 || state.resultDensity || state.resultDynamicViscosity || state.resultKinematicViscosity;
-    if (!hasResults) {
+    if (!hasCalculatedResults) {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('reynoldsCalc.toasts.noResultsToCopy') || 'No hay resultados para copiar' });
       return;
     }
@@ -457,12 +488,11 @@ const ReynoldsCalc: React.FC = () => {
 
     Clipboard.setString(text);
     Toast.show({ type: 'success', text1: t('common.success'), text2: t('reynoldsCalc.toasts.copied') || 'Resultados copiados al portapapeles' });
-  }, [state, formatResult, t]);
+  }, [state, formatResult, hasCalculatedResults, t]);
 
   // Persistencia del cálculo actual en el historial de la base de datos
   const handleSaveHistory = useCallback(async () => {
-    const hasResults = state.resultReynolds !== 0 || state.resultDensity || state.resultDynamicViscosity || state.resultKinematicViscosity;
-    if (!hasResults) {
+    if (!hasCalculatedResults) {
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('reynoldsCalc.toasts.nothingToSave') || 'No hay resultados para guardar' });
       return;
     }
@@ -493,7 +523,7 @@ const ReynoldsCalc: React.FC = () => {
       console.error('Error al guardar el historial:', error);
       Toast.show({ type: 'error', text1: t('common.error'), text2: t('reynoldsCalc.toasts.saveError') || 'Error al guardar en el historial' });
     }
-  }, [state, formatResult, t]);
+  }, [state, formatResult, hasCalculatedResults, t]);
 
   // Alternancia del estado de favorito con animación del icono de corazón
   const toggleFavorite = useCallback(async () => {
@@ -534,7 +564,14 @@ const ReynoldsCalc: React.FC = () => {
     onSelectOption: (opt: string) => void,
     selectedOption?: string
   ) => {
-    navigation.navigate('OptionsScreenReynolds', { category, onSelectOption, selectedOption });
+    navigation.navigate({
+      name: 'CalculatorOptionsScreen',
+      params: buildCalculatorOptionsParams('reynolds', {
+        category,
+        onSelectOption,
+        selectedOption,
+      }),
+    });
   }, [navigation]);
 
   // Carga de propiedades predefinidas de un fluido en los campos de densidad y viscosidad dinámica
@@ -574,6 +611,20 @@ const ReynoldsCalc: React.FC = () => {
   }, [state.densityUnit, state.dynamicViscosityUnit]);
 
   const handleClear = useCallback(() => setState(initialState), []);
+
+  const primaryActionButtons = [
+    { icon: 'zap', label: t('common.calculate') || 'Calcular', action: calculateReynolds, isActive: true },
+    { icon: 'copy', label: t('common.copy') || 'Copiar', action: handleCopy, isActive: hasCalculatedResults },
+    { icon: 'trash', label: t('common.clear') || 'Limpiar', action: handleClear, isActive: hasCalculatedResults },
+    { icon: 'clock', label: t('common.history') || 'Historial', action: () => navigation.navigate('HistoryScreenReynolds'), isActive: true },
+  ];
+
+  const consoleActionButton = {
+    icon: 'terminal',
+    label: 'Consola',
+    action: () => navigation.navigate('ConsoleScreen'),
+    isActive: hasCalculatedResults,
+  };
 
   // Enrutador interno del teclado personalizado que aplica una transformación al input activo en ese momento
   const withActiveInput = useCallback((transform: (current: string) => string) => {
@@ -800,7 +851,7 @@ const ReynoldsCalc: React.FC = () => {
                       style={{ ...StyleSheet.absoluteFillObject as any, backgroundColor: 'rgba(0,0,0,0.7)' }}
                     />
                   )}
-                  <View style={styles.caudalLabel}>
+                  <View style={[styles.caudalLabel, regimeBadgeStyle]}>
                     <Text style={[styles.flowLabel, { color: currentTheme === 'dark' ? '#FFFFFF' : 'rgba(0,0,0,1)', fontSize: 14 * fontSizeFactor }]}>
                       {state.resultReynolds === 0 ? 'な' : t(regimeKey)}
                     </Text>
@@ -818,22 +869,28 @@ const ReynoldsCalc: React.FC = () => {
 
         {/* Botones de acción principal */}
         <View style={styles.buttonsContainer}>
-          {[
-            { icon: 'terminal', label: t('common.calculate') || 'Calcular',  action: calculateReynolds },
-            { icon: 'copy',     label: t('common.copy')      || 'Copiar',    action: handleCopy },
-            { icon: 'trash',    label: t('common.clear')     || 'Limpiar',   action: handleClear },
-            { icon: 'clock',    label: t('common.history')   || 'Historial', action: () => navigation.navigate('HistoryScreenReynolds') },
-          ].map(({ icon, label, action }) => (
-            <View style={styles.actionWrapper} key={label}>
+          <View style={styles.primaryButtonsGroup}>
+            {primaryActionButtons.map(({ icon, label, action, isActive }) => (
+              <View style={styles.actionWrapper} key={label}>
+                <View style={styles.actionButtonMain}>
+                  <Pressable style={[styles.actionButton, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={action}>
+                    <ActionButtonIcon icon={icon} size={22 * fontSizeFactor} isActive={isActive} />
+                  </Pressable>
+                </View>
+                <Text style={[styles.actionButtonText, { fontSize: 14 * fontSizeFactor }]}>{label}</Text>
+              </View>
+            ))}
+          </View>
+          <View style={styles.consoleButtonGroup}>
+            <View style={styles.actionWrapper}>
               <View style={styles.actionButtonMain}>
-                <Pressable style={[styles.actionButton, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={action}>
-                  <Icon name={icon} size={22 * fontSizeFactor} color="rgb(255, 255, 255)" />
-                  <Icon name={icon} size={22 * fontSizeFactor} color="rgba(255, 255, 255, 0.5)" style={{ position: 'absolute', filter: 'blur(4px)' }} />
+                <Pressable style={[styles.actionButton, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]} onPress={consoleActionButton.action}>
+                  <ActionButtonIcon icon={consoleActionButton.icon} size={22 * fontSizeFactor} isActive={consoleActionButton.isActive} />
                 </Pressable>
               </View>
-              <Text style={[styles.actionButtonText, { fontSize: 14 * fontSizeFactor }]}>{label}</Text>
+              <Text style={[styles.actionButtonText, { fontSize: 14 * fontSizeFactor }]}>{consoleActionButton.label}</Text>
             </View>
-          ))}
+          </View>
         </View>
 
         {/* Sección de campos de entrada */}
@@ -1081,9 +1138,7 @@ const styles = StyleSheet.create({
     position: 'relative' 
   },
   caudalLabel: {
-    backgroundColor: 'rgba(142, 142, 142, 0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(104, 104, 104, 0.12)',
     borderRadius: 14,
     marginLeft: 11,
     marginTop: 11,
@@ -1111,9 +1166,16 @@ const styles = StyleSheet.create({
     marginTop: 20, 
     marginBottom: 15, 
     backgroundColor: 'transparent', 
-    gap: 20, 
     alignItems: 'center', 
     justifyContent: 'center' 
+  },
+  primaryButtonsGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: ACTION_BUTTON_GROUP_GAP,
+  },
+  consoleButtonGroup: {
+    marginLeft: CONSOLE_BUTTON_GROUP_GAP,
   },
   actionWrapper: { 
     alignItems: 'center', 
@@ -1133,6 +1195,12 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     flex: 1 
   },
+  actionIconMask: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
   actionButtonText: { 
     marginTop: 2, 
     fontSize: 14, 
@@ -1144,8 +1212,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 1)', 
     paddingHorizontal: 20, 
     paddingTop: 20, 
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25, 
+    borderTopLeftRadius: 35,
+    borderTopRightRadius: 35, 
   },
   inputsContainer: { 
     backgroundColor: 'transparent' 

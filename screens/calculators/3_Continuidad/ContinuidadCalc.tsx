@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,8 @@ import IconFavorite from 'react-native-vector-icons/FontAwesome';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from "@d11/react-native-fast-image";
 
@@ -49,9 +51,8 @@ const DECIMAL_PI = new Decimal('3.14159265358979323846');
 
 // Tipos de navegación disponibles para esta pantalla
 type RootStackParamList = {
-  OptionsScreen: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string; fieldLabel?: string };
-  HistoryScreenContinuidad: undefined;
-  ContinuidadTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 // Tipos internos para modos, secciones y llenado
@@ -125,39 +126,8 @@ interface ButtonPositions {
 }
 
 // Factores de conversión al sistema internacional por categoría de unidad
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  length: {
-    'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.344,
-  },
-  velocity: {
-    'm/s': 1,
-    'km/h': 0.2777777777777778,
-    'ft/s': 0.3048,
-    'mph': 0.44704,
-    'kn': 0.5144444444444445,
-    'cm/s': 0.01,
-    'in/s': 0.0254,
-  },
-  area: {
-    'm²': 1,
-    'cm²': 0.0001,
-    'mm²': 0.000001,
-    'km²': 1000000,
-    'ha': 10000,
-    'in²': 0.00064516,
-    'ft²': 0.09290304,
-    'yd²': 0.83612736,
-    'mi²': 2589988.110336,
-    'acre': 4046.8564224,
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // Configuración visual de los toasts de éxito y error
 const toastConfig = {
@@ -855,7 +825,15 @@ const ContinuidadCalc: React.FC = () => {
   }, [state.A1, state.v1, state.A2, state.v2]);
 
   const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string, fieldLabel?: string) => {
-    navigation.navigate('OptionsScreen', { category, onSelectOption, selectedOption, fieldLabel });
+    navigation.navigate({
+      name: 'CalculatorOptionsScreen',
+      params: buildCalculatorOptionsParams('continuidad', {
+        category,
+        onSelectOption,
+        selectedOption,
+        fieldLabel,
+      }),
+    });
   }, [navigation]);
 
   // Traduce el valor interno de tipo de sección a la clave de idioma correspondiente
@@ -1879,3 +1857,6 @@ const styles = StyleSheet.create({
 });
 
 export default ContinuidadCalc;
+
+
+

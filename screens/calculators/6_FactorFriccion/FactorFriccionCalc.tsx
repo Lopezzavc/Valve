@@ -17,6 +17,8 @@ import IconFavorite from 'react-native-vector-icons/FontAwesome';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from '@d11/react-native-fast-image';
 import Decimal from 'decimal.js';
@@ -44,14 +46,8 @@ Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 // Navigation types
 // ---------------------------------------------------------------------------
 type RootStackParamList = {
-  OptionsScreenFactorFriccion: {
-    category: string;
-    onSelectOption?: (option: string) => void;
-    selectedOption?: string;
-  };
-  HistoryScreenFactorFriccion: undefined;
-  FactorFriccionTheory: undefined;
-  MoodyDiagramScreen: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
@@ -106,18 +102,8 @@ interface CalculatorState {
 // ---------------------------------------------------------------------------
 // Conversion factors
 // ---------------------------------------------------------------------------
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  length: {
-    'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.344,
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // ---------------------------------------------------------------------------
 // Toast config
@@ -492,10 +478,13 @@ const FactorFriccionCalc: React.FC = () => {
       onSelectOption: (opt: string) => void,
       selectedOption?: string
     ) => {
-      navigation.navigate('OptionsScreenFactorFriccion', {
-        category,
-        onSelectOption,
-        selectedOption,
+      navigation.navigate({
+        name: 'CalculatorOptionsScreen',
+        params: buildCalculatorOptionsParams('factorFriccion', {
+          category,
+          onSelectOption,
+          selectedOption,
+        }),
       });
     },
     [navigation]
@@ -1254,18 +1243,21 @@ const FactorFriccionCalc: React.FC = () => {
             { experimental_backgroundImage: themeColors.gradient },
           ]}
           onPress={() => {
-            navigation.navigate('OptionsScreenFactorFriccion', {
-              category: 'equation',
-              onSelectOption: (option: string) => {
-                setState(prev => ({
-                  ...prev,
-                  selectedEquation: option as EquationType,
-                  resultPrincipal: '',
-                  invalidFields: [],
-                  autoCalculatedField: null,
-                }));
-              },
-              selectedOption: state.selectedEquation,
+            navigation.navigate({
+              name: 'CalculatorOptionsScreen',
+              params: buildCalculatorOptionsParams('factorFriccion', {
+                category: 'equation',
+                onSelectOption: (option: string) => {
+                  setState(prev => ({
+                    ...prev,
+                    selectedEquation: option as EquationType,
+                    resultPrincipal: '',
+                    invalidFields: [],
+                    autoCalculatedField: null,
+                  }));
+                },
+                selectedOption: state.selectedEquation,
+              }),
             });
           }}
         >

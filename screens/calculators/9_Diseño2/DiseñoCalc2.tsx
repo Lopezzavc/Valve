@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,8 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from '@d11/react-native-fast-image';
 import Decimal from 'decimal.js';
@@ -50,48 +52,15 @@ Decimal.set({
 
 // ─── Navigation types ──────────────────────────────────────────────────────────
 type RootStackParamList = {
-  OptionsScreenDiseño2: {
-    category: string;
-    onSelectOption?: (option: string) => void;
-    selectedOption?: string;
-  };
-  HistoryScreenDiseño2: undefined;
-  DiseñoTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
 
 // ─── Conversion factors ────────────────────────────────────────────────────────
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  length: {
-    'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.344,
-  },
-  viscosity: {
-    'm²/s': 1,
-    'cm²/s': 0.0001,
-    'mm²/s': 0.000001,
-    'ft²/s': 0.09290304,
-  },
-  flow: {
-    'm³/s': 1,
-    'L/s': 0.001,
-    'm³/min': 1 / 60,
-    'm³/h': 1 / 3600,
-    'ft³/s': 0.0283168,
-  },
-  acceleration: {
-    'm/s²': 1,
-    'ft/s²': 0.3048,
-    'g': 9.80665,
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // ─── Toast config ──────────────────────────────────────────────────────────────
 const toastConfig = {
@@ -584,7 +553,14 @@ const DiseñoCalc2: React.FC = () => {
     onSelectOption: (opt: string) => void,
     selectedOption?: string
   ) => {
-    navigation.navigate('OptionsScreenDiseño2', { category, onSelectOption, selectedOption });
+    navigation.navigate({
+      name: 'CalculatorOptionsScreen',
+      params: buildCalculatorOptionsParams('diseno2', {
+        category,
+        onSelectOption,
+        selectedOption,
+      }),
+    });
   }, [navigation]);
 
   // ── Convert field to SI ────────────────────────────────────────────────────
@@ -1853,3 +1829,7 @@ const styles = StyleSheet.create({
 });
 
 export default DiseñoCalc2;
+
+
+
+

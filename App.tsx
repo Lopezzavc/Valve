@@ -37,88 +37,75 @@ import InitialScreenConfigScreen from './screens/menu/settings/settingsScreens/I
 
 import InfoScreen from './screens/menu/info/InfoScreen';
 import SearchScreen from './screens/menu/search/SearchScreen';
+import CalculatorOptionsScreen from './screens/01_options/CalculatorOptionsScreen';
+import type { CalculatorOptionsScreenParams } from './screens/01_options/optionsConfig';
+import ConsoleScreen from './screens/02_console/ConsoleScreen';
 
 // DE MOMENTO ESTO NO
 
 import BernoulliCalc from './screens/calculators/Bernoulli/BernoulliCalc';
-import OptionsScreenBernoulli from './screens/calculators/Bernoulli/OptionsScreenBernoulli';
 import HistoryScreenBernoulli from './screens/calculators/Bernoulli/HistoryScreenBernoulli';
 import BernoulliTheory from './screens/calculators/Bernoulli/BernoulliTheory';
 
 // 1_REYNOLDS
 import ReynoldsCalc from './screens/calculators/1_Reynolds/ReynoldsCalc';
-import OptionsScreenReynolds from './screens/calculators/1_Reynolds/OptionsScreenReynolds';
 import HistoryScreenReynolds from './screens/calculators/1_Reynolds/HistoryScreenReynolds';
 import ReynoldsTheory from './screens/calculators/1_Reynolds/ReynoldsTheory';
 
 // 2_FROUDE
 import FroudeCalc from './screens/calculators/2_Froude/FroudeCalc';
-import OptionsScreenFroude from './screens/calculators/2_Froude/OptionsScreenFroude';
 import HistoryScreenFroude from './screens/calculators/2_Froude/HistoryScreenFroude';
 import FroudeTheory from './screens/calculators/2_Froude/TheoryFroude';
 
 // 3_CONTINUIDAD
 import ContinuidadCalc from './screens/calculators/3_Continuidad/ContinuidadCalc';
-import OptionsScreen from './screens/calculators/3_Continuidad/OptionsScreen';
 import HistoryScreenContinuidad from './screens/calculators/3_Continuidad/HistoryScreenContinuidad';
 import ContinuidadTheory from './screens/calculators/3_Continuidad/ContinuidadTheory'
 
 // 4_ENERGIA BERNOULLI
 import EnergiaBernoulliCalc from './screens/calculators/4_EnergiaBernoulli/EnergiaBernoulliCalc';
-import OptionsScreenEnergiaBernoulli from './screens/calculators/4_EnergiaBernoulli/OptionsScreenEnergiaBernoulli';
 import HistoryScreenEnergiaBernoulli from './screens/calculators/4_EnergiaBernoulli/HistoryScreenEnergiaBernoulli';
 import EnergiaBernoulliTheory from './screens/calculators/4_EnergiaBernoulli/EnergiaBernoulliTheory'
 
 // 5_GEOMETRIA SECCIONES
 import GeometriaSeccionesCalc from './screens/calculators/5_GeometriaSecciones/GeometriaSeccionesCalc';
-import OptionsScreenGeometria from './screens/calculators/5_GeometriaSecciones/OptionsScreenGeometria';
 import HistoryScreenGeometriaSecciones from './screens/calculators/5_GeometriaSecciones/HistoryScreenGeometriaSecciones';
 
 // 6_FACTOR FRICCION
 import FactorFriccionCalc from './screens/calculators/6_FactorFriccion/FactorFriccionCalc';
-import OptionsScreenFactorFriccion from './screens/calculators/6_FactorFriccion/OptionsScreenFactorFriccion';
 import HistoryScreenFactorFriccion from './screens/calculators/6_FactorFriccion/HistoryScreenFactorFriccion';
 import FactorFriccionTheory from './screens/calculators/6_FactorFriccion/FactorFriccionTheory';
 import MoodyDiagramScreen from './screens/calculators/6_FactorFriccion/MoodyDiagramScreen';
 
 // 7_PERDIDAS LOCALIZADAS
 import PerdidasLocalizadasCalc from './screens/calculators/7_PerdidasLocalizadas/PerdidasLocalizadasCalc';
-import OptionsScreenPerdidasLocalizadas from './screens/calculators/7_PerdidasLocalizadas/OptionsScreenPerdidasLocalizadas';
 
 // 8_CASO 1 DISEÑO
 import DiseñoCalc from './screens/calculators/8_Diseño/DiseñoCalc';
-import OptionsScreenDiseño from './screens/calculators/8_Diseño/OptionsScreenDiseño';
 
 // 9_CASO 2 DISEÑO
 import DiseñoCalc2 from './screens/calculators/9_Diseño2/DiseñoCalc2';
-import OptionsScreenDiseño2 from './screens/calculators/9_Diseño2/OptionsScreenDiseño2';
 
 // 10_POTENCIA
 import potenciaCalc from './screens/calculators/10_Potencia/PotenciaCalc';
-import OptionsScreenPotencia from './screens/calculators/10_Potencia/OptionsScreenPotencia';
 
 // 11_COMPROBACIN DISEÑO SERIE
 import CompDiseñoSerie from './screens/calculators/11_CompDiseñoSerie/CompDiseñoSerie';
-import OptionsScreenCompDiseñoSerie from './screens/calculators/11_CompDiseñoSerie/OptionsScreenCompDiseñoSerie';
 
 // 12_COMPROBACIN DISEÑO PARALELO
 import CompParaleloCalc from './screens/calculators/12_CompParalelo/CompParaleloCalc';
-import OptionsScreenCompParaleloCalc from './screens/calculators/12_CompParalelo/OptionsScreenCompParaleloCalc';
 
 // 13_POTENCIA SERIE
 import seriePotenciaCalc from './screens/calculators/13_SeriePotencia/SeriePotenciaCalc';
-import OptionsScreenSeriePotenciaCalc from './screens/calculators/13_SeriePotencia/OptionsScreenSeriePotenciaCalc';
 
 // 14_POTENCIA PARALELO
 import paraleloPotenciaCalc from './screens/calculators/14_ParaleloPotencia/ParaleloPotenciaCalc';
-import OptionsScreenParaleloPotenciaCalc from './screens/calculators/14_ParaleloPotencia/OptionsScreenParaleloPotenciaCalc';
 
 // ORBIT
 import AxisScreen from './screens/orbit/AxisScreen';
 import OptionsScreenAxis from './screens/orbit/OptionsScreenAxis';
 
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
-import OptionsScreenColebrook from './screens/calculators/Ffactor/OptionsScreenColebrook';
 import HistoryScreenColebrook from './screens/calculators/Ffactor/HistoryScreenColebrook';
 
 import testFunc from './screens/debug/testfunc';
@@ -140,18 +127,15 @@ export type RootStackParamList = {
   SeparadorDecimalScreen: undefined;
   PrecisionDecimalScreen: undefined;
   ContinuidadCalc: undefined;
-  OptionsScreen: undefined;
   HistoryScreenContinuidad: undefined;
   ContinuidadTheory: undefined;
   BernoulliCalc: undefined;
   ReynoldsCalc: undefined;
-  OptionsScreenBernoulli: undefined;
+  ConsoleScreen: undefined;
   HistoryScreenBernoulli: undefined;
   BernoulliTheory: undefined;
-  OptionsScreenReynolds: undefined;
   HistoryScreenReynolds: undefined;
   ColebrookCalc: undefined;
-  OptionsScreenColebrook: undefined;
   HistoryScreenColebrook: undefined;
   ThemeInitialConfig: undefined;
   SeparatorInitialConfig: undefined;
@@ -159,41 +143,30 @@ export type RootStackParamList = {
   InitialConfigSetup: undefined;
   ReynoldsTheory: undefined;
   FroudeCalc: undefined;
-  OptionsScreenFroude: undefined;
   HistoryScreenFroude: undefined;
   EnergiaBernoulliCalc: undefined;
-  OptionsScreenEnergiaBernoulli: undefined;
   HistoryScreenEnergiaBernoulli: undefined;
   GeometriaSeccionesCalc: undefined;
-  OptionsScreenGeometria: undefined;
   HistoryScreenGeometriaSecciones: undefined;
   testFunc: undefined;
   InitialScreenConfigScreen: undefined;
   FroudeTheory: undefined;
   EnergiaBernoulliTheory: undefined;
   FactorFriccionCalc: undefined;
-  OptionsScreenFactorFriccion: undefined;
   HistoryScreenFactorFriccion: undefined;
   FactorFriccionTheory: undefined;
   MoodyDiagramScreen: undefined;
   PerdidasLocalizadasCalc: undefined;
-  OptionsScreenPerdidasLocalizadas: undefined;
   DiseñoCalc: undefined;
   DiseñoCalc2: undefined;
-  OptionsScreenDiseño: undefined;
-  OptionsScreenDiseño2: undefined;
   potenciaCalc: undefined;
-  OptionsScreenPotencia: undefined;
   CompDiseñoSerie: undefined;
-  OptionsScreenCompDiseñoSerie: undefined;
   CompParaleloCalc: undefined;
-  OptionsScreenCompParaleloCalc: undefined;
   seriePotenciaCalc: undefined;
-  OptionsScreenSeriePotenciaCalc: undefined;
   paraleloPotenciaCalc: undefined;
   AxisScreen: undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams | undefined;
   OptionsScreenAxis: undefined;
-  OptionsScreenParaleloPotenciaCalc: undefined;
 };
 
 export type RootTabParamList = {
@@ -653,24 +626,8 @@ const App = () => {
                         }}
                       />
                       <Stack.Screen
-                        name="OptionsScreen"
-                        component={OptionsScreen}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenPotencia"
-                        component={OptionsScreenPotencia}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenDiseño2"
-                        component={OptionsScreenDiseño2}
+                        name="CalculatorOptionsScreen"
+                        component={CalculatorOptionsScreen}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
@@ -679,46 +636,6 @@ const App = () => {
                       <Stack.Screen
                         name="OptionsScreenAxis"
                         component={OptionsScreenAxis}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenDiseño"
-                        component={OptionsScreenDiseño}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenPerdidasLocalizadas"
-                        component={OptionsScreenPerdidasLocalizadas}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenFactorFriccion"
-                        component={OptionsScreenFactorFriccion}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenGeometria"
-                        component={OptionsScreenGeometria}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenEnergiaBernoulli"
-                        component={OptionsScreenEnergiaBernoulli}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
@@ -813,27 +730,19 @@ const App = () => {
                         }}
                       />
                       <Stack.Screen
-                        name="CompParaleloCalc"
-                        component={CompParaleloCalc}
+                        name="ConsoleScreen"
+                        component={ConsoleScreen}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                         }}
                       />
                       <Stack.Screen
-                        name="OptionsScreenBernoulli"
-                        component={OptionsScreenBernoulli}
+                        name="CompParaleloCalc"
+                        component={CompParaleloCalc}
                         options={{
                           headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenCompDiseñoSerie"
-                        component={OptionsScreenCompDiseñoSerie}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
                         }}
                       />
                       <Stack.Screen
@@ -853,22 +762,6 @@ const App = () => {
                         }}
                       />
                       <Stack.Screen
-                        name="OptionsScreenReynolds"
-                        component={OptionsScreenReynolds}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenParaleloPotenciaCalc"
-                        component={OptionsScreenParaleloPotenciaCalc}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
                         name="HistoryScreenReynolds"
                         component={HistoryScreenReynolds}
                         options={{
@@ -882,14 +775,6 @@ const App = () => {
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenColebrook"
-                        component={OptionsScreenColebrook}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
                         }}
                       />
                       <Stack.Screen
@@ -914,30 +799,6 @@ const App = () => {
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenFroude"
-                        component={OptionsScreenFroude}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenSeriePotenciaCalc"
-                        component={OptionsScreenSeriePotenciaCalc}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="OptionsScreenCompParaleloCalc"
-                        component={OptionsScreenCompParaleloCalc}
-                        options={{
-                          headerShown: false,
-                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
                         }}
                       />
                       <Stack.Screen

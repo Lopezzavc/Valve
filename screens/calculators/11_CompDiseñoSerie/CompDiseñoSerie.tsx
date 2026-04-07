@@ -19,6 +19,8 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from '@d11/react-native-fast-image';
 import Decimal from 'decimal.js';
@@ -45,13 +47,8 @@ Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 
 // ─── Navigation types ────────────────────────────────────────────────────────
 type RootStackParamList = {
-  OptionsScreenCompDiseñoSerie: {
-	category: string;
-	onSelectOption?: (option: string) => void;
-	selectedOption?: string;
-  };
-  HistoryScreenCompDiseñoSerie: undefined;
-  CompDiseñoSerieTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 // ─── Toast config ─────────────────────────────────────────────────────────────
@@ -84,30 +81,8 @@ const getDotColor = (hasValue: boolean, isInvalid: boolean): string => {
 };
 
 // ─── Conversion factors ───────────────────────────────────────────────────────
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  length: {
-	m: 1,
-	mm: 0.001,
-	cm: 0.01,
-	km: 1000,
-	in: 0.0254,
-	ft: 0.3048,
-	μm: 1e-6,
-  },
-  viscosity: {
-	'm²/s': 1,
-	'mm²/s': 1e-6,
-	'cm²/s': 1e-4,
-	'ft²/s': 0.09290304,
-  },
-  flow: {
-	'm³/s': 1,
-	'L/s': 0.001,
-	'm³/min': 1 / 60,
-	'm³/h': 1 / 3600,
-	'ft³/s': 0.0283168,
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // ─── Domain types ─────────────────────────────────────────────────────────────
 interface Tramo {
@@ -539,18 +514,21 @@ const CompDiseñoSerie: React.FC = () => {
 
   // ── Navigate to options ───────────────────────────────────────────────────
   const navigateToOptions = useCallback(
-	(
-	  category: string,
-	  onSelectOption: (opt: string) => void,
-	  selectedOption?: string
-	) => {
-	  navigation.navigate('OptionsScreenCompDiseñoSerie', {
-		category,
-		onSelectOption,
-		selectedOption,
-	  });
-	},
-	[navigation]
+    (
+      category: string,
+      onSelectOption: (opt: string) => void,
+      selectedOption?: string
+    ) => {
+      navigation.navigate({
+        name: 'CalculatorOptionsScreen',
+        params: buildCalculatorOptionsParams('compDisenoSerie', {
+          category,
+          onSelectOption,
+          selectedOption,
+        }),
+      });
+    },
+    [navigation]
   );
 
   // ── Helpers ───────────────────────────────────────────────────────────────

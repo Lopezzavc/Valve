@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import IconFavorite from 'react-native-vector-icons/FontAwesome';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from "@d11/react-native-fast-image";
 
@@ -29,9 +31,8 @@ import { Keyboard, LayoutAnimation } from 'react-native';
 
 // Tipos de navegación
 type RootStackParamList = {
-  OptionsScreenColebrook: { category: string; onSelectOption?: (option: string) => void; selectedOption?: string };
-  HistoryScreenColebrook: undefined;
-  ColebrookTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 // Imagen de fondo para el contenedor de resultados
@@ -81,41 +82,8 @@ interface CalculatorState {
 }
 
 // Factores de conversión
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  length: {
-    'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,                  // exacto
-    'ft': 0.3048,                  // exacto
-    'yd': 0.9144,                  // exacto
-    'mi': 1609.344,                // exacto (mile internacional)
-  },
-  density: {
-    'kg/m³': 1,
-    'g/cm³': 1000,                 // exacto
-    'lb/ft³': 16.018463373960139579655, // exacto por definición
-    'g/L': 1,                      // exacto
-    'kg/L': 1000,                  // exacto
-  },
-  velocity: {
-    'm/s': 1,
-    'km/h': 0.27777777777777777777778,   // = 1000/3600
-    'ft/s': 0.3048,                              // exacto
-    'mph': 0.44704,                              // = 1609.344/3600 exacto
-    'kn': 0.5144444444444444444444444,     // = 1852/3600
-    'cm/s': 0.01,                                // exacto
-    'in/s': 0.0254,                              // exacto
-  },
-  dynamicViscosity: {
-    'Pa·s': 1,
-    'cP': 0.001,                                 // exacto (1 cP = 1 mPa·s)
-    'P': 0.1,                                    // exacto
-    'kg/(m·s)': 1,                               // exacto
-    'lb/(ft·s)': 1.488163943569553805774, // = 0.45359237/0.3048
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // Valores de rugosidad absoluta por material (en metros)
 const materialRoughness: { [key in PipeMaterial]: number } = {
@@ -588,7 +556,14 @@ const ColebrookCalc: React.FC = () => {
 
   // Navegar a selector de opciones/unidades
   const navigateToOptions = useCallback((category: string, onSelectOption: (opt: string) => void, selectedOption?: string) => {
-    navigation.navigate('OptionsScreenColebrook', { category, onSelectOption, selectedOption });
+    navigation.navigate({
+      name: 'CalculatorOptionsScreen',
+      params: buildCalculatorOptionsParams('colebrook', {
+        category,
+        onSelectOption,
+        selectedOption,
+      }),
+    });
   }, [navigation]);
 
   // Render de input numérico con etiqueta
@@ -1410,3 +1385,6 @@ const styles = StyleSheet.create({
 });
 
 export default ColebrookCalc;
+
+
+

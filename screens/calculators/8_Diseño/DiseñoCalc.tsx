@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,8 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { PrecisionDecimalContext } from '../../../contexts/PrecisionDecimalContext';
 import { DecimalSeparatorContext } from '../../../contexts/DecimalSeparatorContext';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { CalculatorOptionsScreenParams, buildCalculatorOptionsParams } from '../../01_options/optionsConfig';
+import { UNIT_FACTORS } from '../../01_options/unitCatalog';
 import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import FastImage from '@d11/react-native-fast-image';
 import Decimal from 'decimal.js';
@@ -45,41 +47,15 @@ Decimal.set({ precision: 50, rounding: Decimal.ROUND_HALF_EVEN });
 
 // ─── Navigation types ──────────────────────────────────────────────────────────
 type RootStackParamList = {
-  OptionsScreenDiseño: {
-    category: string;
-    onSelectOption?: (option: string) => void;
-    selectedOption?: string;
-  };
-  HistoryScreenDiseño: undefined;
-  DiseñoTheory: undefined;
+  [key: string]: object | undefined;
+  CalculatorOptionsScreen: CalculatorOptionsScreenParams;
 };
 
 const backgroundImage = require('../../../assets/CardsCalcs/card2F1.webp');
 
 // ─── Conversion factors ────────────────────────────────────────────────────────
-const conversionFactors: { [key: string]: { [key: string]: number } } = {
-  length: {
-    'm': 1,
-    'mm': 0.001,
-    'cm': 0.01,
-    'km': 1000,
-    'in': 0.0254,
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.344,
-  },
-  viscosity: {
-    'm²/s': 1,
-    'cm²/s': 0.0001,
-    'mm²/s': 0.000001,
-    'ft²/s': 0.09290304,
-  },
-  acceleration: {
-    'm/s²': 1,
-    'ft/s²': 0.3048,
-    'g': 9.80665,
-  },
-};
+const conversionFactors = UNIT_FACTORS;
+
 
 // ─── Toast config ──────────────────────────────────────────────────────────────
 const toastConfig = {
@@ -520,7 +496,14 @@ const DiseñoCalc: React.FC = () => {
     onSelectOption: (opt: string) => void,
     selectedOption?: string
   ) => {
-    navigation.navigate('OptionsScreenDiseño', { category, onSelectOption, selectedOption });
+    navigation.navigate({
+      name: 'CalculatorOptionsScreen',
+      params: buildCalculatorOptionsParams('diseno', {
+        category,
+        onSelectOption,
+        selectedOption,
+      }),
+    });
   }, [navigation]);
 
   // ── Convert field to SI ────────────────────────────────────────────────────
@@ -536,24 +519,10 @@ const DiseñoCalc: React.FC = () => {
 
   const convertResultValue = useCallback((value: number, fromUnit: string, toUnit: string): string => {
     if (value === 0) return '0';
-    
-    // Factores de conversión para caudal (desde m³/s)
-    const flowFactors: { [key: string]: number } = {
-      'm³/s': 1,
-      'L/s': 1000,
-      'm³/min': 60,
-      'm³/h': 3600,
-      'ft³/s': 35.3147,
-      'gal/min': 15850.3,
-      'L/min': 60000,
-      'L/h': 3600000,
-    };
 
-    const fromFactor = flowFactors[fromUnit] || 1;
-    const toFactor = flowFactors[toUnit] || 1;
-
-    // Convertir: (valor / fromFactor) * toFactor
-    const converted = (value / fromFactor) * toFactor;
+    const fromFactor = UNIT_FACTORS.flow[fromUnit] || 1;
+    const toFactor = UNIT_FACTORS.flow[toUnit] || 1;
+    const converted = (value * fromFactor) / toFactor;
     return formatResult(converted);
   }, [formatResult]);
 
@@ -1862,3 +1831,7 @@ const styles = StyleSheet.create({
 });
 
 export default DiseñoCalc;
+
+
+
+

@@ -66,7 +66,6 @@ const OptionItem = React.memo(
               isSelected && [
                 styles.selectedOptionText,
                 { color: textSelectedColor },
-                { fontSize: 18 * fontSizeFactor },
               ],
             ]}
           >
