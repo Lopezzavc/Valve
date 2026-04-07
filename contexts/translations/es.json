@@ -68,6 +68,7 @@
   },
   "common": {
     "calculate": "Calcular",
+    "console": "Consola",
     "copy": "Copiar",
     "clear": "Limpiar",
     "history": "Historial",
@@ -345,6 +346,36 @@
       "glycerin_20C": "Glicerina (20 °C)",
       "mercury_20C": "Mercurio (20 °C)",
       "sae10_20C": "Aceite SAE 10 (20 °C)"
+    },
+    "console": {
+      "openedAt": "Abierta el",
+      "procedure": "PROCEDIMIENTO",
+      "result": "RESULTADO",
+      "sectionInputs": "[ENTRADAS SI]",
+      "sectionProcedure": "[PROCEDIMIENTO]",
+      "sectionResult": "[RESULTADO]",
+      "derived": "calculado por el código",
+      "shell": {
+        "app": "valve",
+        "calculator": "reynolds_calc",
+        "command": "px",
+        "print": "print",
+        "inputs": "inputs",
+        "procedure": "procedure",
+        "result": "result"
+      },
+      "steps": {
+        "normalizeVelocity": "Normalizar velocidad al SI",
+        "normalizeDimension": "Normalizar dimensión característica al SI",
+        "normalizeDensity": "Normalizar densidad al SI",
+        "normalizeDynamicViscosity": "Normalizar viscosidad dinámica al SI",
+        "normalizeKinematicViscosity": "Normalizar viscosidad cinemática al SI",
+        "deriveDensity": "Calcular densidad faltante",
+        "deriveDynamicViscosity": "Calcular viscosidad dinámica faltante",
+        "deriveKinematicViscosity": "Calcular viscosidad cinemática faltante",
+        "calculateReynoldsWithDynamic": "Calcular Reynolds con densidad y viscosidad dinámica",
+        "calculateReynoldsWithKinematic": "Calcular Reynolds con viscosidad cinemática"
+      }
     }
   },
   "colebrookCalc": {

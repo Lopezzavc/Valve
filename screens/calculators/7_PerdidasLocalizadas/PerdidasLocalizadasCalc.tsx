@@ -36,6 +36,14 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from '../../../src/components/customKeyboardHelpers';
 
 const logoLight = require('../../../assets/icon/iconblack.webp');
 const logoDark = require('../../../assets/icon/iconwhite.webp');
@@ -659,7 +667,10 @@ const PerdidasLocalizadasCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue() + key);
+    const nextValue = appendKeyboardKey(getActiveValue(), key);
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDelete = useCallback(() => {
@@ -667,7 +678,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue().slice(0, -1));
+    handler(deleteKeyboardKey(getActiveValue()));
   }, []);
 
   const handleKeyboardClear = useCallback(() => {
@@ -675,7 +686,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler('');
+    handler(clearKeyboardValue());
   }, []);
 
   const handleKeyboardMultiply10 = useCallback(() => {
@@ -683,9 +694,10 @@ const PerdidasLocalizadasCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) * 10).toString());
+    const nextValue = insertScientificNotation(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDivide10 = useCallback(() => {
@@ -693,9 +705,10 @@ const PerdidasLocalizadasCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) / 10).toString());
+    const nextValue = insertKeyboardMinus(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardSubmit = useCallback(() => {
@@ -767,7 +780,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
                   styles.input,
                   { color: themeColors.text, fontSize: 16 * fontSizeFactor },
                 ]}
-                value={value}
+                value={formatKeyboardDisplayValue(value)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"
@@ -854,7 +867,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
                       fontSize: 16 * fontSizeFactor,
                     },
                   ]}
-                  value={value}
+                  value={formatKeyboardDisplayValue(value)}
                   editable={false}
                   showSoftInputOnFocus={false}
                   pointerEvents="none"
@@ -1492,7 +1505,7 @@ const PerdidasLocalizadasCalc: React.FC = () => {
           {(
             [
               {
-                icon: 'terminal',
+                icon: 'zap',
                 label: t('common.calculate'),
                 action: handleCalculate,
               },

@@ -38,6 +38,14 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from '../../../src/components/customKeyboardHelpers';
 
 // ─── Assets ────────────────────────────────────────────────────────────────────
 const logoLight = require('../../../assets/icon/iconblack.webp');
@@ -394,6 +402,7 @@ const PotenciaCalc: React.FC = () => {
   const formatDisplayValue = useCallback(
     (val: string): string => {
       if (!val) return val;
+      if (val.includes('e')) return formatKeyboardDisplayValue(val);
       const last = val.charAt(val.length - 1);
       if (last === '.' || last === ',') return val;
       if ((val.includes('.') && val.split('.')[1] === '') || (val.includes(',') && val.split(',')[1] === ''))
@@ -683,7 +692,10 @@ const PotenciaCalc: React.FC = () => {
     (key: string) => {
       const id = activeInputIdRef.current;
       if (!id) return;
-      inputHandlersRef.current[id]?.(getActiveValue() + key);
+      const nextValue = appendKeyboardKey(getActiveValue(), key);
+      if (nextValue !== null) {
+        inputHandlersRef.current[id]?.(nextValue);
+      }
     },
     [getActiveValue],
   );
@@ -691,33 +703,31 @@ const PotenciaCalc: React.FC = () => {
   const handleKeyboardDelete = useCallback(() => {
     const id = activeInputIdRef.current;
     if (!id) return;
-    inputHandlersRef.current[id]?.(getActiveValue().slice(0, -1));
+    inputHandlersRef.current[id]?.(deleteKeyboardKey(getActiveValue()));
   }, [getActiveValue]);
 
   const handleKeyboardClear = useCallback(() => {
     const id = activeInputIdRef.current;
     if (!id) return;
-    inputHandlersRef.current[id]?.('');
+    inputHandlersRef.current[id]?.(clearKeyboardValue());
   }, []);
 
   const handleKeyboardMultiply10 = useCallback(() => {
     const id = activeInputIdRef.current;
     if (!id) return;
-    const val = getActiveValue();
-    if (!val || val === '.') return;
-    inputHandlersRef.current[id]?.(
-      (parseFloat(val.replace(',', '.')) * 10).toString(),
-    );
+    const nextValue = insertScientificNotation(getActiveValue());
+    if (nextValue !== null) {
+      inputHandlersRef.current[id]?.(nextValue);
+    }
   }, [getActiveValue]);
 
   const handleKeyboardDivide10 = useCallback(() => {
     const id = activeInputIdRef.current;
     if (!id) return;
-    const val = getActiveValue();
-    if (!val || val === '.') return;
-    inputHandlersRef.current[id]?.(
-      (parseFloat(val.replace(',', '.')) / 10).toString(),
-    );
+    const nextValue = insertKeyboardMinus(getActiveValue());
+    if (nextValue !== null) {
+      inputHandlersRef.current[id]?.(nextValue);
+    }
   }, [getActiveValue]);
 
   const handleKeyboardSubmit = useCallback(() => {
@@ -1308,7 +1318,7 @@ const PotenciaCalc: React.FC = () => {
         <View style={styles.buttonsContainer}>
           {[
             {
-              icon: 'terminal',
+              icon: 'zap',
               label: t('common.calculate'),
               action: handleCalculate,
             },

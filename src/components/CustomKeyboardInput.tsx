@@ -10,7 +10,14 @@ import Icon from 'react-native-vector-icons/Feather';
 import IconAnt from 'react-native-vector-icons/AntDesign';
 import { useKeyboard } from '../../contexts/KeyboardContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import Decimal from 'decimal.js';
+import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from './customKeyboardHelpers';
 
 interface CustomKeyboardInputProps {
   value: string;
@@ -39,27 +46,32 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   const isActive = activeInputId === inputId;
 
   const handleKeyPress = (key: string) => {
-    onChangeText(value + key);
+    const nextValue = appendKeyboardKey(value, key);
+    if (nextValue !== null) {
+      onChangeText(nextValue);
+    }
   };
 
   const handleDelete = () => {
-    onChangeText(value.slice(0, -1));
+    onChangeText(deleteKeyboardKey(value));
   };
 
   const handleMultiplyBy10 = () => {
-    if (value === '' || value === '.') return;
-    const result = new Decimal(value).times(10).toString();
-    onChangeText(result);
+    const nextValue = insertScientificNotation(value);
+    if (nextValue !== null) {
+      onChangeText(nextValue);
+    }
   };
 
   const handleDivideBy10 = () => {
-    if (value === '' || value === '.') return;
-    const result = new Decimal(value).dividedBy(10).toString();
-    onChangeText(result);
+    const nextValue = insertKeyboardMinus(value);
+    if (nextValue !== null) {
+      onChangeText(nextValue);
+    }
   };
 
   const handleClear = () => {
-    onChangeText('');
+    onChangeText(clearKeyboardValue());
   };
 
   const handleSubmit = () => {
@@ -108,7 +120,7 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
                   color: inputColors.inputText,
                 },
               ]}
-              value={value}
+              value={formatKeyboardDisplayValue(value)}
               placeholder={placeholder}
               placeholderTextColor={inputColors.placeholderText}
               editable={false}
@@ -135,8 +147,6 @@ const CustomKeyboardInput: React.FC<CustomKeyboardInputProps> = ({
   );
 };
 
-// ── CustomKeyboard ──────────────────────────────────────────────────────────────
-
 interface CustomKeyboardProps {
   onKeyPress: (key: string) => void;
   onDelete: () => void;
@@ -154,7 +164,6 @@ const CustomKeyboard: React.FC<CustomKeyboardProps> = ({
   onMultiplyBy10,
   onDivideBy10,
   onClear,
-  backgroundColor,
 }) => {
   const { currentTheme } = useTheme();
   const isDark = currentTheme === 'dark';
@@ -177,17 +186,18 @@ const CustomKeyboard: React.FC<CustomKeyboardProps> = ({
     ['1', '2', '3'],
     ['4', '5', '6'],
     ['7', '8', '9'],
-    ['.', '0', '⌫'],
+    ['.', '0', 'delete'],
   ];
 
-  const extraButtons = ['×10', '÷10', 'C', '✓'];
+  const extraButtons = ['×10', '-', 'C', 'submit'];
 
   const handlePress = (key: string) => {
-    if (key === '⌫') {
+    if (key === 'delete') {
       onDelete();
-    } else {
-      onKeyPress(key);
+      return;
     }
+
+    onKeyPress(key);
   };
 
   const handleExtraPress = (button: string) => {
@@ -195,22 +205,23 @@ const CustomKeyboard: React.FC<CustomKeyboardProps> = ({
       case '×10':
         onMultiplyBy10();
         break;
-      case '÷10':
+      case '-':
         onDivideBy10();
         break;
       case 'C':
         onClear();
         break;
-      case '✓':
+      case 'submit':
         onSubmit();
         break;
     }
   };
 
   const renderKeyContent = (key: string) => {
-    if (key === '⌫') {
+    if (key === 'delete') {
       return <Icon name="delete" size={24} color="#ffffff" />;
     }
+
     return <Text style={[styles.keyText, { color: colors.keyText }]}>{key}</Text>;
   };
 
@@ -218,6 +229,7 @@ const CustomKeyboard: React.FC<CustomKeyboardProps> = ({
     if (isSubmit) {
       return <IconAnt name="enter" size={24} color="#000000" />;
     }
+
     return (
       <Text style={[styles.extraKeyText, { color: colors.extraKeyText }]}>
         {button}
@@ -226,19 +238,21 @@ const CustomKeyboard: React.FC<CustomKeyboardProps> = ({
   };
 
   return (
-    <View style={[
+    <View
+      style={[
         styles.keyboardContainer,
-        { backgroundColor: isDark ? 'rgb(24, 24, 24)' : '#f5f5f5' }
-      ]}>
+        { backgroundColor: isDark ? 'rgb(24, 24, 24)' : '#f5f5f5' },
+      ]}
+    >
       {mainKeys.map((row, rowIndex) => {
         const extraButton = extraButtons[rowIndex];
-        const isSubmitButton = extraButton === '✓';
+        const isSubmitButton = extraButton === 'submit';
 
         return (
           <View key={rowIndex} style={styles.keyboardRow}>
             <View style={styles.numericKeysContainer}>
               {row.map((key) => {
-                const isDeleteKey = key === '⌫';
+                const isDeleteKey = key === 'delete';
                 return (
                   <Pressable
                     key={key}

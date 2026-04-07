@@ -22,9 +22,18 @@ import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
 import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from '../../../src/components/customKeyboardHelpers';
+import {
   getDBConnection, createTable, saveCalculation,
   createFavoritesTable, isFavorite, addFavorite, removeFavorite,
 } from '../../../src/services/database';
+import type { ReynoldsConsoleData, ReynoldsConsoleInput, ReynoldsConsoleStep } from '../../../src/types/reynoldsConsole';
 
 // Recursos estáticos de imagen
 const logoLight       = require('../../../assets/icon/iconblack.webp');
@@ -38,6 +47,7 @@ Decimal.set({ precision: 20, rounding: Decimal.ROUND_HALF_EVEN });
 type RootStackParamList = {
   [key: string]: object | undefined;
   CalculatorOptionsScreen: CalculatorOptionsScreenParams;
+  ConsoleScreen: { reynoldsData?: ReynoldsConsoleData } | undefined;
 };
 
 // Estructura del estado central de la calculadora
@@ -190,6 +200,193 @@ const ActionButtonIcon: React.FC<{
 const ACTION_BUTTON_GROUP_GAP = 10;
 const CONSOLE_BUTTON_GROUP_GAP = 30;
 
+const formatDecimalValue = (value: Decimal.Value): string => (
+  new Decimal(value).toDecimalPlaces(15).toString()
+);
+
+const buildNormalizationStep = (
+  titleKey: string,
+  symbol: string,
+  rawValue: string,
+  factor: number,
+  normalizedValue: Decimal,
+  unit: string
+): ReynoldsConsoleStep => ({
+  titleKey,
+  expression: `${symbol} = ${rawValue} * ${formatDecimalValue(factor)} = ${formatDecimalValue(normalizedValue)} ${unit}`,
+});
+
+const buildReynoldsConsoleSnapshot = (
+  currentState: CalculatorState,
+  velocitySI: Decimal,
+  dimensionSI: Decimal,
+  densitySI: Decimal | null,
+  dynamicViscositySI: Decimal | null,
+  kinematicViscositySI: Decimal | null,
+  reynoldsDecimal: Decimal | null
+): ReynoldsConsoleData => {
+  const steps: ReynoldsConsoleStep[] = [
+    buildNormalizationStep(
+      'reynoldsCalc.console.steps.normalizeVelocity',
+      'V',
+      currentState.velocity.replace(',', '.'),
+      conversionFactors.velocity[currentState.velocityUnit],
+      velocitySI,
+      'm/s'
+    ),
+    buildNormalizationStep(
+      'reynoldsCalc.console.steps.normalizeDimension',
+      'L',
+      currentState.dimension.replace(',', '.'),
+      conversionFactors.length[currentState.dimensionUnit],
+      dimensionSI,
+      'm'
+    ),
+  ];
+
+  if (currentState.density.trim() !== '' && densitySI) {
+    steps.push(
+      buildNormalizationStep(
+        'reynoldsCalc.console.steps.normalizeDensity',
+        'rho',
+        currentState.density.replace(',', '.'),
+        conversionFactors.density[currentState.densityUnit],
+        densitySI,
+        'kg/m^3'
+      )
+    );
+  }
+
+  if (currentState.dynamicViscosity.trim() !== '' && dynamicViscositySI) {
+    steps.push(
+      buildNormalizationStep(
+        'reynoldsCalc.console.steps.normalizeDynamicViscosity',
+        'mu',
+        currentState.dynamicViscosity.replace(',', '.'),
+        conversionFactors.dynamicViscosity[currentState.dynamicViscosityUnit],
+        dynamicViscositySI,
+        'Pa*s'
+      )
+    );
+  }
+
+  if (currentState.kinematicViscosity.trim() !== '' && kinematicViscositySI) {
+    steps.push(
+      buildNormalizationStep(
+        'reynoldsCalc.console.steps.normalizeKinematicViscosity',
+        'nu',
+        currentState.kinematicViscosity.replace(',', '.'),
+        conversionFactors.kinematicViscosity[currentState.kinematicViscosityUnit],
+        kinematicViscositySI,
+        'm^2/s'
+      )
+    );
+  }
+
+  let finalDensity = densitySI;
+  let finalDynamicViscosity = dynamicViscositySI;
+  let finalKinematicViscosity = kinematicViscositySI;
+
+  if (!finalDensity && finalDynamicViscosity && finalKinematicViscosity && finalKinematicViscosity.gt(0)) {
+    finalDensity = finalDynamicViscosity.dividedBy(finalKinematicViscosity);
+    steps.push({
+      titleKey: 'reynoldsCalc.console.steps.deriveDensity',
+      expression: `rho = ${formatDecimalValue(finalDynamicViscosity)} / ${formatDecimalValue(finalKinematicViscosity)} = ${formatDecimalValue(finalDensity)} kg/m^3`,
+    });
+  } else if (!finalDynamicViscosity && finalDensity && finalKinematicViscosity) {
+    finalDynamicViscosity = finalDensity.times(finalKinematicViscosity);
+    steps.push({
+      titleKey: 'reynoldsCalc.console.steps.deriveDynamicViscosity',
+      expression: `mu = ${formatDecimalValue(finalDensity)} * ${formatDecimalValue(finalKinematicViscosity)} = ${formatDecimalValue(finalDynamicViscosity)} Pa*s`,
+    });
+  } else if (!finalKinematicViscosity && finalDynamicViscosity && finalDensity && finalDensity.gt(0)) {
+    finalKinematicViscosity = finalDynamicViscosity.dividedBy(finalDensity);
+    steps.push({
+      titleKey: 'reynoldsCalc.console.steps.deriveKinematicViscosity',
+      expression: `nu = ${formatDecimalValue(finalDynamicViscosity)} / ${formatDecimalValue(finalDensity)} = ${formatDecimalValue(finalKinematicViscosity)} m^2/s`,
+    });
+  }
+
+  if (finalDensity && finalDynamicViscosity && finalDynamicViscosity.gt(0) && reynoldsDecimal) {
+    steps.push({
+      titleKey: 'reynoldsCalc.console.steps.calculateReynoldsWithDynamic',
+      expression: `Re = (${formatDecimalValue(finalDensity)} * ${formatDecimalValue(velocitySI)} * ${formatDecimalValue(dimensionSI)}) / ${formatDecimalValue(finalDynamicViscosity)} = ${formatDecimalValue(reynoldsDecimal)}`,
+    });
+  } else if (finalKinematicViscosity && finalKinematicViscosity.gt(0) && reynoldsDecimal) {
+    steps.push({
+      titleKey: 'reynoldsCalc.console.steps.calculateReynoldsWithKinematic',
+      expression: `Re = (${formatDecimalValue(velocitySI)} * ${formatDecimalValue(dimensionSI)}) / ${formatDecimalValue(finalKinematicViscosity)} = ${formatDecimalValue(reynoldsDecimal)}`,
+    });
+  }
+
+  const inputs: ReynoldsConsoleInput[] = [
+    {
+      labelKey: 'reynoldsCalc.labels.velocity',
+      symbol: 'V',
+      value: formatDecimalValue(velocitySI),
+      unit: 'm/s',
+    },
+    {
+      labelKey: 'reynoldsCalc.labels.dimension',
+      symbol: 'L',
+      value: formatDecimalValue(dimensionSI),
+      unit: 'm',
+    },
+  ];
+
+  if (finalDensity) {
+    inputs.push({
+      labelKey: 'reynoldsCalc.labels.density',
+      symbol: 'rho',
+      value: formatDecimalValue(finalDensity),
+      unit: 'kg/m^3',
+      derived: !densitySI,
+    });
+  }
+
+  if (finalDynamicViscosity) {
+    inputs.push({
+      labelKey: 'reynoldsCalc.labels.dynamicViscosity',
+      symbol: 'mu',
+      value: formatDecimalValue(finalDynamicViscosity),
+      unit: 'Pa*s',
+      derived: !dynamicViscositySI,
+    });
+  }
+
+  if (finalKinematicViscosity) {
+    inputs.push({
+      labelKey: 'reynoldsCalc.labels.kinematicViscosity',
+      symbol: 'nu',
+      value: formatDecimalValue(finalKinematicViscosity),
+      unit: 'm^2/s',
+      derived: !kinematicViscositySI,
+    });
+  }
+
+  const resultValue = reynoldsDecimal?.isFinite()
+    ? formatDecimalValue(reynoldsDecimal)
+    : '0';
+
+  const regimeKey = !reynoldsDecimal || !reynoldsDecimal.isFinite()
+    ? 'reynoldsCalc.reynolds'
+    : reynoldsDecimal.lt(2300)
+      ? 'reynoldsCalc.regime.laminar'
+      : reynoldsDecimal.lt(4000)
+        ? 'reynoldsCalc.regime.transitional'
+        : 'reynoldsCalc.regime.turbulent';
+
+  return {
+    presetFluid: currentState.presetFluid,
+    inputs,
+    steps,
+    result: {
+      value: resultValue,
+      regimeKey,
+    },
+  };
+};
+
 const ReynoldsCalc: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
@@ -212,6 +409,7 @@ const ReynoldsCalc: React.FC = () => {
 
   const [state, setState] = useState<CalculatorState>(initialState);
   const [isFav, setIsFav] = useState(false);
+  const [latestConsoleSnapshot, setLatestConsoleSnapshot] = useState<ReynoldsConsoleData | null>(null);
 
   // Mantenimiento de refs sincronizadas con los últimos valores reactivos
   useEffect(() => { stateRef.current = state; }, [state]);
@@ -335,7 +533,8 @@ const ReynoldsCalc: React.FC = () => {
     }
   }, [regimeKey]);
 
-  const hasCalculatedResults = state.resultReynolds !== 0
+  const hasCalculatedResults = latestConsoleSnapshot !== null
+    || state.resultReynolds !== 0
     || !!state.resultDensity
     || !!state.resultDynamicViscosity
     || !!state.resultKinematicViscosity;
@@ -399,6 +598,7 @@ const ReynoldsCalc: React.FC = () => {
     }
 
     if (invalids.length > 0) {
+      setLatestConsoleSnapshot(null);
       setState(prev => ({
         ...prev,
         invalidFields: invalids,
@@ -455,6 +655,11 @@ const ReynoldsCalc: React.FC = () => {
       ? reynoldsDecimal.toNumber()
       : 0;
 
+    if (!dV || !dL) return;
+
+    setLatestConsoleSnapshot(
+      buildReynoldsConsoleSnapshot(state, dV, dL, dRo, dMu, dNu, reynoldsDecimal)
+    );
     setState(prev => ({ ...prev, ...partial, invalidFields: [] }));
   }, [state, formatResult, t]);
 
@@ -610,7 +815,10 @@ const ReynoldsCalc: React.FC = () => {
     }));
   }, [state.densityUnit, state.dynamicViscosityUnit]);
 
-  const handleClear = useCallback(() => setState(initialState), []);
+  const handleClear = useCallback(() => {
+    setLatestConsoleSnapshot(null);
+    setState(initialState());
+  }, []);
 
   const primaryActionButtons = [
     { icon: 'zap', label: t('common.calculate') || 'Calcular', action: calculateReynolds, isActive: true },
@@ -621,9 +829,15 @@ const ReynoldsCalc: React.FC = () => {
 
   const consoleActionButton = {
     icon: 'terminal',
-    label: 'Consola',
-    action: () => navigation.navigate('ConsoleScreen'),
-    isActive: hasCalculatedResults,
+    label: t('common.console') || 'Consola',
+    action: () => {
+      if (latestConsoleSnapshot) {
+        navigation.navigate('ConsoleScreen', { reynoldsData: latestConsoleSnapshot });
+        return;
+      }
+      navigation.navigate('ConsoleScreen');
+    },
+    isActive: latestConsoleSnapshot !== null,
   };
 
   // Enrutador interno del teclado personalizado que aplica una transformación al input activo en ese momento
@@ -644,17 +858,11 @@ const ReynoldsCalc: React.FC = () => {
   }, []);
 
   // Manejadores individuales de las acciones del teclado personalizado
-  const handleKeyboardKey        = useCallback((key: string) => withActiveInput(v => v + key), [withActiveInput]);
-  const handleKeyboardDelete     = useCallback(() => withActiveInput(v => v.slice(0, -1)), [withActiveInput]);
-  const handleKeyboardClear      = useCallback(() => withActiveInput(() => ''), [withActiveInput]);
-  const handleKeyboardMultiply10 = useCallback(() => withActiveInput(v => {
-    if (!v || v === '.') return v;
-    return new Decimal(v.replace(',', '.')).times(10).toString();
-  }), [withActiveInput]);
-  const handleKeyboardDivide10   = useCallback(() => withActiveInput(v => {
-    if (!v || v === '.') return v;
-    return new Decimal(v.replace(',', '.')).dividedBy(10).toString();
-  }), [withActiveInput]);
+  const handleKeyboardKey        = useCallback((key: string) => withActiveInput(v => appendKeyboardKey(v, key) ?? v), [withActiveInput]);
+  const handleKeyboardDelete     = useCallback(() => withActiveInput(v => deleteKeyboardKey(v)), [withActiveInput]);
+  const handleKeyboardClear      = useCallback(() => withActiveInput(() => clearKeyboardValue()), [withActiveInput]);
+  const handleKeyboardMultiply10 = useCallback(() => withActiveInput(v => insertScientificNotation(v) ?? v), [withActiveInput]);
+  const handleKeyboardDivide10   = useCallback(() => withActiveInput(v => insertKeyboardMinus(v) ?? v), [withActiveInput]);
   const handleKeyboardSubmit     = useCallback(() => setActiveInputId(null), [setActiveInputId]);
 
   // Renderizado de una fila de input etiquetada con su selector de unidades
@@ -734,7 +942,7 @@ const ReynoldsCalc: React.FC = () => {
               />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                value={resultValue && resultValue !== '' ? resultValue : value}
+                value={formatKeyboardDisplayValue(resultValue && resultValue !== '' ? resultValue : value)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"

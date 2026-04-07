@@ -39,6 +39,14 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from '../../../src/components/customKeyboardHelpers';
 
 const logoLight = require('../../../assets/icon/iconblack.webp');
 const logoDark = require('../../../assets/icon/iconwhite.webp');
@@ -701,7 +709,10 @@ const DiseñoCalc2: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue() + key);
+    const nextValue = appendKeyboardKey(getActiveValue(), key);
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDelete = useCallback(() => {
@@ -709,7 +720,7 @@ const DiseñoCalc2: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue().slice(0, -1));
+    handler(deleteKeyboardKey(getActiveValue()));
   }, []);
 
   const handleKeyboardClear = useCallback(() => {
@@ -717,7 +728,7 @@ const DiseñoCalc2: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler('');
+    handler(clearKeyboardValue());
   }, []);
 
   const handleKeyboardMultiply10 = useCallback(() => {
@@ -725,9 +736,10 @@ const DiseñoCalc2: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) * 10).toString());
+    const nextValue = insertScientificNotation(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDivide10 = useCallback(() => {
@@ -735,9 +747,10 @@ const DiseñoCalc2: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) / 10).toString());
+    const nextValue = insertKeyboardMinus(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardSubmit = useCallback(() => {
@@ -788,7 +801,7 @@ const DiseñoCalc2: React.FC = () => {
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
                 keyboardType="numeric"
-                value={value}
+                value={formatKeyboardDisplayValue(value)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"
@@ -848,7 +861,7 @@ const DiseñoCalc2: React.FC = () => {
             <TextInput
               style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
               keyboardType="numeric"
-              value={value}
+              value={formatKeyboardDisplayValue(value)}
               editable={false}
               showSoftInputOnFocus={false}
               pointerEvents="none"
@@ -1194,7 +1207,7 @@ const DiseñoCalc2: React.FC = () => {
         {/* ── Action buttons ── */}
         <View style={styles.buttonsContainer}>
           {[
-            { icon: 'terminal', label: t('common.calculate') || 'Calcular',  action: handleCalculate },
+            { icon: 'zap', label: t('common.calculate') || 'Calcular',  action: handleCalculate },
             { icon: 'copy',     label: t('common.copy')      || 'Copiar',    action: handleCopy },
             { icon: 'trash',    label: t('common.clear')     || 'Limpiar',   action: handleClear },
             { icon: 'clock',    label: t('common.history')   || 'Historial', action: () => navigation.navigate('HistoryScreenDiseño2') },

@@ -36,6 +36,14 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from '../../../src/components/customKeyboardHelpers';
 
 const logoLight = require('../../../assets/icon/iconblack.webp');
 const logoDark = require('../../../assets/icon/iconwhite.webp');
@@ -440,6 +448,7 @@ const FactorFriccionCalc: React.FC = () => {
   const formatDisplayValue = useCallback(
     (val: string): string => {
       if (!val || val === '') return val;
+      if (val.includes('e')) return formatKeyboardDisplayValue(val);
       
       const lastChar = val.charAt(val.length - 1);
       // Preserve if the user just typed the decimal separator (e.g. "3.")
@@ -949,7 +958,10 @@ const FactorFriccionCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue() + key);
+    const nextValue = appendKeyboardKey(getActiveValue(), key);
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDelete = useCallback(() => {
@@ -957,7 +969,7 @@ const FactorFriccionCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue().slice(0, -1));
+    handler(deleteKeyboardKey(getActiveValue()));
   }, []);
 
   const handleKeyboardClear = useCallback(() => {
@@ -965,7 +977,7 @@ const FactorFriccionCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler('');
+    handler(clearKeyboardValue());
   }, []);
 
   const handleKeyboardMultiply10 = useCallback(() => {
@@ -973,9 +985,10 @@ const FactorFriccionCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) * 10).toString());
+    const nextValue = insertScientificNotation(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDivide10 = useCallback(() => {
@@ -983,9 +996,10 @@ const FactorFriccionCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler((parseFloat(val) / 10).toString());
+    const nextValue = insertKeyboardMinus(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardSubmit = useCallback(() => {
@@ -1569,7 +1583,7 @@ const FactorFriccionCalc: React.FC = () => {
         <View style={styles.buttonsContainer}>
           {[
             {
-              icon: 'terminal',
+              icon: 'zap',
               label: t('common.calculate') || 'Calcular',
               action: handleCalculate,
             },

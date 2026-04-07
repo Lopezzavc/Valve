@@ -29,6 +29,14 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from '../../../src/components/customKeyboardHelpers';
 
 const logoLight = require('../../../assets/icon/iconblack.webp');
 const logoDark = require('../../../assets/icon/iconwhite.webp');
@@ -2291,7 +2299,10 @@ const EnergiaBernoulliCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue() + key);
+    const nextValue = appendKeyboardKey(getActiveValue(), key);
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDelete = useCallback(() => {
@@ -2299,7 +2310,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue().slice(0, -1));
+    handler(deleteKeyboardKey(getActiveValue()));
   }, []);
 
   const handleKeyboardClear = useCallback(() => {
@@ -2307,7 +2318,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler('');
+    handler(clearKeyboardValue());
   }, []);
 
   const handleKeyboardMultiply10 = useCallback(() => {
@@ -2315,9 +2326,10 @@ const EnergiaBernoulliCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler(new Decimal(val).mul(10).toString());
+    const nextValue = insertScientificNotation(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDivide10 = useCallback(() => {
@@ -2325,9 +2337,10 @@ const EnergiaBernoulliCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    handler(new Decimal(val).div(10).toString());
+    const nextValue = insertKeyboardMinus(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardSubmit = useCallback(() => {
@@ -2412,6 +2425,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
     // Formatea el valor visible limitando decimales sin romper el separador del usuario
     const formatDisplayValue = (val: string): string => {
       if (!val || val === '') return val;
+      if (val.includes('e')) return formatKeyboardDisplayValue(val);
         
       const lastChar = val.charAt(val.length - 1);
       if (lastChar === '.' || lastChar === ',') {
@@ -2804,7 +2818,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
               />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                value={state.alpha1}
+                value={formatKeyboardDisplayValue(state.alpha1)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"
@@ -2852,7 +2866,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
               />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                value={state.autoCalculatedField === 'alpha2' && !state.isManualEditAlpha2 ? state.resultAlpha2 || state.alpha2 : state.alpha2}
+                value={formatKeyboardDisplayValue(state.autoCalculatedField === 'alpha2' && !state.isManualEditAlpha2 ? state.resultAlpha2 || state.alpha2 : state.alpha2)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"
@@ -2957,7 +2971,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
                   fontSize: 16 * fontSizeFactor,
                   backgroundColor: state.lockedField === 'f' ? themeColors.blockInput : themeColors.card
                 }]}
-                value={state.f}
+                value={formatKeyboardDisplayValue(state.f)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"
@@ -2990,7 +3004,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
                   fontSize: 16 * fontSizeFactor,
                   backgroundColor: state.lockedField === 'K' ? themeColors.blockInput : themeColors.card
                 }]}
-                value={state.K}
+                value={formatKeyboardDisplayValue(state.K)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"
@@ -3309,7 +3323,7 @@ const EnergiaBernoulliCalc: React.FC = () => {
         {/* Botones de acción: Calcular, Copiar, Limpiar e Historial */}
         <View style={styles.buttonsContainer}>
           {[
-            { icon: 'terminal', label: t('common.calculate'), action: handleCalculate },
+            { icon: 'zap', label: t('common.calculate'), action: handleCalculate },
             { icon: 'copy', label: t('common.copy'), action: handleCopy },
             { icon: 'trash', label: t('common.clear'), action: handleClear },
             { icon: 'clock', label: t('common.history'), action: () => navigation.navigate('HistoryScreenEnergiaBernoulli') },

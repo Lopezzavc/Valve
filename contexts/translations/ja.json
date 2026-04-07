@@ -68,6 +68,7 @@
   },
   "common": {
     "calculate": "計算",
+    "console": "コンソール",
     "copy": "コピー",
     "clear": "クリア",
     "history": "履歴",
@@ -345,6 +346,36 @@
       "glycerin_20C": "グリセリン (20 °C)",
       "mercury_20C": "水銀 (20 °C)",
       "sae10_20C": "SAE 10 オイル (20 °C)"
+    },
+    "console": {
+      "openedAt": "開いた日時",
+      "procedure": "計算手順",
+      "result": "結果",
+      "sectionInputs": "[SI 入力]",
+      "sectionProcedure": "[計算手順]",
+      "sectionResult": "[結果]",
+      "derived": "コードで計算",
+      "shell": {
+        "app": "valve",
+        "calculator": "reynolds_calc",
+        "command": "px",
+        "print": "print",
+        "inputs": "inputs",
+        "procedure": "procedure",
+        "result": "result"
+      },
+      "steps": {
+        "normalizeVelocity": "流速を SI に換算",
+        "normalizeDimension": "代表長さを SI に換算",
+        "normalizeDensity": "密度を SI に換算",
+        "normalizeDynamicViscosity": "動粘度を SI に換算",
+        "normalizeKinematicViscosity": "動粘度を SI に換算",
+        "deriveDensity": "不足している密度を計算",
+        "deriveDynamicViscosity": "不足している動粘度を計算",
+        "deriveKinematicViscosity": "不足している動粘度を計算",
+        "calculateReynoldsWithDynamic": "密度と動粘度でレイノルズ数を計算",
+        "calculateReynoldsWithKinematic": "動粘度でレイノルズ数を計算"
+      }
     }
   },
   "colebrookCalc": {

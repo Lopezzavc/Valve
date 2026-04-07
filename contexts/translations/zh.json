@@ -68,6 +68,7 @@
   },
   "common": {
     "calculate": "计算",
+    "console": "控制台",
     "copy": "复制",
     "clear": "清除",
     "history": "历史记录",
@@ -345,6 +346,36 @@
       "glycerin_20C": "甘油 (20 °C)",
       "mercury_20C": "汞 (20 °C)",
       "sae10_20C": "SAE 10 油 (20 °C)"
+    },
+    "console": {
+      "openedAt": "打开时间",
+      "procedure": "计算过程",
+      "result": "结果",
+      "sectionInputs": "[SI 输入]",
+      "sectionProcedure": "[计算过程]",
+      "sectionResult": "[结果]",
+      "derived": "由代码计算",
+      "shell": {
+        "app": "valve",
+        "calculator": "reynolds_calc",
+        "command": "px",
+        "print": "print",
+        "inputs": "inputs",
+        "procedure": "procedure",
+        "result": "result"
+      },
+      "steps": {
+        "normalizeVelocity": "将速度换算为 SI",
+        "normalizeDimension": "将特征尺寸换算为 SI",
+        "normalizeDensity": "将密度换算为 SI",
+        "normalizeDynamicViscosity": "将动力粘度换算为 SI",
+        "normalizeKinematicViscosity": "将运动粘度换算为 SI",
+        "deriveDensity": "计算缺失的密度",
+        "deriveDynamicViscosity": "计算缺失的动力粘度",
+        "deriveKinematicViscosity": "计算缺失的运动粘度",
+        "calculateReynoldsWithDynamic": "使用密度和动力粘度计算雷诺数",
+        "calculateReynoldsWithKinematic": "使用运动粘度计算雷诺数"
+      }
     }
   },
   "colebrookCalc": {

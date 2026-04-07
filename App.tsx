@@ -40,6 +40,7 @@ import SearchScreen from './screens/menu/search/SearchScreen';
 import CalculatorOptionsScreen from './screens/01_options/CalculatorOptionsScreen';
 import type { CalculatorOptionsScreenParams } from './screens/01_options/optionsConfig';
 import ConsoleScreen from './screens/02_console/ConsoleScreen';
+import type { ReynoldsConsoleData } from './src/types/reynoldsConsole';
 
 // DE MOMENTO ESTO NO
 
@@ -131,7 +132,7 @@ export type RootStackParamList = {
   ContinuidadTheory: undefined;
   BernoulliCalc: undefined;
   ReynoldsCalc: undefined;
-  ConsoleScreen: undefined;
+  ConsoleScreen: { reynoldsData?: ReynoldsConsoleData } | undefined;
   HistoryScreenBernoulli: undefined;
   BernoulliTheory: undefined;
   HistoryScreenReynolds: undefined;

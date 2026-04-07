@@ -38,6 +38,14 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from '../../../src/components/customKeyboardHelpers';
 
 const logoLight = require('../../../assets/icon/iconblack.webp');
 const logoDark  = require('../../../assets/icon/iconwhite.webp');
@@ -523,35 +531,40 @@ const CompParaleloCalc: React.FC = () => {
   const handleKeyboardKey       = useCallback((key: string) => {
     const id = activeInputIdRef.current;
     if (!id) return;
-    inputHandlersRef.current[id]?.(getActiveValue() + key);
+    const nextValue = appendKeyboardKey(getActiveValue(), key);
+    if (nextValue !== null) {
+      inputHandlersRef.current[id]?.(nextValue);
+    }
   }, [getActiveValue]);
 
   const handleKeyboardDelete    = useCallback(() => {
     const id = activeInputIdRef.current;
     if (!id) return;
-    inputHandlersRef.current[id]?.(getActiveValue().slice(0, -1));
+    inputHandlersRef.current[id]?.(deleteKeyboardKey(getActiveValue()));
   }, [getActiveValue]);
 
   const handleKeyboardClear     = useCallback(() => {
     const id = activeInputIdRef.current;
     if (!id) return;
-    inputHandlersRef.current[id]?.('');
+    inputHandlersRef.current[id]?.(clearKeyboardValue());
   }, []);
 
   const handleKeyboardMultiply10 = useCallback(() => {
     const id = activeInputIdRef.current;
     if (!id) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    inputHandlersRef.current[id]?.((parseFloat(val) * 10).toString());
+    const nextValue = insertScientificNotation(getActiveValue());
+    if (nextValue !== null) {
+      inputHandlersRef.current[id]?.(nextValue);
+    }
   }, [getActiveValue]);
 
   const handleKeyboardDivide10  = useCallback(() => {
     const id = activeInputIdRef.current;
     if (!id) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    inputHandlersRef.current[id]?.((parseFloat(val) / 10).toString());
+    const nextValue = insertKeyboardMinus(getActiveValue());
+    if (nextValue !== null) {
+      inputHandlersRef.current[id]?.(nextValue);
+    }
   }, [getActiveValue]);
 
   const handleKeyboardSubmit    = useCallback(() => { setActiveInputId(null); }, [setActiveInputId]);
@@ -582,7 +595,7 @@ const CompParaleloCalc: React.FC = () => {
               <Pressable onPress={() => setActiveInputId(fieldId)} style={StyleSheet.absoluteFill} />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                value={value}
+                value={formatKeyboardDisplayValue(value)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"
@@ -628,7 +641,7 @@ const CompParaleloCalc: React.FC = () => {
                 <Pressable onPress={() => setActiveInputId(fieldId)} style={StyleSheet.absoluteFill} />
                 <TextInput
                   style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                  value={value}
+                  value={formatKeyboardDisplayValue(value)}
                   editable={false}
                   showSoftInputOnFocus={false}
                   pointerEvents="none"
@@ -1359,7 +1372,7 @@ const CompParaleloCalc: React.FC = () => {
         <View style={styles.buttonsContainer}>
           {(
             [
-              { icon: 'terminal', label: t('common.calculate') || 'Calcular',  action: handleCalculate },
+              { icon: 'zap', label: t('common.calculate') || 'Calcular',  action: handleCalculate },
               { icon: 'copy',     label: t('common.copy')      || 'Copiar',    action: handleCopy },
               { icon: 'trash',    label: t('common.clear')     || 'Limpiar',   action: handleClear },
               { icon: 'clock',    label: t('common.history')   || 'Historial', action: () => navigation.navigate('HistoryScreenCompParaleloCalc') },

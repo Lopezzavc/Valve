@@ -852,7 +852,7 @@ const ColebrookCalc: React.FC = () => {
         {/* Botones de acción */}
         <View style={styles.buttonsContainer}>
           {[
-            { icon: 'terminal', label: t('common.calculate') || 'Calcular', action: handleCalculate },
+            { icon: 'zap', label: t('common.calculate') || 'Calcular', action: handleCalculate },
             { icon: 'copy', label: t('common.copy') || 'Copiar', action: handleCopy },
             { icon: 'trash', label: t('common.clear') || 'Limpiar', action: handleClear },
             { icon: 'clock', label: t('common.history') || 'Historial', action: () => navigation.navigate('HistoryScreenColebrook') },

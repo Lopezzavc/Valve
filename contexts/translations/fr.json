@@ -68,6 +68,7 @@
   },
   "common": {
     "calculate": "Calculer",
+    "console": "Console",
     "copy": "Copier",
     "clear": "Effacer",
     "history": "Historique",
@@ -345,6 +346,36 @@
       "glycerin_20C": "Glycérine (20 °C)",
       "mercury_20C": "Mercure (20 °C)",
       "sae10_20C": "Huile SAE 10 (20 °C)"
+    },
+    "console": {
+      "openedAt": "Ouverte le",
+      "procedure": "PROCÉDURE",
+      "result": "RÉSULTAT",
+      "sectionInputs": "[ENTRÉES SI]",
+      "sectionProcedure": "[PROCÉDURE]",
+      "sectionResult": "[RÉSULTAT]",
+      "derived": "calculé par le code",
+      "shell": {
+        "app": "valve",
+        "calculator": "reynolds_calc",
+        "command": "px",
+        "print": "print",
+        "inputs": "inputs",
+        "procedure": "procedure",
+        "result": "result"
+      },
+      "steps": {
+        "normalizeVelocity": "Normaliser la vitesse au SI",
+        "normalizeDimension": "Normaliser la dimension caractéristique au SI",
+        "normalizeDensity": "Normaliser la densité au SI",
+        "normalizeDynamicViscosity": "Normaliser la viscosité dynamique au SI",
+        "normalizeKinematicViscosity": "Normaliser la viscosité cinématique au SI",
+        "deriveDensity": "Calculer la densité manquante",
+        "deriveDynamicViscosity": "Calculer la viscosité dynamique manquante",
+        "deriveKinematicViscosity": "Calculer la viscosité cinématique manquante",
+        "calculateReynoldsWithDynamic": "Calculer Reynolds avec densité et viscosité dynamique",
+        "calculateReynoldsWithKinematic": "Calculer Reynolds avec viscosité cinématique"
+      }
     }
   },
   "colebrookCalc": {

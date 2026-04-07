@@ -27,6 +27,14 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from '../../../src/components/customKeyboardHelpers';
 
 Decimal.set({ precision: 20 });
 
@@ -502,22 +510,16 @@ const FroudeCalc: React.FC = () => {
     if (result !== null) handler(result);
   }, [getActiveValue]);
 
-  const handleKeyboardKey    = useCallback((key: string) => callActiveHandler(val => val + key),       [callActiveHandler]);
-  const handleKeyboardDelete = useCallback(() => callActiveHandler(val => val.slice(0, -1)),            [callActiveHandler]);
-  const handleKeyboardClear  = useCallback(() => callActiveHandler(() => ''),                           [callActiveHandler]);
+  const handleKeyboardKey    = useCallback((key: string) => callActiveHandler(val => appendKeyboardKey(val, key)), [callActiveHandler]);
+  const handleKeyboardDelete = useCallback(() => callActiveHandler(val => deleteKeyboardKey(val)), [callActiveHandler]);
+  const handleKeyboardClear  = useCallback(() => callActiveHandler(() => clearKeyboardValue()), [callActiveHandler]);
   const handleKeyboardSubmit = useCallback(() => setActiveInputId(null),                                [setActiveInputId]);
 
   const handleKeyboardMultiply10 = useCallback(() =>
-    callActiveHandler(val => {
-      if (val === '' || val === '.') return null;
-      return new Decimal(val).times(10).toString();
-    }), [callActiveHandler]);
+    callActiveHandler(val => insertScientificNotation(val)), [callActiveHandler]);
 
   const handleKeyboardDivide10 = useCallback(() =>
-    callActiveHandler(val => {
-      if (val === '' || val === '.') return null;
-      return new Decimal(val).dividedBy(10).toString();
-    }), [callActiveHandler]);
+    callActiveHandler(val => insertKeyboardMinus(val)), [callActiveHandler]);
 
   // Renderizado de cada campo de entrada con su etiqueta, indicador de estado, input y selector de unidades
   const renderInput = useCallback((
@@ -602,7 +604,7 @@ const FroudeCalc: React.FC = () => {
               />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                value={resultValue && resultValue !== '' ? resultValue : value}
+                value={formatKeyboardDisplayValue(resultValue && resultValue !== '' ? resultValue : value)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"
@@ -748,7 +750,7 @@ const FroudeCalc: React.FC = () => {
         {/* Botones de acción: calcular, copiar, limpiar e historial */}
         <View style={styles.buttonsContainer}>
           {[
-            { icon: 'terminal', label: t('common.calculate') || 'Calcular',  action: calculateFroude },
+            { icon: 'zap', label: t('common.calculate') || 'Calcular',  action: calculateFroude },
             { icon: 'copy',     label: t('common.copy')      || 'Copiar',    action: handleCopy },
             { icon: 'trash',    label: t('common.clear')     || 'Limpiar',   action: handleClear },
             { icon: 'clock',    label: t('common.history')   || 'Historial', action: () => navigation.navigate('HistoryScreenFroude') },

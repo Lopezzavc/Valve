@@ -37,6 +37,14 @@ import { LanguageContext } from '../../../contexts/LanguageContext';
 import { FontSizeContext } from '../../../contexts/FontSizeContext';
 import { useKeyboard } from '../../../contexts/KeyboardContext';
 import { CustomKeyboardPanel } from '../../../src/components/CustomKeyboardInput';
+import {
+  appendKeyboardKey,
+  clearKeyboardValue,
+  deleteKeyboardKey,
+  formatKeyboardDisplayValue,
+  insertKeyboardMinus,
+  insertScientificNotation,
+} from '../../../src/components/customKeyboardHelpers';
 
 import Decimal from 'decimal.js';
 
@@ -900,7 +908,10 @@ const ContinuidadCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue() + key);
+    const nextValue = appendKeyboardKey(getActiveValue(), key);
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDelete = useCallback(() => {
@@ -908,7 +919,7 @@ const ContinuidadCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler(getActiveValue().slice(0, -1));
+    handler(deleteKeyboardKey(getActiveValue()));
   }, []);
 
   const handleKeyboardClear = useCallback(() => {
@@ -916,7 +927,7 @@ const ContinuidadCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    handler('');
+    handler(clearKeyboardValue());
   }, []);
 
   const handleKeyboardMultiply10 = useCallback(() => {
@@ -924,11 +935,10 @@ const ContinuidadCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    const clean = val.replace(',', '.');
-    const result = new Decimal(clean).mul(10).toFixed(15).replace(/\.?0+$/, '');
-    handler(result);
+    const nextValue = insertScientificNotation(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardDivide10 = useCallback(() => {
@@ -936,11 +946,10 @@ const ContinuidadCalc: React.FC = () => {
     if (!id) return;
     const handler = inputHandlersRef.current[id];
     if (!handler) return;
-    const val = getActiveValue();
-    if (val === '' || val === '.') return;
-    const clean = val.replace(',', '.');
-    const result = new Decimal(clean).div(10).toFixed(15).replace(/\.?0+$/, '');
-    handler(result);
+    const nextValue = insertKeyboardMinus(getActiveValue());
+    if (nextValue !== null) {
+      handler(nextValue);
+    }
   }, []);
 
   const handleKeyboardSubmit = useCallback(() => {
@@ -1032,7 +1041,7 @@ const ContinuidadCalc: React.FC = () => {
               />
               <TextInput
                 style={[styles.input, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}
-                value={resultValue && resultValue !== '' ? resultValue : value}
+                value={formatKeyboardDisplayValue(resultValue && resultValue !== '' ? resultValue : value)}
                 editable={false}
                 showSoftInputOnFocus={false}
                 pointerEvents="none"
@@ -1385,7 +1394,7 @@ const ContinuidadCalc: React.FC = () => {
         {/* Botones de acción */}
         <View style={styles.buttonsContainer}>
           {[
-            { icon: 'terminal', label: t('common.calculate'), action: handleCalculate },
+            { icon: 'zap', label: t('common.calculate'), action: handleCalculate },
             { icon: 'copy', label: t('common.copy'), action: handleCopy },
             { icon: 'trash', label: t('common.clear'), action: handleClear },
             { icon: 'clock', label: t('common.history'), action: () => navigation.navigate('HistoryScreenContinuidad') },
