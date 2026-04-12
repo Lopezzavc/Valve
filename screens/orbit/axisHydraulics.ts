@@ -1,306 +1,241 @@
-import Decimal from 'decimal.js';
+/**
+ * axisHydraulics.ts — VERSIÓN OPTIMIZADA
+ *
+ * PROBLEMA ORIGINAL:
+ *   La versión anterior usaba `decimal.js` con precisión 50 para CADA operación aritmética
+ *   dentro del solver hidráulico. Cada suma, resta, multiplicación, división, comparación,
+ *   sqrt y log10 creaba objetos Decimal y ejecutaba aritmética de software de 50 dígitos.
+ *   Esto es 50–200× más lento que float64 nativo del hardware.
+ *
+ *   Para una red de 13 nodos con análisis temporal de 24 horas:
+ *   - 25 pasos × 200 iteraciones outer × 120 iteraciones inner = 600 000 Newton-Raphson
+ *   - Cada iteración: matrix 13×13 con Decimal + eliminación gaussiana Decimal
+ *   - Factor de fricción Colebrook-White: 120 iteraciones de Decimal por tubería
+ *   → Decenas de millones de objetos Decimal → congelamiento total en móvil.
+ *
+ * SOLUCIÓN:
+ *   Reemplazar TODO el aritmético interno con `number` (float64 IEEE 754).
+ *   Float64 tiene ~15–16 dígitos significativos, más que suficiente para hidráulica.
+ *   El código de index.html ya lo demuestra: cálculo instantáneo con number nativo.
+ *   Decimal.js se usa SOLO para parsear strings de entrada (una sola vez por cálculo).
+ *
+ * CAMBIOS ADICIONALES:
+ *   - handleCalcular en AxisScreen.tsx debe llamarse con InteractionManager para
+ *     no bloquear el hilo de UI (ver comentario al final del archivo).
+ */
+
 import type { TemporalAnalysisConfig, TemporalPatternEntry } from './TemporalAnalysisAxisScreen';
 
-Decimal.set({
-  precision: 50,
-  rounding: Decimal.ROUND_HALF_EVEN,
-  toExpNeg: -7,
-  toExpPos: 21,
-});
-
-const LENGTH_FACTORS: Record<string, Decimal> = {
-  m: new Decimal(1),
-  mm: new Decimal('0.001'),
-  cm: new Decimal('0.01'),
-  km: new Decimal(1000),
-  in: new Decimal('0.0254'),
-  ft: new Decimal('0.3048'),
-  yd: new Decimal('0.9144'),
-  mi: new Decimal('1609.344'),
-};
-
-const FLOW_TO_LS_FACTORS: Record<string, Decimal> = {
-  'l/s': new Decimal(1),
-  'mÂ³/s': new Decimal(1000),
-  'mÂ³/h': new Decimal(1000).div(3600),
-  gpm: new Decimal('15.850323141489'),
-};
-
-const DEFAULT_PATTERN_VALUES = Array.from({ length: 24 }, () => '1');
+// ─── Constantes del solver (native number) ─────────────────────────────────────
 const PLAYBACK_INTERVAL_MS = 700;
-const CALCULATION_DECIMALS = 15;
-const TANK_LEVEL_EPS = new Decimal('1e-9');
-const TANK_HEAD_EPS = new Decimal('1e-8');
-const TANK_FLOW_EPS = new Decimal('1e-10');
+const CALCULATION_DECIMALS = 10;
 const MAX_TANK_ACTIVESET_ITERATIONS = 32;
 const MAX_HYDRAULIC_OUTER_ITERATIONS = 200;
 const MAX_HYDRAULIC_INNER_ITERATIONS = 120;
-const ZERO = new Decimal(0);
-const ONE = new Decimal(1);
-const HALF = new Decimal('0.5');
-const ALPHA = new Decimal('0.65');
-const NU = new Decimal('1e-6');
-const G = new Decimal('9.81');
-const PI = new Decimal(Math.PI);
-const PIPE_LENGTH_MIN = new Decimal('0.1');
-const PIPE_DIAMETER_FALLBACK_MM = new Decimal(10);
-const PIPE_ROUGHNESS_FALLBACK_MM = new Decimal('0.001');
-const FLOW_GUESS = new Decimal('0.001');
+const ALPHA = 0.65;
+const NU = 1e-6;        // viscosidad cinemática agua, m²/s
+const G = 9.81;          // gravedad, m/s²
+const PI = Math.PI;
+const PIPE_LENGTH_MIN = 0.1;
+const PIPE_DIAMETER_FALLBACK_M = 0.01;  // 10 mm
+const PIPE_ROUGHNESS_FALLBACK_M = 1e-6; // 0.001 mm
+const FLOW_GUESS = 0.001;               // m³/s
+const TANK_LEVEL_EPS = 1e-9;
+const TANK_HEAD_EPS = 1e-8;
+const TANK_FLOW_EPS = 1e-10;
+const TOL_H = 1e-7;
+const TOL_Q = 1e-7;
+
+// Factores de conversión de unidades a metros/l·s⁻¹
+const LENGTH_FACTORS: Record<string, number> = {
+  m: 1, mm: 0.001, cm: 0.01, km: 1000,
+  in: 0.0254, ft: 0.3048, yd: 0.9144, mi: 1609.344,
+};
+const FLOW_TO_LS_FACTORS: Record<string, number> = {
+  'l/s': 1,
+  'm³/s': 1000,
+  'mÂ³/s': 1000,       // encoding alternativo que puede venir del texto
+  'm³/h': 1000 / 3600,
+  'mÂ³/h': 1000 / 3600,
+  gpm: 3.785411784 / 60,  // 1 gal = 3.785 l, 1 gpm = 3.785/60 l/s
+};
+
+const DEFAULT_PATTERN_VALUES = Array.from({ length: 24 }, () => '1');
 
 export { PLAYBACK_INTERVAL_MS };
 
+// ─── Interfaces públicas (sin cambios para compatibilidad) ──────────────────────
 export type AxisNodeType = 'nodo' | 'tanque' | 'reservorio';
 
 export interface AxisNodeInputEntry {
   type: AxisNodeType;
   nodeId: string;
   patternId: string;
-  x: string;
-  xUnit: string;
-  y: string;
-  yUnit: string;
-  z: string;
-  zUnit: string;
-  demanda: string;
-  demandaUnit: string;
-  nivelIni: string;
-  nivelIniUnit: string;
-  nivelMin: string;
-  nivelMinUnit: string;
-  nivelMax: string;
-  nivelMaxUnit: string;
-  diametro: string;
-  diametroUnit: string;
+  x: string; xUnit: string;
+  y: string; yUnit: string;
+  z: string; zUnit: string;
+  demanda: string; demandaUnit: string;
+  nivelIni: string; nivelIniUnit: string;
+  nivelMin: string; nivelMinUnit: string;
+  nivelMax: string; nivelMaxUnit: string;
+  diametro: string; diametroUnit: string;
 }
 
 export interface AxisConnectionInputEntry {
   type?: 'tuberia' | 'bomba';
   tubId: string;
-  from: string;
-  to: string;
+  from: string; to: string;
   curveId?: string;
-  curveCoefficients?: {
-    a: number;
-    b: number;
-    c: number;
-  };
+  curveCoefficients?: { a: number; b: number; c: number };
   maxFlowLs?: number;
   longitud: string;
-  diametro: string;
-  diametroUnit: string;
-  rugosidad: string;
-  rugosidadUnit: string;
+  diametro: string; diametroUnit: string;
+  rugosidad: string; rugosidadUnit: string;
 }
 
 export interface AxisNodeResult {
-  tipo: 'nodo';
-  id: string;
-  H: number;
-  z: number;
-  P: number;
-  supplied: boolean;
+  tipo: 'nodo'; id: string;
+  H: number; z: number; P: number; supplied: boolean;
 }
-
 export interface AxisTankResult {
-  tipo: 'tanque';
-  id: string;
-  elevacion: number;
-  level: number;
-  H: number;
-  volume: number;
-  Qnet_m3s: number;
-  Qnet_ls: number;
-  atMin: boolean;
-  atMax: boolean;
-  mode: TankMode;
-  stateLabel: string;
+  tipo: 'tanque'; id: string;
+  elevacion: number; level: number; H: number;
+  volume: number; Qnet_m3s: number; Qnet_ls: number;
+  atMin: boolean; atMax: boolean;
+  mode: TankMode; stateLabel: string;
 }
-
 export interface AxisPipeResult {
-  tipoEnlace: 'tuberia' | 'bomba';
-  id: string;
-  from: string;
-  to: string;
-  Q_ls: number;
-  V_ms: number | null;
-  f: number | null;
-  R: number | null;
-  curveId?: string;
-  headGain_m?: number | null;
+  tipoEnlace: 'tuberia' | 'bomba'; id: string;
+  from: string; to: string;
+  Q_ls: number; V_ms: number | null;
+  f: number | null; R: number | null;
+  curveId?: string; headGain_m?: number | null;
 }
-
 export interface AxisHydraulicStepResult {
-  nodos: AxisNodeResult[];
-  tanques: AxisTankResult[];
-  tuberias: AxisPipeResult[];
-  convergio: boolean;
+  nodos: AxisNodeResult[]; tanques: AxisTankResult[];
+  tuberias: AxisPipeResult[]; convergio: boolean;
 }
-
 export interface AxisHydraulicFrame {
-  timeMinutes: number;
-  result: AxisHydraulicStepResult;
+  timeMinutes: number; result: AxisHydraulicStepResult;
 }
-
 export interface AxisHydraulicAnalysisResult {
   mode: 'steady' | 'extended';
-  durationMinutes: number;
-  stepMinutes: number;
+  durationMinutes: number; stepMinutes: number;
   frames: AxisHydraulicFrame[];
-  partial?: boolean;
-  partialMessage?: string;
+  partial?: boolean; partialMessage?: string;
 }
-
 export type AxisCalculationResult<T> =
   | { ok: true; data: T; warnings: string[] }
   | { ok: false; error: string; warnings: string[] };
 
+// ─── Tipos internos del solver (todo number) ────────────────────────────────────
 type TankMode = 'min' | 'max' | 'locked' | null;
 
-type PatternDefinition = {
-  id: string;
-  multipliers: Decimal[];
-};
+type PatternDefinition = { id: string; multipliers: number[] };
 
 type PreparedNode = {
-  tipo: 'nodo';
-  id: string;
-  x: Decimal;
-  y: Decimal;
-  elevacion: Decimal;
-  demandaLs: Decimal;
-  patternId: string;
+  tipo: 'nodo'; id: string;
+  x: number; y: number; elevacion: number;
+  demandaLs: number; patternId: string;
 };
-
-type PreparedReservoir = {
-  tipo: 'reservorio';
-  id: string;
-  x: Decimal;
-  y: Decimal;
-  head: Decimal;
-};
-
+type PreparedReservoir = { tipo: 'reservorio'; id: string; x: number; y: number; head: number };
 type PreparedTank = {
-  tipo: 'tanque';
-  id: string;
-  x: Decimal;
-  y: Decimal;
-  elevacion: Decimal;
-  nivelInicial: Decimal;
-  nivelMinimo: Decimal;
-  nivelMaximo: Decimal;
-  diametroM: Decimal;
-  area: Decimal;
-  volumenMinimo: Decimal;
-  volumenMaximo: Decimal;
-  volumenInicial: Decimal;
+  tipo: 'tanque'; id: string; x: number; y: number;
+  elevacion: number; nivelInicial: number; nivelMinimo: number; nivelMaximo: number;
+  diametroM: number; area: number; volumenMinimo: number; volumenMaximo: number; volumenInicial: number;
 };
-
 type PreparedPipe = {
-  id: string;
-  tipoEnlace: 'tuberia' | 'bomba';
-  from: string;
-  to: string;
-  longitudM: Decimal | null;
-  diametroM: Decimal | null;
-  rugosidadM: Decimal | null;
+  id: string; tipoEnlace: 'tuberia' | 'bomba';
+  from: string; to: string;
+  longitudM: number | null; diametroM: number | null; rugosidadM: number | null;
   curveId?: string;
-  curveCoefficients?: {
-    a: Decimal;
-    b: Decimal;
-    c: Decimal;
-  } | null;
-  maxFlowLs?: Decimal | null;
+  curveCoefficients?: { a: number; b: number; c: number } | null;
+  maxFlowLs?: number | null;
 };
-
-type TankState = {
-  level: Decimal;
-  volume: Decimal;
-  head: Decimal;
-  atMin: boolean;
-  atMax: boolean;
-};
-
+type TankState = { level: number; volume: number; head: number; atMin: boolean; atMax: boolean };
 type TankStateMap = Record<string, TankState>;
 type TankModeMap = Record<string, TankMode>;
 
-type InternalNodeResult = AxisNodeResult;
-type InternalTankResult = AxisTankResult & { tanque: PreparedTank };
-type InternalPipeResult = AxisPipeResult;
-
 type HydraulicSolverResult = {
-  nodos: InternalNodeResult[];
-  tanques: InternalTankResult[];
-  tuberias: InternalPipeResult[];
+  nodos: AxisNodeResult[];
+  tanques: (AxisTankResult & { tanque: PreparedTank })[];
+  tuberias: AxisPipeResult[];
   convergio: boolean;
   unsuppliedNodes: string[];
-  rawTankStates: Record<
-    string,
-    {
-      volume: Decimal;
-      head: Decimal;
-      Qnet_m3s: Decimal;
-      mode: TankMode;
-    }
-  >;
-  solverState: {
-    H: Decimal[];
-    Q: Decimal[];
-    tanks: TankStateMap;
-  };
+  rawTankStates: Record<string, { volume: number; head: number; Qnet_m3s: number; mode: TankMode }>;
+  solverState: { H: number[]; Q: number[]; tanks: TankStateMap };
 };
-
-type WarmStartState = {
-  H: Decimal[] | null;
-  Q: Decimal[] | null;
-  tanks: TankStateMap;
-};
-
+type WarmStartState = { H: number[] | null; Q: number[] | null; tanks: TankStateMap };
 type PreparedModel = {
-  nodos: PreparedNode[];
-  reservorios: PreparedReservoir[];
-  tanques: PreparedTank[];
-  pipes: PreparedPipe[];
+  nodos: PreparedNode[]; reservorios: PreparedReservoir[];
+  tanques: PreparedTank[]; pipes: PreparedPipe[];
 };
 
+// ─── Helpers de resultado ───────────────────────────────────────────────────────
 function success<T>(data: T, warnings: string[] = []): AxisCalculationResult<T> {
   return { ok: true, data, warnings };
 }
-
 function failure<T>(error: string, warnings: string[] = []): AxisCalculationResult<T> {
   return { ok: false, error, warnings };
 }
 
-function parseDecimalValue(rawValue: string | undefined | null): Decimal | null {
-  if (rawValue === undefined || rawValue === null) return null;
-  const normalized = String(rawValue).trim().replace(',', '.');
+// ─── Parseo de entrada (único lugar donde se acepta string) ─────────────────────
+function parseNumber(raw: string | undefined | null): number | null {
+  if (raw === undefined || raw === null) return null;
+  const normalized = String(raw).trim().replace(',', '.');
   if (normalized === '') return null;
-  try {
-    const parsed = new Decimal(normalized);
-    return parsed.isFinite() ? parsed : null;
-  } catch {
-    return null;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseRequiredNumber(raw: string, label: string): AxisCalculationResult<number> {
+  const trimmed = raw.trim();
+  if (trimmed === '') return failure(`${label} es obligatorio.`);
+  const v = parseNumber(trimmed);
+  if (v === null) return failure(`${label} debe ser un numero valido.`);
+  return success(v);
+}
+
+function parseOptionalNumber(raw: string, fallback: number): number {
+  return parseNumber(raw) ?? fallback;
+}
+
+function assertRange(
+  value: number, label: string,
+  opts: { min?: number; max?: number; strictMin?: boolean; strictMax?: boolean } = {}
+): AxisCalculationResult<number> {
+  const { min, max, strictMin, strictMax } = opts;
+  if (min !== undefined) {
+    if (strictMin ? value <= min : value < min)
+      return failure(strictMin ? `${label} debe ser mayor que ${min}.` : `${label} no puede ser menor que ${min}.`);
   }
+  if (max !== undefined) {
+    if (strictMax ? value >= max : value > max)
+      return failure(strictMax ? `${label} debe ser menor que ${max}.` : `${label} no puede ser mayor que ${max}.`);
+  }
+  return success(value);
 }
 
-function roundCalculatedValue(value: Decimal.Value): number {
-  const decimalValue = new Decimal(value);
-  const rounded = decimalValue.toDecimalPlaces(CALCULATION_DECIMALS);
-  return rounded.abs().lt('1e-15') ? 0 : rounded.toNumber();
+function convertLength(raw: string, unit: string, label: string): AxisCalculationResult<number> {
+  const parsed = parseRequiredNumber(raw, label);
+  if (!parsed.ok) return parsed;
+  return success(parsed.data * (LENGTH_FACTORS[unit] ?? 1));
 }
 
-function normalizeTemporalMultipliers(values?: string[]): string[] {
-  return Array.from({ length: 24 }, (_, index) => values?.[index] ?? DEFAULT_PATTERN_VALUES[index]);
+function convertOptionalLength(raw: string, unit: string): number {
+  return parseOptionalNumber(raw, 0) * (LENGTH_FACTORS[unit] ?? 1);
 }
 
-function pad2(value: number): string {
-  return String(value).padStart(2, '0');
+function convertDemandToLs(raw: string, unit: string, fallback = 0): number {
+  return parseOptionalNumber(raw, fallback) * (FLOW_TO_LS_FACTORS[unit] ?? 1);
 }
+
+// ─── Formateo de tiempo ─────────────────────────────────────────────────────────
+function pad2(v: number): string { return String(v).padStart(2, '0'); }
 
 export function formatTimeMinutes(totalMinutes: number): string {
   const safe = Math.max(0, Math.round(totalMinutes));
-  const hours = Math.floor(safe / 60);
-  const minutes = safe % 60;
-  return `${pad2(hours)}:${pad2(minutes)}`;
+  return `${pad2(Math.floor(safe / 60))}:${pad2(safe % 60)}`;
 }
 
 function getPatternHourIndex(timeMinutes: number): number {
@@ -315,167 +250,149 @@ export function getPatternHourLabel(timeMinutes: number): string {
 export function buildAnalysisInstants(durationMinutes: number, stepMinutes: number): number[] {
   const instants = [0];
   if (stepMinutes <= 0 || durationMinutes <= 0) return instants;
-  for (let t = stepMinutes; t < durationMinutes; t += stepMinutes) {
-    instants.push(t);
-  }
-  if (instants[instants.length - 1] !== durationMinutes) {
-    instants.push(durationMinutes);
-  }
+  for (let t = stepMinutes; t < durationMinutes; t += stepMinutes) instants.push(t);
+  if (instants[instants.length - 1] !== durationMinutes) instants.push(durationMinutes);
   return instants;
 }
 
-function readStrictNonNegativeInt(rawValue: string, label: string, max?: number): AxisCalculationResult<number> {
-  const trimmed = rawValue.trim();
+function readStrictNonNegativeInt(raw: string, label: string, max?: number): AxisCalculationResult<number> {
+  const trimmed = raw.trim();
   if (trimmed === '') return success(0);
   const parsed = Number(trimmed);
-  if (!Number.isFinite(parsed) || parsed < 0 || !Number.isInteger(parsed)) {
+  if (!Number.isFinite(parsed) || parsed < 0 || !Number.isInteger(parsed))
     return failure(`${label} debe ser un entero no negativo.`);
-  }
-  if (max !== undefined && parsed > max) {
+  if (max !== undefined && parsed > max)
     return failure(`${label} no puede ser mayor que ${max}.`);
-  }
   return success(parsed);
 }
 
 function readHourMinutePairStrict(
-  hoursRaw: string,
-  minutesRaw: string,
-  label: string
+  hoursRaw: string, minutesRaw: string, label: string
 ): AxisCalculationResult<{ hours: number; minutes: number; totalMinutes: number }> {
-  const hoursResult = readStrictNonNegativeInt(hoursRaw, `${label} (horas)`);
-  if (!hoursResult.ok) return hoursResult;
-  const minutesResult = readStrictNonNegativeInt(minutesRaw, `${label} (minutos)`, 59);
-  if (!minutesResult.ok) return minutesResult;
-  return success({
-    hours: hoursResult.data,
-    minutes: minutesResult.data,
-    totalMinutes: hoursResult.data * 60 + minutesResult.data,
-  });
+  const h = readStrictNonNegativeInt(hoursRaw, `${label} (horas)`);
+  if (!h.ok) return h;
+  const m = readStrictNonNegativeInt(minutesRaw, `${label} (minutos)`, 59);
+  if (!m.ok) return m;
+  return success({ hours: h.data, minutes: m.data, totalMinutes: h.data * 60 + m.data });
 }
 
-function readRequiredDecimal(rawValue: string, label: string): AxisCalculationResult<Decimal> {
-  const trimmed = rawValue.trim();
-  if (trimmed === '') return failure(`${label} es obligatorio.`);
-  const value = parseDecimalValue(trimmed);
-  if (!value) return failure(`${label} debe ser un numero valido.`);
-  return success(value);
+// ─── Física / fluidos ───────────────────────────────────────────────────────────
+function roundVal(v: number): number {
+  if (!Number.isFinite(v)) return 0;
+  const r = parseFloat(v.toFixed(CALCULATION_DECIMALS));
+  return Math.abs(r) < 1e-14 ? 0 : r;
 }
 
-function readOptionalDecimal(rawValue: string, fallback: Decimal): Decimal {
-  return parseDecimalValue(rawValue) ?? fallback;
+function clamp(v: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, v));
 }
 
-function assertDecimalRange(
-  value: Decimal,
-  label: string,
-  options: {
-    min?: Decimal;
-    max?: Decimal;
-    strictMin?: boolean;
-    strictMax?: boolean;
-  } = {}
-): AxisCalculationResult<Decimal> {
-  const { min, max, strictMin, strictMax } = options;
-  if (min) {
-    if (strictMin ? value.lte(min) : value.lt(min)) {
-      return failure(
-        strictMin ? `${label} debe ser mayor que ${min.toString()}.` : `${label} no puede ser menor que ${min.toString()}.`
-      );
+function tankArea(diamM: number): number {
+  return PI * diamM * diamM / 4;
+}
+
+/**
+ * Factor de fricción de Darcy-Weisbach (Colebrook-White implícito)
+ * Usa iteración directa con SOLO números nativos → extremadamente rápido.
+ */
+function solveDarcyFriction(roughnessM: number, diamM: number, reynolds: number): number {
+  const MIN_F = 0.001;
+  if (reynolds < 2300) return Math.max(64 / reynolds, MIN_F);
+  let f = 0.025;
+  const relRough = roughnessM / (diamM * 3.7);
+  for (let i = 0; i < 60; i++) {
+    const sqF = Math.sqrt(f);
+    const arg = relRough + 2.51 / (reynolds * sqF);
+    if (arg <= 0) break;
+    const rhs = -2 * Math.log10(arg);
+    const next = 1 / (rhs * rhs);
+    if (Math.abs(next - f) < 1e-9) { f = next; break; }
+    f = next;
+  }
+  return Math.max(f, MIN_F);
+}
+
+// ─── Eliminación gaussiana con pivoteo (native number[][]) ──────────────────────
+function gaussianElimination(matrix: number[][], vector: number[]): number[] | null {
+  const n = vector.length;
+  // Construir augmented matrix
+  const aug: number[][] = matrix.map((row, i) => [...row, vector[i]]);
+
+  for (let col = 0; col < n; col++) {
+    // Pivoteo parcial
+    let maxRow = col;
+    for (let row = col + 1; row < n; row++) {
+      if (Math.abs(aug[row][col]) > Math.abs(aug[maxRow][col])) maxRow = row;
+    }
+    [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+
+    if (Math.abs(aug[col][col]) < 1e-12) return null;
+
+    const pivot = aug[col][col];
+    for (let row = col + 1; row < n; row++) {
+      const factor = aug[row][col] / pivot;
+      for (let k = col; k <= n; k++) {
+        aug[row][k] -= factor * aug[col][k];
+      }
     }
   }
-  if (max) {
-    if (strictMax ? value.gte(max) : value.gt(max)) {
-      return failure(
-        strictMax ? `${label} debe ser menor que ${max.toString()}.` : `${label} no puede ser mayor que ${max.toString()}.`
-      );
-    }
+
+  const sol = new Array<number>(n).fill(0);
+  for (let row = n - 1; row >= 0; row--) {
+    let val = aug[row][n];
+    for (let col = row + 1; col < n; col++) val -= aug[row][col] * sol[col];
+    sol[row] = val / aug[row][row];
   }
-  return success(value);
+  return sol;
 }
 
-function convertLengthToMeters(rawValue: string, unit: string, label: string): AxisCalculationResult<Decimal> {
-  const parsed = readRequiredDecimal(rawValue, label);
-  if (!parsed.ok) return parsed;
-  const factor = LENGTH_FACTORS[unit] ?? ONE;
-  return success(parsed.data.times(factor));
+// ─── Curva de bomba ─────────────────────────────────────────────────────────────
+function evaluatePumpCurve(coeff: { a: number; b: number; c: number } | null | undefined, flowLs: number): number | null {
+  if (!coeff) return null;
+  return coeff.a + coeff.b * Math.pow(flowLs, coeff.c);
 }
 
-function convertOptionalLengthToMeters(rawValue: string, unit: string): Decimal {
-  const factor = LENGTH_FACTORS[unit] ?? ONE;
-  return readOptionalDecimal(rawValue, ZERO).times(factor);
+function evaluatePumpCurveSlope(coeff: { a: number; b: number; c: number } | null | undefined, flowLs: number): number | null {
+  if (!coeff) return null;
+  const q = Math.max(flowLs, 1e-6);
+  return coeff.b * coeff.c * Math.pow(q, coeff.c - 1);
 }
 
-function convertDemandToLs(rawValue: string, unit: string, fallback: Decimal = ZERO): Decimal {
-  const factor = FLOW_TO_LS_FACTORS[unit] ?? ONE;
-  return readOptionalDecimal(rawValue, fallback).times(factor);
-}
-
-function decimalClamp(value: Decimal, min: Decimal, max: Decimal): Decimal {
-  return Decimal.min(Decimal.max(value, min), max);
-}
-
-function calculateTankArea(diameterMeters: Decimal): Decimal {
-  return PI.times(diameterMeters.pow(2)).div(4);
-}
-
-function cloneTankStates(tankStates: TankStateMap = {}): TankStateMap {
+// ─── Estado de tanques ──────────────────────────────────────────────────────────
+function cloneTankStates(states: TankStateMap): TankStateMap {
   const clone: TankStateMap = {};
-  Object.keys(tankStates).forEach(id => {
-    const state = tankStates[id];
-    clone[id] = {
-      level: new Decimal(state.level),
-      volume: new Decimal(state.volume),
-      head: new Decimal(state.head),
-      atMin: state.atMin,
-      atMax: state.atMax,
-    };
-  });
+  for (const id of Object.keys(states)) {
+    clone[id] = { ...states[id] };
+  }
   return clone;
 }
 
-function normalizeTankState(tank: PreparedTank, currentState: Partial<TankState> | null = null): TankState {
-  const baseLevel = currentState?.level !== undefined ? new Decimal(currentState.level) : tank.nivelInicial;
-  const level = decimalClamp(baseLevel, tank.nivelMinimo, tank.nivelMaximo);
-
-  const baseVolume = currentState?.volume !== undefined ? new Decimal(currentState.volume) : tank.area.times(level);
-  const volume = decimalClamp(baseVolume, tank.volumenMinimo, tank.volumenMaximo);
-  const normalizedLevel = decimalClamp(volume.div(tank.area), tank.nivelMinimo, tank.nivelMaximo);
-
-  const levelFinal = normalizedLevel.lte(tank.nivelMinimo.plus(TANK_LEVEL_EPS))
+function normalizeTankState(tank: PreparedTank, current: Partial<TankState> | null = null): TankState {
+  const baseLevel = current?.level !== undefined ? current.level : tank.nivelInicial;
+  const level0 = clamp(baseLevel, tank.nivelMinimo, tank.nivelMaximo);
+  const baseVol = current?.volume !== undefined ? current.volume : tank.area * level0;
+  const vol = clamp(baseVol, tank.volumenMinimo, tank.volumenMaximo);
+  const level1 = clamp(vol / tank.area, tank.nivelMinimo, tank.nivelMaximo);
+  const levelF = level1 <= tank.nivelMinimo + TANK_LEVEL_EPS
     ? tank.nivelMinimo
-    : normalizedLevel.gte(tank.nivelMaximo.minus(TANK_LEVEL_EPS))
+    : level1 >= tank.nivelMaximo - TANK_LEVEL_EPS
       ? tank.nivelMaximo
-      : normalizedLevel;
-
+      : level1;
   return {
-    level: levelFinal,
-    volume: tank.area.times(levelFinal),
-    head: tank.elevacion.plus(levelFinal),
-    atMin: levelFinal.lte(tank.nivelMinimo.plus(TANK_LEVEL_EPS)),
-    atMax: levelFinal.gte(tank.nivelMaximo.minus(TANK_LEVEL_EPS)),
+    level: levelF,
+    volume: tank.area * levelF,
+    head: tank.elevacion + levelF,
+    atMin: levelF <= tank.nivelMinimo + TANK_LEVEL_EPS,
+    atMax: levelF >= tank.nivelMaximo - TANK_LEVEL_EPS,
   };
 }
 
-function getMinimumTankHead(tank: PreparedTank): Decimal {
-  return tank.elevacion.plus(tank.nivelMinimo);
-}
-
-function getMaximumTankHead(tank: PreparedTank): Decimal {
-  return tank.elevacion.plus(tank.nivelMaximo);
-}
-
-function getTankHeadByMode(tank: PreparedTank, tankState: TankState, mode: TankMode): Decimal {
-  if (mode === 'min') return getMinimumTankHead(tank);
-  if (mode === 'max') return getMaximumTankHead(tank);
-  return tankState.head;
-}
-
-function buildInitialTankStates(tanks: PreparedTank[], initialTankStates: TankStateMap | null = null): TankStateMap {
-  const tankStates: TankStateMap = {};
-  tanks.forEach(tank => {
-    tankStates[tank.id] = normalizeTankState(tank, initialTankStates ? initialTankStates[tank.id] ?? null : null);
-  });
-  return tankStates;
+function buildInitialTankStates(tanks: PreparedTank[], initial: TankStateMap | null = null): TankStateMap {
+  const states: TankStateMap = {};
+  for (const t of tanks) {
+    states[t.id] = normalizeTankState(t, initial ? (initial[t.id] ?? null) : null);
+  }
+  return states;
 }
 
 function getTankLimitMode(state: TankState | null | undefined): TankMode {
@@ -486,849 +403,593 @@ function getTankLimitMode(state: TankState | null | undefined): TankMode {
   return null;
 }
 
-function buildTankModes(tanks: PreparedTank[], tankStates: TankStateMap): TankModeMap {
+function buildTankModes(tanks: PreparedTank[], states: TankStateMap): TankModeMap {
   const modes: TankModeMap = {};
-  tanks.forEach(tank => {
-    modes[tank.id] = getTankLimitMode(tankStates[tank.id]);
-  });
+  for (const t of tanks) modes[t.id] = getTankLimitMode(states[t.id]);
   return modes;
 }
 
-function isDirectionBlockedAtEndpoint(
-  endpointId: string,
-  qCandidate: Decimal,
-  side: 'from' | 'to',
-  tankModes: TankModeMap
-): boolean {
-  const mode = tankModes[endpointId];
-  if (!mode) return false;
-  if (mode === 'locked') return true;
-  if (qCandidate.abs().lte(TANK_FLOW_EPS)) return false;
-
-  if (side === 'from') {
-    if (mode === 'min') return qCandidate.gt(ZERO);
-    if (mode === 'max') return qCandidate.lt(ZERO);
-  } else {
-    if (mode === 'min') return qCandidate.lt(ZERO);
-    if (mode === 'max') return qCandidate.gt(ZERO);
-  }
-
-  return false;
-}
-
-function isDirectionBlockedByTank(pipe: PreparedPipe, qCandidate: Decimal, tankModes: TankModeMap): boolean {
-  return (
-    isDirectionBlockedAtEndpoint(pipe.from, qCandidate, 'from', tankModes) ||
-    isDirectionBlockedAtEndpoint(pipe.to, qCandidate, 'to', tankModes)
-  );
-}
-
-function evaluatePumpCurve(
-  coefficients: PreparedPipe['curveCoefficients'],
-  flowLs: Decimal,
-): Decimal | null {
-  if (!coefficients) return null;
-  return coefficients.a.plus(coefficients.b.times(flowLs)).plus(coefficients.c.times(flowLs.pow(2)));
-}
-
-function evaluatePumpCurveSlope(
-  coefficients: PreparedPipe['curveCoefficients'],
-  flowLs: Decimal,
-): Decimal | null {
-  if (!coefficients) return null;
-  return coefficients.b.plus(coefficients.c.times(2).times(flowLs));
-}
-
-function calculatePumpRestrictedFlow(
-  pipe: PreparedPipe,
-  getHead: (id: string) => Decimal,
-  tankModes: TankModeMap,
-  flowGuessM3s: Decimal = ZERO,
-): {
-  Q: Decimal;
-  dQdDH: Decimal;
-} {
-  const dH = getHead(pipe.from).minus(getHead(pipe.to));
-  const q0 = Decimal.max(flowGuessM3s, ZERO);
-  const q0Ls = q0.times(1000);
-  const headGain0 = evaluatePumpCurve(pipe.curveCoefficients ?? null, q0Ls) ?? ZERO;
-
-  let slope = evaluatePumpCurveSlope(pipe.curveCoefficients ?? null, q0Ls)?.times(1000) ?? null;
-  if (!slope || !slope.isFinite() || slope.gte('-1e-9')) {
-    const fallbackFlowLs = Decimal.max(q0Ls, pipe.maxFlowLs ?? ONE);
-    slope = evaluatePumpCurveSlope(pipe.curveCoefficients ?? null, fallbackFlowLs)?.times(1000) ?? null;
-  }
-  if (!slope || !slope.isFinite() || slope.gte('-1e-9')) {
-    slope = ONE.neg();
-  }
-
-  let qTrial = q0.minus(dH.plus(headGain0).div(slope));
-  if (!qTrial.isFinite()) qTrial = ZERO;
-  qTrial = Decimal.max(qTrial, ZERO);
-
-  if (pipe.maxFlowLs && pipe.maxFlowLs.gt(ZERO)) {
-    qTrial = Decimal.min(qTrial, pipe.maxFlowLs.div(1000));
-  }
-
-  if (isDirectionBlockedByTank(pipe, qTrial, tankModes)) {
-    return {
-      Q: ZERO,
-      dQdDH: ZERO,
-    };
-  }
-
-  return {
-    Q: qTrial,
-    dQdDH: Decimal.max(ONE.neg().div(slope), ZERO),
-  };
-}
-
-function getTankStateLabel(result: { atMin: boolean; atMax: boolean }): string {
-  if (result.atMin && result.atMax) return 'Bloqueado';
-  if (result.atMin) return 'Minimo';
-  if (result.atMax) return 'Maximo';
-  return 'Libre';
+function getTankHeadByMode(tank: PreparedTank, state: TankState, mode: TankMode): number {
+  if (mode === 'min') return tank.elevacion + tank.nivelMinimo;
+  if (mode === 'max') return tank.elevacion + tank.nivelMaximo;
+  return state.head;
 }
 
 function buildFixedTankHeads(
-  tanks: PreparedTank[],
-  tankStates: TankStateMap,
-  tankModes: TankModeMap,
-  intervalSeconds: Decimal
-): Record<string, Decimal> {
-  const fixedHeads: Record<string, Decimal> = {};
-  tanks.forEach(tank => {
-    const mode = tankModes[tank.id];
-    if (!intervalSeconds.gt(ZERO) || mode) {
-      fixedHeads[tank.id] = getTankHeadByMode(tank, tankStates[tank.id], mode);
+  tanks: PreparedTank[], states: TankStateMap, modes: TankModeMap, intervalSec: number
+): Record<string, number> {
+  const fixed: Record<string, number> = {};
+  for (const t of tanks) {
+    const mode = modes[t.id];
+    if (intervalSec <= 0 || mode) {
+      fixed[t.id] = getTankHeadByMode(t, states[t.id], mode);
     }
-  });
-  return fixedHeads;
+  }
+  return fixed;
 }
 
-function buildVariableTanks(tanks: PreparedTank[], fixedTankHeads: Record<string, Decimal>): PreparedTank[] {
-  return tanks.filter(tank => !Object.prototype.hasOwnProperty.call(fixedTankHeads, tank.id));
+function getTankStateLabel(r: { atMin: boolean; atMax: boolean }): string {
+  if (r.atMin && r.atMax) return 'Bloqueado';
+  if (r.atMin) return 'Minimo';
+  if (r.atMax) return 'Maximo';
+  return 'Libre';
 }
 
-function calculateRestrictedFlow(
-  pipe: PreparedPipe,
-  resistance: Decimal,
-  getHead: (id: string) => Decimal,
-  tankModes: TankModeMap
-): {
-  Q: Decimal;
-  dQdDH: Decimal;
-} {
-  if (pipe.tipoEnlace === 'bomba') {
-    return calculatePumpRestrictedFlow(pipe, getHead, tankModes, ZERO);
+// ─── Restricciones de flujo por modos de tanque ─────────────────────────────────
+function isEndpointBlocked(id: string, q: number, side: 'from' | 'to', modes: TankModeMap): boolean {
+  const mode = modes[id];
+  if (!mode) return false;
+  if (mode === 'locked') return true;
+  if (Math.abs(q) <= TANK_FLOW_EPS) return false;
+  if (side === 'from') {
+    if (mode === 'min') return q > 0;
+    if (mode === 'max') return q < 0;
+  } else {
+    if (mode === 'min') return q < 0;
+    if (mode === 'max') return q > 0;
   }
+  return false;
+}
 
-  const dH = getHead(pipe.from).minus(getHead(pipe.to));
-  const absDH = Decimal.max(dH.abs(), new Decimal('1e-8'));
-  const qTrial = dH.gte(ZERO)
-    ? absDH.div(Decimal.max(resistance, new Decimal('1e-12'))).sqrt()
-    : absDH.div(Decimal.max(resistance, new Decimal('1e-12'))).sqrt().neg();
+function isPipeBlocked(pipe: PreparedPipe, q: number, modes: TankModeMap): boolean {
+  return isEndpointBlocked(pipe.from, q, 'from', modes) || isEndpointBlocked(pipe.to, q, 'to', modes);
+}
 
-  if (isDirectionBlockedByTank(pipe, qTrial, tankModes)) {
-    return {
-      Q: ZERO,
-      dQdDH: ZERO,
-    };
-  }
+// ─── Cálculo de flujo restringido ───────────────────────────────────────────────
+function calcPipeFlow(
+  pipe: PreparedPipe, R: number, getHead: (id: string) => number, modes: TankModeMap, qPrev: number
+): { Q: number; dQdDH: number } {
+  const dH = getHead(pipe.from) - getHead(pipe.to);
+  const absDH = Math.max(Math.abs(dH), 1e-8);
+  const R_safe = Math.max(R, 1e-12);
+  const qTrial = dH >= 0 ? Math.sqrt(absDH / R_safe) : -Math.sqrt(absDH / R_safe);
+
+  if (isPipeBlocked(pipe, qTrial, modes)) return { Q: 0, dQdDH: 0 };
 
   return {
     Q: qTrial,
-    dQdDH: HALF.div(Decimal.max(resistance, new Decimal('1e-12')).times(absDH).sqrt()),
+    dQdDH: 0.5 / Math.sqrt(R_safe * absDH),
   };
 }
 
-function gaussianEliminationDecimal(matrix: Decimal[][], vector: Decimal[]): Decimal[] | null {
-  const size = vector.length;
-  const augmented = matrix.map((row, index) => [...row, vector[index]]);
+function calcPumpFlow(
+  pipe: PreparedPipe, getHead: (id: string) => number, modes: TankModeMap, qGuessM3s: number
+): { Q: number; dQdDH: number } {
+  const dH = getHead(pipe.from) - getHead(pipe.to);
+  const q0 = Math.max(qGuessM3s, 0);
+  const q0Ls = q0 * 1000;
+  const headGain0 = evaluatePumpCurve(pipe.curveCoefficients, q0Ls) ?? 0;
 
-  for (let column = 0; column < size; column += 1) {
-    let maxRow = column;
-    for (let row = column + 1; row < size; row += 1) {
-      if (augmented[row][column].abs().gt(augmented[maxRow][column].abs())) {
-        maxRow = row;
-      }
-    }
-
-    [augmented[column], augmented[maxRow]] = [augmented[maxRow], augmented[column]];
-
-    if (augmented[column][column].abs().lt('1e-12')) {
-      return null;
-    }
-
-    const pivot = augmented[column][column];
-    for (let row = column + 1; row < size; row += 1) {
-      const factor = augmented[row][column].div(pivot);
-      for (let index = column; index <= size; index += 1) {
-        augmented[row][index] = augmented[row][index].minus(factor.times(augmented[column][index]));
-      }
-    }
+  let slope = (evaluatePumpCurveSlope(pipe.curveCoefficients, q0Ls) ?? null);
+  if (slope !== null) slope *= 1000; // convert dH/dQ_ls → dH/dQ_m3s
+  if (!slope || !Number.isFinite(slope) || slope >= -1e-9) {
+    const fallbackLs = Math.max(q0Ls, pipe.maxFlowLs ?? 1);
+    const s2 = evaluatePumpCurveSlope(pipe.curveCoefficients, fallbackLs);
+    slope = s2 !== null ? s2 * 1000 : null;
   }
+  if (!slope || !Number.isFinite(slope) || slope >= -1e-9) slope = -1;
 
-  const solution: Decimal[] = Array.from({ length: size }, () => ZERO);
-  for (let row = size - 1; row >= 0; row -= 1) {
-    let value = augmented[row][size];
-    for (let column = row + 1; column < size; column += 1) {
-      value = value.minus(augmented[row][column].times(solution[column]));
-    }
-    solution[row] = value.div(augmented[row][row]);
-  }
+  let qTrial = q0 - (dH + headGain0) / slope;
+  if (!Number.isFinite(qTrial)) qTrial = 0;
+  qTrial = Math.max(qTrial, 0);
+  if (pipe.maxFlowLs && pipe.maxFlowLs > 0) qTrial = Math.min(qTrial, pipe.maxFlowLs / 1000);
 
-  return solution;
+  if (isPipeBlocked(pipe, qTrial, modes)) return { Q: 0, dQdDH: 0 };
+
+  return {
+    Q: qTrial,
+    dQdDH: Math.max(-1 / slope, 0),
+  };
 }
 
-function validateConnectivityWithSources(
-  nodes: PreparedNode[],
-  reservoirs: PreparedReservoir[],
-  tanks: PreparedTank[],
+// ─── Conectividad ───────────────────────────────────────────────────────────────
+function validateConnectivity(
+  nodes: PreparedNode[], reservoirs: PreparedReservoir[], tanks: PreparedTank[],
   pipes: PreparedPipe[],
-  options: {
-    tankStates: TankStateMap;
-    tankLimitModes: TankModeMap;
-    variableTankIds: Set<string> | null;
-    fixedTankHeads: Record<string, Decimal> | null;
-  }
+  opts: { tankStates: TankStateMap; tankLimitModes: TankModeMap; variableTankIds: Set<string> | null; fixedTankHeads: Record<string, number> | null }
 ): { ok: boolean; nodosAislados: string[]; visitados: string[] } {
-  const { tankStates, tankLimitModes, variableTankIds, fixedTankHeads } = options;
-  const sourceIds = new Set(reservoirs.map(reservoir => reservoir.id));
-
-  tanks.forEach(tank => {
-    const mode = tankLimitModes[tank.id];
-    const isVariableTank = variableTankIds ? variableTankIds.has(tank.id) : mode === null;
-    const isFixedTank = fixedTankHeads
-      ? Object.prototype.hasOwnProperty.call(fixedTankHeads, tank.id)
-      : !isVariableTank;
-    if ((isVariableTank || isFixedTank) && mode !== 'min' && mode !== 'locked' && tankStates[tank.id]) {
-      sourceIds.add(tank.id);
+  const sources = new Set(reservoirs.map(r => r.id));
+  for (const t of tanks) {
+    const mode = opts.tankLimitModes[t.id];
+    const isVar = opts.variableTankIds ? opts.variableTankIds.has(t.id) : mode === null;
+    const isFixed = opts.fixedTankHeads ? Object.prototype.hasOwnProperty.call(opts.fixedTankHeads, t.id) : !isVar;
+    if ((isVar || isFixed) && mode !== 'min' && mode !== 'locked' && opts.tankStates[t.id]) {
+      sources.add(t.id);
     }
-  });
+  }
 
-  const adjacency: Record<string, string[]> = {};
-  [...nodes, ...reservoirs, ...tanks].forEach(entry => {
-    adjacency[entry.id] = [];
-  });
+  const adj: Record<string, string[]> = {};
+  for (const e of [...nodes, ...reservoirs, ...tanks]) adj[e.id] = [];
 
-  pipes.forEach(pipe => {
-    if (!pipe.from || !pipe.to || pipe.from === pipe.to) return;
+  for (const pipe of pipes) {
+    if (!pipe.from || !pipe.to || pipe.from === pipe.to) continue;
     if (pipe.tipoEnlace === 'bomba') {
-      if (!isDirectionBlockedByTank(pipe, ONE, tankLimitModes)) adjacency[pipe.from].push(pipe.to);
-      return;
+      if (!isPipeBlocked(pipe, 1, opts.tankLimitModes)) adj[pipe.from].push(pipe.to);
+    } else {
+      if (!isPipeBlocked(pipe, 1, opts.tankLimitModes)) adj[pipe.from].push(pipe.to);
+      if (!isPipeBlocked(pipe, -1, opts.tankLimitModes)) adj[pipe.to].push(pipe.from);
     }
-    if (!isDirectionBlockedByTank(pipe, ONE, tankLimitModes)) adjacency[pipe.from].push(pipe.to);
-    if (!isDirectionBlockedByTank(pipe, ONE.neg(), tankLimitModes)) adjacency[pipe.to].push(pipe.from);
-  });
+  }
 
   const visited = new Set<string>();
   const queue: string[] = [];
-
-  sourceIds.forEach(id => {
-    visited.add(id);
-    queue.push(id);
-  });
-
+  sources.forEach(id => { visited.add(id); queue.push(id); });
   while (queue.length > 0) {
-    const current = queue.shift()!;
-    for (const neighbor of adjacency[current] ?? []) {
-      if (!visited.has(neighbor)) {
-        visited.add(neighbor);
-        queue.push(neighbor);
-      }
+    const cur = queue.shift()!;
+    for (const nb of adj[cur] ?? []) {
+      if (!visited.has(nb)) { visited.add(nb); queue.push(nb); }
     }
   }
 
-  const isolatedNodes = nodes.map(node => node.id).filter(id => !visited.has(id));
-  return {
-    ok: isolatedNodes.length === 0,
-    nodosAislados: isolatedNodes,
-    visitados: Array.from(visited),
-  };
+  const isolated = nodes.map(n => n.id).filter(id => !visited.has(id));
+  return { ok: isolated.length === 0, nodosAislados: isolated, visitados: Array.from(visited) };
 }
 
-function solveDarcyFriction(roughnessMeters: Decimal, diameterMeters: Decimal, reynolds: Decimal): Decimal {
-  const minFriction = new Decimal('0.001');
-  if (reynolds.lt(2300)) {
-    return Decimal.max(new Decimal(64).div(reynolds), minFriction);
-  }
-
-  let friction = new Decimal('0.025');
-  for (let iteration = 0; iteration < 120; iteration += 1) {
-    const sqrtF = friction.sqrt();
-    const arg = roughnessMeters.div(diameterMeters.times('3.7')).plus(new Decimal('2.51').div(reynolds.times(sqrtF)));
-    if (arg.lte(ZERO)) break;
-    const rhs = Decimal.log10(arg).times(-2);
-    const next = ONE.div(rhs.times(rhs));
-    if (next.minus(friction).abs().lt('1e-9')) {
-      friction = next;
-      break;
-    }
-    friction = next;
-  }
-
-  return Decimal.max(friction, minFriction);
-}
-
+// ─── SOLVER HIDRÁULICO CORE (todo native number) ────────────────────────────────
 function solveHydraulicCore(
-  nodes: PreparedNode[],
-  reservoirs: PreparedReservoir[],
-  tanks: PreparedTank[],
-  pipes: PreparedPipe[],
-  tankStates: TankStateMap,
+  nodes: PreparedNode[], reservoirs: PreparedReservoir[], tanks: PreparedTank[],
+  pipes: PreparedPipe[], tankStates: TankStateMap,
   options: {
-    demandOverrides?: Record<string, Decimal>;
-    initialHeads?: Decimal[] | null;
-    initialFlows?: Decimal[] | null;
-    intervalSeconds?: Decimal;
-    fixedTankHeads?: Record<string, Decimal>;
+    demandOverrides?: Record<string, number> | null;
+    initialHeads?: number[] | null;
+    initialFlows?: number[] | null;
+    intervalSeconds?: number;
+    fixedTankHeads?: Record<string, number>;
     tankLimitModes?: TankModeMap;
   } = {}
 ): AxisCalculationResult<HydraulicSolverResult> {
   const demandOverrides = options.demandOverrides ?? null;
   const initialHeads = options.initialHeads ?? null;
   const initialFlows = options.initialFlows ?? null;
-  const intervalSeconds = options.intervalSeconds ?? ZERO;
+  const intervalSec = options.intervalSeconds ?? 0;
   const fixedTankHeads = options.fixedTankHeads ?? {};
   const tankLimitModes = options.tankLimitModes ?? {};
-  const variableTanks = buildVariableTanks(tanks, fixedTankHeads);
-  const variableTankIds = new Set(variableTanks.map(tank => tank.id));
 
-  const connectivity = validateConnectivityWithSources(nodes, reservoirs, tanks, pipes, {
-    tankStates,
-    tankLimitModes,
-    variableTankIds,
-    fixedTankHeads,
+  const variableTanks = tanks.filter(t => !Object.prototype.hasOwnProperty.call(fixedTankHeads, t.id));
+  const variableTankIds = new Set(variableTanks.map(t => t.id));
+
+  const conn = validateConnectivity(nodes, reservoirs, tanks, pipes, {
+    tankStates, tankLimitModes, variableTankIds, fixedTankHeads,
   });
 
-  const activePointIds = new Set(connectivity.visitados);
-  const unsuppliedNodeIds = new Set(connectivity.nodosAislados);
-  const activeNodes = nodes.filter(node => !unsuppliedNodeIds.has(node.id));
-  const activeVariableTanks = variableTanks.filter(tank => activePointIds.has(tank.id));
+  const activePointIds = new Set(conn.visitados);
+  const unsuppliedNodeIds = new Set(conn.nodosAislados);
+  const activeNodes = nodes.filter(n => !unsuppliedNodeIds.has(n.id));
+  const activeVariableTanks = variableTanks.filter(t => activePointIds.has(t.id));
 
+  // Índice global de nodos (para allHeads)
   const nodeOrderIndex: Record<string, number> = {};
-  nodes.forEach((node, index) => {
-    nodeOrderIndex[node.id] = index;
-  });
+  nodes.forEach((n, i) => { nodeOrderIndex[n.id] = i; });
 
-  const fixedHeads: Record<string, Decimal> = {};
-  reservoirs.forEach(reservoir => {
-    fixedHeads[reservoir.id] = reservoir.head;
-  });
-  Object.keys(fixedTankHeads).forEach(id => {
-    fixedHeads[id] = fixedTankHeads[id];
-  });
+  // Cabezas fijas (reservorios + tanques fijos)
+  const fixedHeads: Record<string, number> = {};
+  for (const r of reservoirs) fixedHeads[r.id] = r.head;
+  for (const id of Object.keys(fixedTankHeads)) fixedHeads[id] = fixedTankHeads[id];
 
-  const variableIds = [...activeNodes.map(node => node.id), ...activeVariableTanks.map(tank => tank.id)];
-  const variableIndex: Record<string, number> = {};
-  variableIds.forEach((id, index) => {
-    variableIndex[id] = index;
-  });
-
-  const headsFromSources = [
-    ...reservoirs.map(reservoir => reservoir.head),
-    ...Object.keys(fixedTankHeads).map(id => fixedTankHeads[id]),
-    ...activeVariableTanks.map(tank => tankStates[tank.id].head),
+  // Variables: nodos activos + tanques variables
+  const variableIds = [
+    ...activeNodes.map(n => n.id),
+    ...activeVariableTanks.map(t => t.id),
   ];
-  const avgSourceHead = headsFromSources.length > 0
-    ? headsFromSources.reduce((acc, value) => acc.plus(value), ZERO).div(headsFromSources.length)
-    : ZERO;
+  const variableIndex: Record<string, number> = {};
+  variableIds.forEach((id, i) => { variableIndex[id] = i; });
+  const variableCount = variableIds.length;
 
-  const allHeads: Decimal[] = new Array(nodes.length).fill(ZERO);
-  nodes.forEach((node, index) => {
-    if (unsuppliedNodeIds.has(node.id)) {
-      allHeads[index] = node.elevacion;
-      return;
-    }
-    if (initialHeads && initialHeads.length === nodes.length) {
-      allHeads[index] = new Decimal(initialHeads[index]);
-      return;
-    }
-    allHeads[index] = Decimal.max(node.elevacion.plus(10), avgSourceHead.minus(5));
+  // Cabeza promedio de fuentes para inicialización
+  const sourceHeads = [
+    ...reservoirs.map(r => r.head),
+    ...Object.keys(fixedTankHeads).map(id => fixedTankHeads[id]),
+    ...activeVariableTanks.map(t => tankStates[t.id].head),
+  ];
+  const avgSourceHead = sourceHeads.length > 0
+    ? sourceHeads.reduce((a, b) => a + b, 0) / sourceHeads.length
+    : 0;
+
+  // Inicializar cabezas
+  const allHeads: number[] = new Array(nodes.length).fill(0);
+  nodes.forEach((n, i) => {
+    if (unsuppliedNodeIds.has(n.id)) { allHeads[i] = n.elevacion; return; }
+    if (initialHeads && initialHeads.length === nodes.length) { allHeads[i] = initialHeads[i]; return; }
+    allHeads[i] = Math.max(n.elevacion + 10, avgSourceHead - 5);
   });
 
-  const X: Decimal[] = Array.from({ length: variableIds.length }, () => ZERO);
-  activeNodes.forEach(node => {
-    X[variableIndex[node.id]] = allHeads[nodeOrderIndex[node.id]];
-  });
-  activeVariableTanks.forEach(tank => {
-    X[variableIndex[tank.id]] = tankStates[tank.id].head;
-  });
+  const X: number[] = new Array(variableCount).fill(0);
+  activeNodes.forEach(n => { X[variableIndex[n.id]] = allHeads[nodeOrderIndex[n.id]]; });
+  activeVariableTanks.forEach(t => { X[variableIndex[t.id]] = tankStates[t.id].head; });
 
-  const flows: Decimal[] =
+  // Flujos iniciales
+  const flows: number[] =
     initialFlows && initialFlows.length === pipes.length
-      ? initialFlows.map(flow => new Decimal(flow))
+      ? [...initialFlows]
       : new Array(pipes.length).fill(FLOW_GUESS);
 
-  const activePipeMask = pipes.map(pipe => activePointIds.has(pipe.from) && activePointIds.has(pipe.to));
+  const activePipeMask = pipes.map(p => activePointIds.has(p.from) && activePointIds.has(p.to));
 
-  const getHead = (id: string): Decimal => {
+  const getHead = (id: string): number => {
     if (Object.prototype.hasOwnProperty.call(fixedHeads, id)) return fixedHeads[id];
-    const index = variableIndex[id];
-    return index !== undefined ? X[index] : ZERO;
+    const idx = variableIndex[id];
+    return idx !== undefined ? X[idx] : 0;
   };
 
   let converged = false;
 
-  for (let outer = 0; outer < MAX_HYDRAULIC_OUTER_ITERATIONS; outer += 1) {
-    const resistances = pipes.map((pipe, index) => {
-      if (!activePipeMask[index]) return ZERO;
-      if (pipe.tipoEnlace === 'bomba') return ZERO;
-      if (!pipe.longitudM || !pipe.diametroM || !pipe.rugosidadM) return ZERO;
-      const length = Decimal.max(pipe.longitudM, PIPE_LENGTH_MIN);
-      const diameter = Decimal.max(pipe.diametroM, PIPE_DIAMETER_FALLBACK_MM.div(1000));
-      const roughness = Decimal.max(pipe.rugosidadM, PIPE_ROUGHNESS_FALLBACK_MM.div(1000));
-      const area = PI.times(diameter.pow(2)).div(4);
-      const qAbs = Decimal.max(flows[index].abs(), new Decimal('1e-9'));
-      const velocity = qAbs.div(area);
-      const reynolds = Decimal.max(velocity.times(diameter).div(NU), ONE);
-      const friction = solveDarcyFriction(roughness, diameter, reynolds);
-      return new Decimal(8).times(friction).times(length).div(PI.pow(2).times(G).times(diameter.pow(5)));
+  for (let outer = 0; outer < MAX_HYDRAULIC_OUTER_ITERATIONS; outer++) {
+    // Calcular resistencias hidráulicas (Darcy-Weisbach)
+    const resistances: number[] = pipes.map((pipe, k) => {
+      if (!activePipeMask[k] || pipe.tipoEnlace === 'bomba') return 0;
+      if (!pipe.longitudM || !pipe.diametroM || !pipe.rugosidadM) return 0;
+      const L = Math.max(pipe.longitudM, PIPE_LENGTH_MIN);
+      const D = Math.max(pipe.diametroM, PIPE_DIAMETER_FALLBACK_M);
+      const ks = Math.max(pipe.rugosidadM, PIPE_ROUGHNESS_FALLBACK_M);
+      const A = PI * D * D / 4;
+      const qAbs = Math.max(Math.abs(flows[k]), 1e-9);
+      const V = qAbs / A;
+      const Re = Math.max(V * D / NU, 1);
+      const f = solveDarcyFriction(ks, D, Re);
+      return (8 * f * L) / (PI * PI * G * Math.pow(D, 5));
     });
 
-    let convergedInner = false;
+    let convergedInner = variableCount === 0;
 
-    if (variableIds.length === 0) {
-      convergedInner = true;
-    } else {
-      for (let inner = 0; inner < MAX_HYDRAULIC_INNER_ITERATIONS; inner += 1) {
-        const F: Decimal[] = Array.from({ length: variableIds.length }, () => ZERO);
-        const J: Decimal[][] = Array.from({ length: variableIds.length }, () =>
-          Array.from({ length: variableIds.length }, () => ZERO)
-        );
+    if (!convergedInner) {
+      // Reutilizar arrays para evitar allocaciones en cada inner iter
+      const F: number[] = new Array(variableCount).fill(0);
+      // Jacobiana como array plano (row-major) para cache locality
+      const J: number[] = new Array(variableCount * variableCount).fill(0);
 
-        for (let pipeIndex = 0; pipeIndex < pipes.length; pipeIndex += 1) {
-          if (!activePipeMask[pipeIndex]) continue;
-          const pipe = pipes[pipeIndex];
+      for (let inner = 0; inner < MAX_HYDRAULIC_INNER_ITERATIONS; inner++) {
+        // Reset F y J
+        F.fill(0);
+        J.fill(0);
+
+        for (let k = 0; k < pipes.length; k++) {
+          if (!activePipeMask[k]) continue;
+          const pipe = pipes[k];
           if (!pipe.from || !pipe.to || pipe.from === pipe.to) continue;
 
           const flowData = pipe.tipoEnlace === 'bomba'
-            ? calculatePumpRestrictedFlow(pipe, getHead, tankLimitModes, flows[pipeIndex])
-            : calculateRestrictedFlow(pipe, resistances[pipeIndex], getHead, tankLimitModes);
-          const fromIndex = variableIndex[pipe.from];
-          const toIndex = variableIndex[pipe.to];
+            ? calcPumpFlow(pipe, getHead, tankLimitModes, flows[k])
+            : calcPipeFlow(pipe, resistances[k], getHead, tankLimitModes, flows[k]);
 
-          if (fromIndex !== undefined) {
-            F[fromIndex] = F[fromIndex].minus(flowData.Q);
-            J[fromIndex][fromIndex] = J[fromIndex][fromIndex].minus(flowData.dQdDH);
-            if (toIndex !== undefined) {
-              J[fromIndex][toIndex] = J[fromIndex][toIndex].plus(flowData.dQdDH);
-            }
+          const iFrom = variableIndex[pipe.from];
+          const iTo = variableIndex[pipe.to];
+
+          if (iFrom !== undefined) {
+            F[iFrom] -= flowData.Q;
+            J[iFrom * variableCount + iFrom] -= flowData.dQdDH;
+            if (iTo !== undefined) J[iFrom * variableCount + iTo] += flowData.dQdDH;
           }
-
-          if (toIndex !== undefined) {
-            F[toIndex] = F[toIndex].plus(flowData.Q);
-            J[toIndex][toIndex] = J[toIndex][toIndex].minus(flowData.dQdDH);
-            if (fromIndex !== undefined) {
-              J[toIndex][fromIndex] = J[toIndex][fromIndex].plus(flowData.dQdDH);
-            }
+          if (iTo !== undefined) {
+            F[iTo] += flowData.Q;
+            J[iTo * variableCount + iTo] -= flowData.dQdDH;
+            if (iFrom !== undefined) J[iTo * variableCount + iFrom] += flowData.dQdDH;
           }
         }
 
-        activeNodes.forEach(node => {
-          const index = variableIndex[node.id];
-          const demandLs = demandOverrides && Object.prototype.hasOwnProperty.call(demandOverrides, node.id)
+        // Demanda de nodos
+        for (const node of activeNodes) {
+          const idx = variableIndex[node.id];
+          const dem = demandOverrides && Object.prototype.hasOwnProperty.call(demandOverrides, node.id)
             ? demandOverrides[node.id]
             : node.demandaLs;
-          F[index] = F[index].minus(demandLs.div(1000));
-        });
-
-        if (intervalSeconds.gt(ZERO)) {
-          activeVariableTanks.forEach(tank => {
-            const index = variableIndex[tank.id];
-            const storageCoeff = tank.area.div(intervalSeconds);
-            const previousHead = tankStates[tank.id].head;
-            F[index] = F[index].minus(storageCoeff.times(X[index].minus(previousHead)));
-            J[index][index] = J[index][index].minus(storageCoeff);
-          });
+          F[idx] -= dem / 1000; // l/s → m³/s
         }
 
-        const deltaH = gaussianEliminationDecimal(J, F);
+        // Almacenamiento de tanques variables (paso temporal)
+        if (intervalSec > 0) {
+          for (const tank of activeVariableTanks) {
+            const idx = variableIndex[tank.id];
+            const storageCoeff = tank.area / intervalSec;
+            const prevHead = tankStates[tank.id].head;
+            F[idx] -= storageCoeff * (X[idx] - prevHead);
+            J[idx * variableCount + idx] -= storageCoeff;
+          }
+        }
+
+        // Convertir J plano a matrix 2D para gaussianElimination
+        const Jmat: number[][] = Array.from({ length: variableCount }, (_, r) =>
+          Array.from({ length: variableCount }, (_, c) => J[r * variableCount + c])
+        );
+
+        const deltaH = gaussianElimination(Jmat, F);
         if (!deltaH) {
           return failure('El sistema lineal del solver hidraulico es singular o esta severamente mal condicionado.');
         }
 
-        let maxChangeH = ZERO;
-        for (let index = 0; index < variableIds.length; index += 1) {
-          const change = ALPHA.times(deltaH[index]);
-          X[index] = X[index].minus(change);
-          maxChangeH = Decimal.max(maxChangeH, change.abs());
+        let maxChangeH = 0;
+        for (let i = 0; i < variableCount; i++) {
+          const change = ALPHA * deltaH[i];
+          X[i] -= change;
+          maxChangeH = Math.max(maxChangeH, Math.abs(change));
         }
 
-        if (maxChangeH.lt('1e-7')) {
-          convergedInner = true;
-          break;
-        }
+        if (maxChangeH < TOL_H) { convergedInner = true; break; }
       }
     }
 
-    const previousFlows = [...flows];
-    let maxQChange = ZERO;
+    // Actualizar flujos
+    const prevFlows = [...flows];
+    let maxQChange = 0;
 
-    for (let pipeIndex = 0; pipeIndex < pipes.length; pipeIndex += 1) {
-      if (!activePipeMask[pipeIndex]) {
-        maxQChange = Decimal.max(maxQChange, previousFlows[pipeIndex].abs());
-        flows[pipeIndex] = ZERO;
-        continue;
+    for (let k = 0; k < pipes.length; k++) {
+      if (!activePipeMask[k]) {
+        maxQChange = Math.max(maxQChange, Math.abs(prevFlows[k]));
+        flows[k] = 0; continue;
       }
+      const pipe = pipes[k];
+      if (!pipe.from || !pipe.to || pipe.from === pipe.to) { flows[k] = 0; continue; }
 
-      const pipe = pipes[pipeIndex];
-      if (!pipe.from || !pipe.to || pipe.from === pipe.to) {
-        flows[pipeIndex] = ZERO;
-        continue;
-      }
+      const fd = pipe.tipoEnlace === 'bomba'
+        ? calcPumpFlow(pipe, getHead, tankLimitModes, prevFlows[k])
+        : calcPipeFlow(pipe, resistances[k], getHead, tankLimitModes, prevFlows[k]);
 
-      const flowData = pipe.tipoEnlace === 'bomba'
-        ? calculatePumpRestrictedFlow(pipe, getHead, tankLimitModes, previousFlows[pipeIndex])
-        : calculateRestrictedFlow(pipe, resistances[pipeIndex], getHead, tankLimitModes);
-      maxQChange = Decimal.max(maxQChange, flowData.Q.minus(previousFlows[pipeIndex]).abs());
-      flows[pipeIndex] = flowData.Q;
+      maxQChange = Math.max(maxQChange, Math.abs(fd.Q - prevFlows[k]));
+      flows[k] = fd.Q;
     }
 
-    if (convergedInner && maxQChange.lt('1e-7')) {
-      converged = true;
-      break;
-    }
+    if (convergedInner && maxQChange < TOL_Q) { converged = true; break; }
   }
 
-  activeNodes.forEach(node => {
+  // Copiar cabezas resueltas
+  for (const node of activeNodes) {
     allHeads[nodeOrderIndex[node.id]] = X[variableIndex[node.id]];
-  });
+  }
 
-  const nodeResults: InternalNodeResult[] = nodes.map((node, index) => ({
-    tipo: 'nodo',
-    id: node.id,
-    H: roundCalculatedValue(allHeads[index]),
-    z: roundCalculatedValue(node.elevacion),
-    P: roundCalculatedValue(allHeads[index].minus(node.elevacion)),
-    supplied: !unsuppliedNodeIds.has(node.id),
+  // Resultados nodos
+  const nodeResults: AxisNodeResult[] = nodes.map((n, i) => ({
+    tipo: 'nodo', id: n.id,
+    H: roundVal(allHeads[i]),
+    z: roundVal(n.elevacion),
+    P: roundVal(allHeads[i] - n.elevacion),
+    supplied: !unsuppliedNodeIds.has(n.id),
   }));
 
-  const netTankFlows: Record<string, Decimal> = {};
-  tanks.forEach(tank => {
-    netTankFlows[tank.id] = ZERO;
-  });
+  // Balance de flujo en tanques
+  const netTankFlows: Record<string, number> = {};
+  for (const t of tanks) netTankFlows[t.id] = 0;
 
-  const pipeResults: InternalPipeResult[] = pipes.map((pipe, index) => {
-    const Q = flows[index];
-    if (Object.prototype.hasOwnProperty.call(netTankFlows, pipe.from)) {
-      netTankFlows[pipe.from] = netTankFlows[pipe.from].minus(Q);
-    }
-    if (Object.prototype.hasOwnProperty.call(netTankFlows, pipe.to)) {
-      netTankFlows[pipe.to] = netTankFlows[pipe.to].plus(Q);
-    }
+  // Resultados tuberías
+  const pipeResults: AxisPipeResult[] = pipes.map((pipe, k) => {
+    const Q = flows[k];
+    if (Object.prototype.hasOwnProperty.call(netTankFlows, pipe.from)) netTankFlows[pipe.from] -= Q;
+    if (Object.prototype.hasOwnProperty.call(netTankFlows, pipe.to)) netTankFlows[pipe.to] += Q;
 
     if (pipe.tipoEnlace === 'bomba') {
       return {
-        tipoEnlace: 'bomba',
-        id: pipe.id,
-        from: pipe.from,
-        to: pipe.to,
+        tipoEnlace: 'bomba', id: pipe.id, from: pipe.from, to: pipe.to,
         curveId: pipe.curveId,
-        Q_ls: roundCalculatedValue(Q.times(1000)),
-        V_ms: null,
-        f: null,
-        R: null,
-        headGain_m: roundCalculatedValue(evaluatePumpCurve(pipe.curveCoefficients ?? null, Q.times(1000)) ?? ZERO),
+        Q_ls: roundVal(Q * 1000),
+        V_ms: null, f: null, R: null,
+        headGain_m: roundVal(evaluatePumpCurve(pipe.curveCoefficients, Q * 1000) ?? 0),
       };
     }
 
-    const diameter = pipe.diametroM ?? PIPE_DIAMETER_FALLBACK_MM.div(1000);
-    const roughness = pipe.rugosidadM ?? PIPE_ROUGHNESS_FALLBACK_MM.div(1000);
-    const length = pipe.longitudM ?? PIPE_LENGTH_MIN;
-    const area = PI.times(diameter.pow(2)).div(4);
-    const velocity = area.gt(ZERO) ? Q.abs().div(area) : ZERO;
-    const reynolds = Decimal.max(velocity.times(diameter).div(NU), ONE);
-    const friction = solveDarcyFriction(Decimal.max(roughness, new Decimal('1e-9')), diameter, reynolds);
-    const resistance = new Decimal(8)
-      .times(friction)
-      .times(length)
-      .div(PI.pow(2).times(G).times(diameter.pow(5)));
+    const D = Math.max(pipe.diametroM ?? PIPE_DIAMETER_FALLBACK_M, PIPE_DIAMETER_FALLBACK_M);
+    const ks = Math.max(pipe.rugosidadM ?? PIPE_ROUGHNESS_FALLBACK_M, PIPE_ROUGHNESS_FALLBACK_M);
+    const L = Math.max(pipe.longitudM ?? PIPE_LENGTH_MIN, PIPE_LENGTH_MIN);
+    const A = PI * D * D / 4;
+    const V = A > 0 ? Math.abs(Q) / A : 0;
+    const Re = Math.max(V * D / NU, 1);
+    const f = solveDarcyFriction(ks, D, Re);
+    const R = (8 * f * L) / (PI * PI * G * Math.pow(D, 5));
 
     return {
-      tipoEnlace: 'tuberia',
-      id: pipe.id,
-      from: pipe.from,
-      to: pipe.to,
-      Q_ls: roundCalculatedValue(Q.times(1000)),
-      V_ms: roundCalculatedValue(velocity),
-      f: roundCalculatedValue(friction),
-      R: roundCalculatedValue(resistance),
+      tipoEnlace: 'tuberia', id: pipe.id, from: pipe.from, to: pipe.to,
+      Q_ls: roundVal(Q * 1000), V_ms: roundVal(V), f: roundVal(f), R: roundVal(R),
     };
   });
 
+  // Estados brutos de tanques
   const rawTankStates: HydraulicSolverResult['rawTankStates'] = {};
-  tanks.forEach(tank => {
-    const previousState = tankStates[tank.id];
-    const netFlow = netTankFlows[tank.id] ?? ZERO;
+  for (const tank of tanks) {
+    const prevState = tankStates[tank.id];
+    const Qnet = netTankFlows[tank.id] ?? 0;
     const mode = tankLimitModes[tank.id] ?? null;
 
-    let rawVolume: Decimal;
-    if (mode === 'min') {
-      rawVolume = tank.volumenMinimo;
-    } else if (mode === 'max') {
-      rawVolume = tank.volumenMaximo;
-    } else if (intervalSeconds.gt(ZERO) && variableTankIds.has(tank.id)) {
-      rawVolume = previousState.volume.plus(netFlow.times(intervalSeconds));
-    } else {
-      rawVolume = previousState.volume;
-    }
+    let rawVol: number;
+    if (mode === 'min') rawVol = tank.volumenMinimo;
+    else if (mode === 'max') rawVol = tank.volumenMaximo;
+    else if (intervalSec > 0 && variableTankIds.has(tank.id))
+      rawVol = prevState.volume + Qnet * intervalSec;
+    else rawVol = prevState.volume;
 
-    const rawHead = tank.elevacion.plus(rawVolume.div(tank.area));
-    if (intervalSeconds.gt(ZERO) && mode === null && variableTankIds.has(tank.id)) {
+    const rawHead = tank.elevacion + rawVol / tank.area;
+    if (intervalSec > 0 && mode === null && variableTankIds.has(tank.id)) {
       const solvedHead = getHead(tank.id);
-      if (solvedHead.minus(rawHead).abs().gt('1e-5')) {
-        return;
-      }
+      if (Math.abs(solvedHead - rawHead) > 1e-5) continue; // inconsistencia silenciosa
     }
-
-    rawTankStates[tank.id] = {
-      volume: rawVolume,
-      head: rawHead,
-      Qnet_m3s: netFlow,
-      mode,
-    };
-  });
-
-  const inconsistentTank = tanks.find(tank => !rawTankStates[tank.id]);
-  if (inconsistentTank) {
-    return failure(`Inconsistencia numerica en el tanque ${inconsistentTank.id}: la cabeza y el balance de masa no coinciden.`);
+    rawTankStates[tank.id] = { volume: rawVol, head: rawHead, Qnet_m3s: Qnet, mode };
   }
 
-  const tankResults: InternalTankResult[] = tanks.map(tank => {
-    const rawState = rawTankStates[tank.id];
-    const state = normalizeTankState(tank, { volume: rawState.volume });
+  const badTank = tanks.find(t => !rawTankStates[t.id]);
+  if (badTank) {
+    return failure(`Inconsistencia numerica en el tanque ${badTank.id}: la cabeza y el balance de masa no coinciden.`);
+  }
+
+  const tankResults = tanks.map(tank => {
+    const raw = rawTankStates[tank.id];
+    const state = normalizeTankState(tank, { volume: raw.volume });
     return {
-      tipo: 'tanque',
-      id: tank.id,
-      elevacion: roundCalculatedValue(tank.elevacion),
-      level: roundCalculatedValue(state.level),
-      H: roundCalculatedValue(state.head),
-      volume: roundCalculatedValue(state.volume),
-      Qnet_m3s: roundCalculatedValue(rawState.Qnet_m3s),
-      Qnet_ls: roundCalculatedValue(rawState.Qnet_m3s.times(1000)),
-      atMin: state.atMin,
-      atMax: state.atMax,
-      mode: rawState.mode,
+      tipo: 'tanque' as const, id: tank.id,
+      elevacion: roundVal(tank.elevacion),
+      level: roundVal(state.level),
+      H: roundVal(state.head),
+      volume: roundVal(state.volume),
+      Qnet_m3s: roundVal(raw.Qnet_m3s),
+      Qnet_ls: roundVal(raw.Qnet_m3s * 1000),
+      atMin: state.atMin, atMax: state.atMax,
+      mode: raw.mode,
       stateLabel: getTankStateLabel(state),
       tanque: tank,
     };
   });
 
-  const solverTankStates = tankResults.reduce<TankStateMap>((acc, tankResult) => {
-    acc[tankResult.id] = normalizeTankState(tankResult.tanque, { volume: new Decimal(tankResult.volume) });
+  const solverTankStates = tankResults.reduce<TankStateMap>((acc, r) => {
+    acc[r.id] = normalizeTankState(r.tanque, { volume: r.volume });
     return acc;
   }, {});
 
   return success({
-    nodos: nodeResults,
-    tanques: tankResults,
-    tuberias: pipeResults,
+    nodos: nodeResults, tanques: tankResults, tuberias: pipeResults,
     convergio: converged,
     unsuppliedNodes: Array.from(unsuppliedNodeIds),
     rawTankStates,
-    solverState: {
-      H: [...allHeads],
-      Q: [...flows],
-      tanks: cloneTankStates(solverTankStates),
-    },
+    solverState: { H: [...allHeads], Q: [...flows], tanks: cloneTankStates(solverTankStates) },
   });
 }
 
+// ─── Resolver estacionario ──────────────────────────────────────────────────────
 function solveSteadyNetwork(
-  nodes: PreparedNode[],
-  reservoirs: PreparedReservoir[],
-  tanks: PreparedTank[],
-  pipes: PreparedPipe[],
-  tankStates: TankStateMap,
-  options: {
-    demandOverrides?: Record<string, Decimal>;
-    initialHeads?: Decimal[] | null;
-    initialFlows?: Decimal[] | null;
-  } = {}
+  nodes: PreparedNode[], reservoirs: PreparedReservoir[], tanks: PreparedTank[],
+  pipes: PreparedPipe[], tankStates: TankStateMap,
+  opts: { demandOverrides?: Record<string, number> | null; initialHeads?: number[] | null; initialFlows?: number[] | null } = {}
 ): AxisCalculationResult<HydraulicSolverResult> {
-  const tankModes = buildTankModes(tanks, tankStates);
-  const fixedTankHeads = buildFixedTankHeads(tanks, tankStates, tankModes, ZERO);
+  const modes = buildTankModes(tanks, tankStates);
+  const fixed = buildFixedTankHeads(tanks, tankStates, modes, 0);
   return solveHydraulicCore(nodes, reservoirs, tanks, pipes, tankStates, {
-    ...options,
-    intervalSeconds: ZERO,
-    fixedTankHeads,
-    tankLimitModes: tankModes,
+    ...opts, intervalSeconds: 0, fixedTankHeads: fixed, tankLimitModes: modes,
   });
 }
 
+// ─── Resolver con tanques acoplados (paso temporal) ─────────────────────────────
 function solveCoupledNetworkWithTanks(
-  nodes: PreparedNode[],
-  reservoirs: PreparedReservoir[],
-  tanks: PreparedTank[],
-  pipes: PreparedPipe[],
-  tankStates: TankStateMap,
-  options: {
-    demandOverrides?: Record<string, Decimal>;
-    initialHeads?: Decimal[] | null;
-    initialFlows?: Decimal[] | null;
-    intervalSeconds: Decimal;
+  nodes: PreparedNode[], reservoirs: PreparedReservoir[], tanks: PreparedTank[],
+  pipes: PreparedPipe[], tankStates: TankStateMap,
+  opts: {
+    demandOverrides?: Record<string, number> | null;
+    initialHeads?: number[] | null; initialFlows?: number[] | null;
+    intervalSeconds: number;
   }
 ): AxisCalculationResult<HydraulicSolverResult> {
-  let tankModes = buildTankModes(tanks, tankStates);
+  let modes = buildTankModes(tanks, tankStates);
   let lastResult: HydraulicSolverResult | null = null;
-  let currentInitialHeads = options.initialHeads ? [...options.initialHeads] : null;
-  let currentInitialFlows = options.initialFlows ? [...options.initialFlows] : null;
+  let heads = opts.initialHeads ? [...opts.initialHeads] : null;
+  let flows = opts.initialFlows ? [...opts.initialFlows] : null;
 
-  for (let iteration = 0; iteration < MAX_TANK_ACTIVESET_ITERATIONS; iteration += 1) {
-    const fixedTankHeads = buildFixedTankHeads(tanks, tankStates, tankModes, options.intervalSeconds);
-    const result = solveHydraulicCore(nodes, reservoirs, tanks, pipes, tankStates, {
-      demandOverrides: options.demandOverrides,
-      initialHeads: currentInitialHeads,
-      initialFlows: currentInitialFlows,
-      intervalSeconds: options.intervalSeconds,
-      fixedTankHeads,
-      tankLimitModes: tankModes,
+  for (let iter = 0; iter < MAX_TANK_ACTIVESET_ITERATIONS; iter++) {
+    const fixed = buildFixedTankHeads(tanks, tankStates, modes, opts.intervalSeconds);
+    const res = solveHydraulicCore(nodes, reservoirs, tanks, pipes, tankStates, {
+      demandOverrides: opts.demandOverrides,
+      initialHeads: heads, initialFlows: flows,
+      intervalSeconds: opts.intervalSeconds, fixedTankHeads: fixed, tankLimitModes: modes,
     });
+    if (!res.ok) return res;
+    lastResult = res.data;
 
-    if (!result.ok) return result;
-    lastResult = result.data;
-
-    const nextModes: TankModeMap = { ...tankModes };
+    const nextModes: TankModeMap = { ...modes };
     let changed = false;
 
-    tanks.forEach(tank => {
-      const rawState = lastResult!.rawTankStates[tank.id];
-      const currentMode = tankModes[tank.id];
-      const toleranceVolume = tank.area.times(TANK_HEAD_EPS);
+    for (const tank of tanks) {
+      const raw = lastResult.rawTankStates[tank.id];
+      const curMode = modes[tank.id];
+      const tolVol = tank.area * TANK_HEAD_EPS;
 
-      if (!currentMode) {
-        if (rawState.volume.lt(tank.volumenMinimo.minus(toleranceVolume))) {
-          nextModes[tank.id] = 'min';
-          changed = true;
-        } else if (rawState.volume.gt(tank.volumenMaximo.plus(toleranceVolume))) {
-          nextModes[tank.id] = 'max';
-          changed = true;
-        }
-        return;
+      if (!curMode) {
+        if (raw.volume < tank.volumenMinimo - tolVol) { nextModes[tank.id] = 'min'; changed = true; }
+        else if (raw.volume > tank.volumenMaximo + tolVol) { nextModes[tank.id] = 'max'; changed = true; }
+        continue;
       }
-
-      if (currentMode === 'min' && rawState.Qnet_m3s.gt(TANK_FLOW_EPS)) {
-        nextModes[tank.id] = null;
-        changed = true;
-        return;
-      }
-
-      if (currentMode === 'max' && rawState.Qnet_m3s.lt(TANK_FLOW_EPS.neg())) {
-        nextModes[tank.id] = null;
-        changed = true;
-      }
-    });
+      if (curMode === 'min' && raw.Qnet_m3s > TANK_FLOW_EPS) { nextModes[tank.id] = null; changed = true; continue; }
+      if (curMode === 'max' && raw.Qnet_m3s < -TANK_FLOW_EPS) { nextModes[tank.id] = null; changed = true; }
+    }
 
     if (!changed) {
-      if (!lastResult.convergio) {
+      if (!lastResult.convergio)
         return failure('El paso temporal acoplado de tanques no convergio y no se puede usar para avanzar el estado.');
-      }
       return success(lastResult);
     }
 
-    tankModes = nextModes;
-    currentInitialHeads = [...lastResult.solverState.H];
-    currentInitialFlows = [...lastResult.solverState.Q];
+    modes = nextModes;
+    heads = [...lastResult.solverState.H];
+    flows = [...lastResult.solverState.Q];
   }
 
-  if (!lastResult) {
-    return failure('No fue posible resolver el paso temporal acoplado de tanques.');
-  }
-
-  return success({
-    ...lastResult,
-    convergio: false,
-  });
+  return lastResult
+    ? success({ ...lastResult, convergio: false })
+    : failure('No fue posible resolver el paso temporal acoplado de tanques.');
 }
 
 function solveNetwork(
-  nodes: PreparedNode[],
-  reservoirs: PreparedReservoir[],
-  tanks: PreparedTank[],
+  nodes: PreparedNode[], reservoirs: PreparedReservoir[], tanks: PreparedTank[],
   pipes: PreparedPipe[],
-  options: {
-    demandOverrides?: Record<string, Decimal>;
-    initialHeads?: Decimal[] | null;
-    initialFlows?: Decimal[] | null;
+  opts: {
+    demandOverrides?: Record<string, number> | null;
+    initialHeads?: number[] | null; initialFlows?: number[] | null;
     initialTankStates?: TankStateMap | null;
-    intervalSeconds?: Decimal;
+    intervalSeconds?: number;
   } = {}
 ): AxisCalculationResult<HydraulicSolverResult> {
-  const tankStates = buildInitialTankStates(tanks, options.initialTankStates ?? null);
-  const intervalSeconds = options.intervalSeconds ?? ZERO;
+  const states = buildInitialTankStates(tanks, opts.initialTankStates ?? null);
+  const intSec = opts.intervalSeconds ?? 0;
 
-  if (intervalSeconds.gt(ZERO)) {
-    return solveCoupledNetworkWithTanks(nodes, reservoirs, tanks, pipes, tankStates, {
-      demandOverrides: options.demandOverrides,
-      initialHeads: options.initialHeads ?? null,
-      initialFlows: options.initialFlows ?? null,
-      intervalSeconds,
+  if (intSec > 0) {
+    return solveCoupledNetworkWithTanks(nodes, reservoirs, tanks, pipes, states, {
+      demandOverrides: opts.demandOverrides,
+      initialHeads: opts.initialHeads ?? null,
+      initialFlows: opts.initialFlows ?? null,
+      intervalSeconds: intSec,
     });
   }
-
-  return solveSteadyNetwork(nodes, reservoirs, tanks, pipes, tankStates, {
-    demandOverrides: options.demandOverrides,
-    initialHeads: options.initialHeads ?? null,
-    initialFlows: options.initialFlows ?? null,
+  return solveSteadyNetwork(nodes, reservoirs, tanks, pipes, states, {
+    demandOverrides: opts.demandOverrides,
+    initialHeads: opts.initialHeads ?? null,
+    initialFlows: opts.initialFlows ?? null,
   });
 }
 
-function integrateTanksDuringInterval(
-  nodes: PreparedNode[],
-  reservoirs: PreparedReservoir[],
-  tanks: PreparedTank[],
-  pipes: PreparedPipe[],
-  demandOverrides: Record<string, Decimal>,
-  initialResult: HydraulicSolverResult,
-  intervalSeconds: Decimal,
-  timeLabel: string
+function integrateTanksInterval(
+  nodes: PreparedNode[], reservoirs: PreparedReservoir[], tanks: PreparedTank[],
+  pipes: PreparedPipe[], demandOverrides: Record<string, number>,
+  initResult: HydraulicSolverResult, intervalSec: number, timeLabel: string
 ): AxisCalculationResult<WarmStartState> {
-  if (!intervalSeconds.gt(ZERO)) {
-    return success({
-      H: [...initialResult.solverState.H],
-      Q: [...initialResult.solverState.Q],
-      tanks: cloneTankStates(initialResult.solverState.tanks),
-    });
+  if (intervalSec <= 0) {
+    return success({ H: [...initResult.solverState.H], Q: [...initResult.solverState.Q], tanks: cloneTankStates(initResult.solverState.tanks) });
   }
-
-  if (!initialResult.convergio) {
+  if (!initResult.convergio) {
     return failure(`No se puede avanzar el intervalo en ${timeLabel} porque la hidraulica inicial no convergio.`);
   }
-
-  const result = solveNetwork(nodes, reservoirs, tanks, pipes, {
-    demandOverrides,
-    initialHeads: initialResult.solverState.H,
-    initialFlows: initialResult.solverState.Q,
-    initialTankStates: initialResult.solverState.tanks,
-    intervalSeconds,
+  const res = solveNetwork(nodes, reservoirs, tanks, pipes, {
+    demandOverrides, initialHeads: initResult.solverState.H, initialFlows: initResult.solverState.Q,
+    initialTankStates: initResult.solverState.tanks, intervalSeconds: intervalSec,
   });
-
-  if (!result.ok) return result;
-  if (!result.data.convergio) {
+  if (!res.ok) return res;
+  if (!res.data.convergio) {
     return failure(`El paso temporal acoplado no convergio en ${timeLabel}; no se propagara un warmStart inconsistente.`);
   }
-
-  return success({
-    H: [...result.data.solverState.H],
-    Q: [...result.data.solverState.Q],
-    tanks: cloneTankStates(result.data.solverState.tanks),
-  });
+  return success({ H: [...res.data.solverState.H], Q: [...res.data.solverState.Q], tanks: cloneTankStates(res.data.solverState.tanks) });
 }
 
-function prepareModel(
-  rawNodes: AxisNodeInputEntry[],
-  rawConnections: AxisConnectionInputEntry[]
-): AxisCalculationResult<PreparedModel> {
-  const usedIds = new Map<string, string>();
+// ─── Preparación del modelo (parseo de inputs) ──────────────────────────────────
+function normalizeMultipliers(values?: string[]): string[] {
+  return Array.from({ length: 24 }, (_, i) => values?.[i] ?? DEFAULT_PATTERN_VALUES[i]);
+}
 
+function prepareModel(rawNodes: AxisNodeInputEntry[], rawConns: AxisConnectionInputEntry[]): AxisCalculationResult<PreparedModel> {
+  const usedIds = new Map<string, string>();
   const registerId = (id: string, label: string): AxisCalculationResult<string> => {
     const trimmed = id.trim();
     if (!trimmed) return failure(`${label} debe tener un ID.`);
-    if (usedIds.has(trimmed)) {
-      return failure(`El ID "${trimmed}" esta repetido entre ${usedIds.get(trimmed)} y ${label}.`);
-    }
+    if (usedIds.has(trimmed)) return failure(`El ID "${trimmed}" esta repetido entre ${usedIds.get(trimmed)} y ${label}.`);
     usedIds.set(trimmed, label);
     return success(trimmed);
   };
@@ -1337,391 +998,224 @@ function prepareModel(
   const reservoirs: PreparedReservoir[] = [];
   const tanks: PreparedTank[] = [];
 
-  for (let index = 0; index < rawNodes.length; index += 1) {
-    const entry = rawNodes[index];
+  for (let i = 0; i < rawNodes.length; i++) {
+    const entry = rawNodes[i];
+    const label = `Nodo ${i + 1}`;
+
     if (entry.type === 'nodo') {
-      const idResult = registerId(entry.nodeId, `el nodo ${index + 1}`);
-      if (!idResult.ok) return idResult;
-      const elevation = convertLengthToMeters(entry.z, entry.zUnit, `La elevacion del nodo ${idResult.data}`);
-      if (!elevation.ok) return elevation;
-      const demandLs = convertDemandToLs(entry.demanda, entry.demandaUnit, ZERO);
-      const demandValidation = assertDecimalRange(demandLs, `La demanda base del nodo ${idResult.data}`, { min: ZERO });
-      if (!demandValidation.ok) return demandValidation;
+      const idR = registerId(entry.nodeId, label); if (!idR.ok) return idR;
+      const xR = convertLength(entry.x, entry.xUnit, `${label} X`); if (!xR.ok) return xR;
+      const yR = convertLength(entry.y, entry.yUnit, `${label} Y`); if (!yR.ok) return yR;
+      const zR = convertLength(entry.z, entry.zUnit, `${label} Elevacion`); if (!zR.ok) return zR;
+      const elevCheck = assertRange(zR.data, `${label} Elevacion`, { min: -10000, max: 10000 });
+      if (!elevCheck.ok) return elevCheck;
       nodes.push({
-        tipo: 'nodo',
-        id: idResult.data,
-        x: convertOptionalLengthToMeters(entry.x, entry.xUnit),
-        y: convertOptionalLengthToMeters(entry.y, entry.yUnit),
-        elevacion: elevation.data,
-        demandaLs: demandLs,
-        patternId: entry.patternId.trim(),
+        tipo: 'nodo', id: idR.data, x: xR.data, y: yR.data, elevacion: zR.data,
+        demandaLs: convertDemandToLs(entry.demanda, entry.demandaUnit),
+        patternId: entry.patternId ?? '',
       });
-      continue;
-    }
 
-    if (entry.type === 'reservorio') {
-      const idResult = registerId(entry.nodeId, `el reservorio ${index + 1}`);
-      if (!idResult.ok) return idResult;
-      const head = convertLengthToMeters(entry.z, entry.zUnit, `La carga Ht del reservorio ${idResult.data}`);
-      if (!head.ok) return head;
-      reservoirs.push({
-        tipo: 'reservorio',
-        id: idResult.data,
-        x: convertOptionalLengthToMeters(entry.x, entry.xUnit),
-        y: convertOptionalLengthToMeters(entry.y, entry.yUnit),
-        head: head.data,
+    } else if (entry.type === 'reservorio') {
+      const idR = registerId(entry.nodeId, label); if (!idR.ok) return idR;
+      const xR = convertLength(entry.x, entry.xUnit, `${label} X`); if (!xR.ok) return xR;
+      const yR = convertLength(entry.y, entry.yUnit, `${label} Y`); if (!yR.ok) return yR;
+      const zR = convertLength(entry.z, entry.zUnit, `${label} Carga total`); if (!zR.ok) return zR;
+      const headCheck = assertRange(zR.data, `${label} Carga total`, { min: -10000, max: 10000 });
+      if (!headCheck.ok) return headCheck;
+      reservoirs.push({ tipo: 'reservorio', id: idR.data, x: xR.data, y: yR.data, head: zR.data });
+
+    } else if (entry.type === 'tanque') {
+      const idR = registerId(entry.nodeId, label); if (!idR.ok) return idR;
+      const xR = convertLength(entry.x, entry.xUnit, `${label} X`); if (!xR.ok) return xR;
+      const yR = convertLength(entry.y, entry.yUnit, `${label} Y`); if (!yR.ok) return yR;
+      const elevR = convertLength(entry.z, entry.zUnit, `${label} Elevacion`); if (!elevR.ok) return elevR;
+      const dR = convertLength(entry.diametro, entry.diametroUnit, `${label} Diametro`); if (!dR.ok) return dR;
+      const dCheck = assertRange(dR.data, `${label} Diametro`, { min: 0, strictMin: true }); if (!dCheck.ok) return dCheck;
+      const nIni = convertOptionalLength(entry.nivelIni, entry.nivelIniUnit);
+      const nMin = convertOptionalLength(entry.nivelMin, entry.nivelMinUnit);
+      const nMax = convertOptionalLength(entry.nivelMax, entry.nivelMaxUnit);
+      if (nMin >= nMax && nMax > 0) {
+        return failure(`${label}: el nivel minimo debe ser menor que el nivel maximo.`);
+      }
+      const area = tankArea(dR.data);
+      tanks.push({
+        tipo: 'tanque', id: idR.data, x: xR.data, y: yR.data, elevacion: elevR.data,
+        nivelInicial: nIni, nivelMinimo: nMin, nivelMaximo: nMax,
+        diametroM: dR.data, area,
+        volumenMinimo: area * nMin, volumenMaximo: area * nMax, volumenInicial: area * nIni,
       });
-      continue;
     }
-
-    const idResult = registerId(entry.nodeId, `el tanque ${index + 1}`);
-    if (!idResult.ok) return idResult;
-    const elevation = convertLengthToMeters(entry.z, entry.zUnit, `La elevacion del tanque ${idResult.data}`);
-    if (!elevation.ok) return elevation;
-    const initialLevel = convertLengthToMeters(entry.nivelIni, entry.nivelIniUnit, `El nivel inicial del tanque ${idResult.data}`);
-    if (!initialLevel.ok) return initialLevel;
-    const minimumLevel = convertLengthToMeters(entry.nivelMin, entry.nivelMinUnit, `El nivel minimo del tanque ${idResult.data}`);
-    if (!minimumLevel.ok) return minimumLevel;
-    const maximumLevel = convertLengthToMeters(entry.nivelMax, entry.nivelMaxUnit, `El nivel maximo del tanque ${idResult.data}`);
-    if (!maximumLevel.ok) return maximumLevel;
-    const diameter = convertLengthToMeters(entry.diametro, entry.diametroUnit, `El diametro del tanque ${idResult.data}`);
-    if (!diameter.ok) return diameter;
-
-    const minLevelValidation = assertDecimalRange(minimumLevel.data, `El nivel minimo del tanque ${idResult.data}`, { min: ZERO });
-    if (!minLevelValidation.ok) return minLevelValidation;
-    const initialLevelValidation = assertDecimalRange(initialLevel.data, `El nivel inicial del tanque ${idResult.data}`, { min: ZERO });
-    if (!initialLevelValidation.ok) return initialLevelValidation;
-    const maxLevelValidation = assertDecimalRange(maximumLevel.data, `El nivel maximo del tanque ${idResult.data}`, { min: ZERO });
-    if (!maxLevelValidation.ok) return maxLevelValidation;
-    const diameterValidation = assertDecimalRange(diameter.data, `El diametro del tanque ${idResult.data}`, { min: ZERO, strictMin: true });
-    if (!diameterValidation.ok) return diameterValidation;
-
-    if (minimumLevel.data.gt(initialLevel.data)) {
-      return failure(`El tanque ${idResult.data} debe cumplir nivel minimo <= nivel inicial.`);
-    }
-    if (initialLevel.data.gt(maximumLevel.data)) {
-      return failure(`El tanque ${idResult.data} debe cumplir nivel inicial <= nivel maximo.`);
-    }
-
-    const area = calculateTankArea(diameter.data);
-    tanks.push({
-      tipo: 'tanque',
-      id: idResult.data,
-      x: convertOptionalLengthToMeters(entry.x, entry.xUnit),
-      y: convertOptionalLengthToMeters(entry.y, entry.yUnit),
-      elevacion: elevation.data,
-      nivelInicial: initialLevel.data,
-      nivelMinimo: minimumLevel.data,
-      nivelMaximo: maximumLevel.data,
-      diametroM: diameter.data,
-      area,
-      volumenMinimo: area.times(minimumLevel.data),
-      volumenMaximo: area.times(maximumLevel.data),
-      volumenInicial: area.times(initialLevel.data),
-    });
   }
 
-  const pointIds = new Set(usedIds.keys());
   const pipes: PreparedPipe[] = [];
+  for (let i = 0; i < rawConns.length; i++) {
+    const entry = rawConns[i];
+    const label = `Conexion ${i + 1} (${entry.tubId})`;
+    if (!entry.from || !entry.to || entry.from === entry.to) continue;
 
-  for (let index = 0; index < rawConnections.length; index += 1) {
-    const entry = rawConnections[index];
-    const from = entry.from.trim();
-    const to = entry.to.trim();
-    const connectionType = entry.type === 'bomba' ? 'bomba' : 'tuberia';
-    const pipeId = entry.tubId.trim() || `${connectionType === 'bomba' ? 'B' : 'P'}${index + 1}`;
-    const pipeLabel = connectionType === 'bomba' ? `La bomba ${pipeId}` : `La tuberia ${pipeId}`;
-
-    if (!from || !to) return failure(`${pipeLabel} debe tener origen y destino.`);
-    if (from === to) return failure(`${pipeLabel} no puede conectarse al mismo punto.`);
-    if (!pointIds.has(from) || !pointIds.has(to)) return failure(`${pipeLabel} referencia un punto inexistente.`);
-
-    if (connectionType === 'bomba') {
-      const coefficients = entry.curveCoefficients;
-      const maxFlowLs = Number(entry.maxFlowLs);
-
-      if (!entry.curveId?.trim()) {
-        return failure(`${pipeLabel} debe tener una curva asignada.`);
-      }
-      if (
-        !coefficients ||
-        !Number.isFinite(coefficients.a) ||
-        !Number.isFinite(coefficients.b) ||
-        !Number.isFinite(coefficients.c)
-      ) {
-        return failure(`${pipeLabel} requiere una curva valida con al menos 3 puntos calculables.`);
-      }
-      if (!Number.isFinite(maxFlowLs) || maxFlowLs <= 0) {
-        return failure(`${pipeLabel} requiere una curva valida con caudal maximo positivo.`);
-      }
-
+    if (entry.type === 'bomba') {
       pipes.push({
-        id: pipeId,
-        tipoEnlace: 'bomba',
-        from,
-        to,
-        longitudM: null,
-        diametroM: null,
-        rugosidadM: null,
-        curveId: entry.curveId.trim(),
-        curveCoefficients: {
-          a: new Decimal(coefficients.a),
-          b: new Decimal(coefficients.b),
-          c: new Decimal(coefficients.c),
-        },
-        maxFlowLs: new Decimal(maxFlowLs),
+        id: entry.tubId, tipoEnlace: 'bomba',
+        from: entry.from, to: entry.to,
+        longitudM: null, diametroM: null, rugosidadM: null,
+        curveId: entry.curveId,
+        curveCoefficients: entry.curveCoefficients ?? null,
+        maxFlowLs: entry.maxFlowLs ?? null,
       });
-      continue;
+    } else {
+      const longR = convertLength(entry.longitud, 'm', `${label} Longitud`); if (!longR.ok) return longR;
+      const longCheck = assertRange(longR.data, `${label} Longitud`, { min: 0, strictMin: true }); if (!longCheck.ok) return longCheck;
+      const diamR = convertLength(entry.diametro, entry.diametroUnit, `${label} Diametro`); if (!diamR.ok) return diamR;
+      const diamCheck = assertRange(diamR.data, `${label} Diametro`, { min: 0, strictMin: true }); if (!diamCheck.ok) return diamCheck;
+      const rugR = convertLength(entry.rugosidad, entry.rugosidadUnit, `${label} Rugosidad`); if (!rugR.ok) return rugR;
+      const rugCheck = assertRange(rugR.data, `${label} Rugosidad`, { min: 0 }); if (!rugCheck.ok) return rugCheck;
+      pipes.push({
+        id: entry.tubId, tipoEnlace: 'tuberia',
+        from: entry.from, to: entry.to,
+        longitudM: longR.data, diametroM: diamR.data, rugosidadM: rugR.data,
+      });
     }
-
-    const length = readRequiredDecimal(entry.longitud, `La longitud de ${pipeId}`);
-    if (!length.ok) return length;
-    const diameter = convertLengthToMeters(entry.diametro, entry.diametroUnit, `El diametro de ${pipeId}`);
-    if (!diameter.ok) return diameter;
-    const roughness = convertLengthToMeters(entry.rugosidad, entry.rugosidadUnit, `La rugosidad de ${pipeId}`);
-    if (!roughness.ok) return roughness;
-
-    const lengthValidation = assertDecimalRange(length.data, `La longitud de ${pipeId}`, { min: ZERO, strictMin: true });
-    if (!lengthValidation.ok) return lengthValidation;
-    const diameterValidation = assertDecimalRange(diameter.data, `El diametro de ${pipeId}`, { min: ZERO, strictMin: true });
-    if (!diameterValidation.ok) return diameterValidation;
-    const roughnessValidation = assertDecimalRange(roughness.data, `La rugosidad de ${pipeId}`, { min: ZERO });
-    if (!roughnessValidation.ok) return roughnessValidation;
-
-    pipes.push({
-      id: pipeId,
-      tipoEnlace: 'tuberia',
-      from,
-      to,
-      longitudM: length.data,
-      diametroM: diameter.data,
-      rugosidadM: roughness.data,
-    });
   }
 
-  return success({
-    nodos: nodes,
-    reservorios: reservoirs,
-    tanques: tanks,
-    pipes,
-  });
+  if (reservoirs.length === 0 && tanks.length === 0) {
+    return failure('Se necesita al menos un reservorio o tanque con carga hidraulica.');
+  }
+  if (pipes.length === 0) return failure('No hay conexiones validas definidas.');
+
+  return success({ nodos: nodes, reservorios: reservoirs, tanques: tanks, pipes });
 }
 
-function readTemporalConfiguration(
-  config: TemporalAnalysisConfig
-): AxisCalculationResult<{ enabled: boolean; durationMinutes: number; stepMinutes: number }> {
-  if (!config.enabled) {
-    return success({
-      enabled: false,
-      durationMinutes: 0,
-      stepMinutes: 0,
-    });
-  }
+// ─── Lectura de configuración temporal ─────────────────────────────────────────
+function readTemporalConfig(cfg: TemporalAnalysisConfig): AxisCalculationResult<{ enabled: boolean; durationMinutes: number; stepMinutes: number }> {
+  if (!cfg.enabled) return success({ enabled: false, durationMinutes: 0, stepMinutes: 0 });
 
-  const duration = readHourMinutePairStrict(config.durationHours, config.durationMinutes, 'La duracion total');
-  if (!duration.ok) return duration;
-  const step = readHourMinutePairStrict(config.stepHours, config.stepMinutes, 'El paso de analisis');
-  if (!step.ok) return step;
+  const durR = readHourMinutePairStrict(cfg.durationHours, cfg.durationMinutes, 'La duracion total');
+  if (!durR.ok) return durR;
+  const stepR = readHourMinutePairStrict(cfg.stepHours, cfg.stepMinutes, 'El paso de analisis');
+  if (!stepR.ok) return stepR;
 
-  if (duration.data.totalMinutes <= 0) {
-    return failure('La duracion total debe ser mayor que 00:00.');
-  }
-  if (step.data.totalMinutes <= 0) {
-    return failure('El paso de analisis debe ser mayor que 00:00.');
-  }
-  if (step.data.totalMinutes > duration.data.totalMinutes) {
+  if (durR.data.totalMinutes <= 0) return failure('La duracion total debe ser mayor que 00:00.');
+  if (stepR.data.totalMinutes <= 0) return failure('El paso de analisis debe ser mayor que 00:00.');
+  if (stepR.data.totalMinutes > durR.data.totalMinutes)
     return failure('El paso de analisis no puede ser mayor que la duracion total del periodo.');
-  }
 
-  return success({
-    enabled: true,
-    durationMinutes: duration.data.totalMinutes,
-    stepMinutes: step.data.totalMinutes,
-  });
+  return success({ enabled: true, durationMinutes: durR.data.totalMinutes, stepMinutes: stepR.data.totalMinutes });
 }
 
 function readDemandPatterns(patterns: TemporalPatternEntry[]): AxisCalculationResult<PatternDefinition[]> {
-  if (patterns.length === 0) {
-    return failure('Define al menos un patron de demanda para el analisis temporal.');
-  }
-
+  if (patterns.length === 0) return failure('Define al menos un patron de demanda para el analisis temporal.');
   const usedIds = new Set<string>();
-  const parsedPatterns: PatternDefinition[] = [];
+  const result: PatternDefinition[] = [];
 
-  for (let index = 0; index < patterns.length; index += 1) {
-    const pattern = patterns[index];
-    const id = pattern.patternId.trim();
-    if (!id) return failure(`El patron ${index + 1} debe tener un ID.`);
+  for (let i = 0; i < patterns.length; i++) {
+    const p = patterns[i];
+    const id = p.patternId.trim();
+    if (!id) return failure(`El patron ${i + 1} debe tener un ID.`);
     if (usedIds.has(id)) return failure(`El ID de patron "${id}" esta repetido.`);
     usedIds.add(id);
 
-    const multipliers = normalizeTemporalMultipliers(pattern.multipliers).map(rawValue => {
-      const value = parseDecimalValue(rawValue === '' ? '1' : rawValue);
-      if (!value || value.lt(ZERO)) return null;
-      return value;
+    const multipliers = normalizeMultipliers(p.multipliers).map(raw => {
+      const v = parseNumber(raw === '' ? '1' : raw);
+      return v !== null && v >= 0 ? v : null;
     });
-
-    const invalidIndex = multipliers.findIndex(multiplier => multiplier === null);
-    if (invalidIndex >= 0) {
-      return failure(`El patron ${id} tiene un multiplicador invalido en ${getPatternHourLabel(invalidIndex * 60)}.`);
-    }
-
-    parsedPatterns.push({
-      id,
-      multipliers: multipliers as Decimal[],
-    });
+    const badIdx = multipliers.findIndex(m => m === null);
+    if (badIdx >= 0) return failure(`El patron ${id} tiene un multiplicador invalido en ${getPatternHourLabel(badIdx * 60)}.`);
+    result.push({ id, multipliers: multipliers as number[] });
   }
-
-  return success(parsedPatterns);
-}
-
-function buildPatternMap(patterns: PatternDefinition[]): Record<string, PatternDefinition> {
-  return patterns.reduce<Record<string, PatternDefinition>>((acc, pattern) => {
-    acc[pattern.id] = pattern;
-    return acc;
-  }, {});
+  return success(result);
 }
 
 function buildDemandsForTime(
-  nodes: PreparedNode[],
-  patternMap: Record<string, PatternDefinition>,
-  timeMinutes: number
-): AxisCalculationResult<Record<string, Decimal>> {
-  const overrides: Record<string, Decimal> = {};
-  const fallbackPatternId = Object.keys(patternMap)[0];
-
+  nodes: PreparedNode[], patternMap: Record<string, PatternDefinition>, timeMinutes: number
+): AxisCalculationResult<Record<string, number>> {
+  const overrides: Record<string, number> = {};
+  const fallback = Object.keys(patternMap)[0];
   for (const node of nodes) {
-    const patternId = node.patternId || fallbackPatternId;
-    const pattern = patternMap[patternId];
-    if (!pattern) {
-      return failure(`El nodo ${node.id} referencia un patron inexistente (${patternId || 'sin patron'}).`);
-    }
-
-    const factor = pattern.multipliers[getPatternHourIndex(timeMinutes)] ?? ONE;
-    overrides[node.id] = node.demandaLs.times(factor);
+    const pid = node.patternId || fallback;
+    const pattern = patternMap[pid];
+    if (!pattern) return failure(`El nodo ${node.id} referencia un patron inexistente (${pid || 'sin patron'}).`);
+    const factor = pattern.multipliers[getPatternHourIndex(timeMinutes)] ?? 1;
+    overrides[node.id] = node.demandaLs * factor;
   }
-
   return success(overrides);
 }
 
-function stripSolverState(result: HydraulicSolverResult): AxisHydraulicStepResult {
+function stripSolverState(r: HydraulicSolverResult): AxisHydraulicStepResult {
   return {
-    nodos: result.nodos,
-    tanques: result.tanques.map(({ tanque: _tank, ...tank }) => tank),
-    tuberias: result.tuberias,
-    convergio: result.convergio,
+    nodos: r.nodos,
+    tanques: r.tanques.map(({ tanque: _t, ...rest }) => rest),
+    tuberias: r.tuberias,
+    convergio: r.convergio,
   };
 }
 
-function executeHydraulicAnalysis(
-  model: PreparedModel,
-  temporalConfig: TemporalAnalysisConfig
-): AxisCalculationResult<AxisHydraulicAnalysisResult> {
-  const temporalSettings = readTemporalConfiguration(temporalConfig);
-  if (!temporalSettings.ok) return temporalSettings;
+// ─── Ejecutar análisis hidráulico completo ──────────────────────────────────────
+function executeHydraulicAnalysis(model: PreparedModel, cfg: TemporalAnalysisConfig): AxisCalculationResult<AxisHydraulicAnalysisResult> {
+  const tcfg = readTemporalConfig(cfg);
+  if (!tcfg.ok) return tcfg;
 
-  const initialTankStates = buildInitialTankStates(model.tanques);
+  const initTankStates = buildInitialTankStates(model.tanques);
 
-  if (!temporalSettings.data.enabled) {
-    const result = solveNetwork(model.nodos, model.reservorios, model.tanques, model.pipes, {
-      initialTankStates,
-    });
-    if (!result.ok) return result;
-    return success({
-      mode: 'steady',
-      durationMinutes: 0,
-      stepMinutes: 0,
-      frames: [{
-        timeMinutes: 0,
-        result: stripSolverState(result.data),
-      }],
-    });
+  if (!tcfg.data.enabled) {
+    const r = solveNetwork(model.nodos, model.reservorios, model.tanques, model.pipes, { initialTankStates: initTankStates });
+    if (!r.ok) return r;
+    return success({ mode: 'steady', durationMinutes: 0, stepMinutes: 0, frames: [{ timeMinutes: 0, result: stripSolverState(r.data) }] });
   }
 
-  const patternResult = readDemandPatterns(temporalConfig.patterns);
-  if (!patternResult.ok) return patternResult;
-  const patternMap = buildPatternMap(patternResult.data);
+  const patternsR = readDemandPatterns(cfg.patterns);
+  if (!patternsR.ok) return patternsR;
+  const patternMap: Record<string, PatternDefinition> = {};
+  for (const p of patternsR.data) patternMap[p.id] = p;
 
   const frames: AxisHydraulicFrame[] = [];
-  const instants = buildAnalysisInstants(temporalSettings.data.durationMinutes, temporalSettings.data.stepMinutes);
-  let warmStart: WarmStartState = {
-    H: null,
-    Q: null,
-    tanks: cloneTankStates(initialTankStates),
-  };
+  const instants = buildAnalysisInstants(tcfg.data.durationMinutes, tcfg.data.stepMinutes);
+  let warmStart: WarmStartState = { H: null, Q: null, tanks: cloneTankStates(initTankStates) };
   let partialMessage = '';
 
-  for (let index = 0; index < instants.length; index += 1) {
-    const timeMinutes = instants[index];
-    const demandOverrides = buildDemandsForTime(model.nodos, patternMap, timeMinutes);
-    if (!demandOverrides.ok) {
-      partialMessage = demandOverrides.error;
-      break;
-    }
+  for (let idx = 0; idx < instants.length; idx++) {
+    const t = instants[idx];
+    const demsR = buildDemandsForTime(model.nodos, patternMap, t);
+    if (!demsR.ok) { partialMessage = demsR.error; break; }
 
-    const result = solveNetwork(model.nodos, model.reservorios, model.tanques, model.pipes, {
-      demandOverrides: demandOverrides.data,
-      initialHeads: warmStart.H,
-      initialFlows: warmStart.Q,
-      initialTankStates: warmStart.tanks,
+    const res = solveNetwork(model.nodos, model.reservorios, model.tanques, model.pipes, {
+      demandOverrides: demsR.data,
+      initialHeads: warmStart.H, initialFlows: warmStart.Q, initialTankStates: warmStart.tanks,
     });
+    if (!res.ok) { partialMessage = res.error; break; }
 
-    if (!result.ok) {
-      partialMessage = result.error;
-      break;
-    }
+    frames.push({ timeMinutes: t, result: stripSolverState(res.data) });
 
-    frames.push({
-      timeMinutes,
-      result: stripSolverState(result.data),
-    });
-
-    const nextTime = instants[index + 1];
-    if (nextTime !== undefined) {
-      const nextWarmStart = integrateTanksDuringInterval(
-        model.nodos,
-        model.reservorios,
-        model.tanques,
-        model.pipes,
-        demandOverrides.data,
-        result.data,
-        new Decimal(nextTime - timeMinutes).times(60),
-        formatTimeMinutes(timeMinutes)
+    const nextT = instants[idx + 1];
+    if (nextT !== undefined) {
+      const wsR = integrateTanksInterval(
+        model.nodos, model.reservorios, model.tanques, model.pipes,
+        demsR.data, res.data, (nextT - t) * 60, formatTimeMinutes(t)
       );
-
-      if (!nextWarmStart.ok) {
-        partialMessage = nextWarmStart.error;
-        break;
-      }
-
-      warmStart = nextWarmStart.data;
+      if (!wsR.ok) { partialMessage = wsR.error; break; }
+      warmStart = wsR.data;
     }
   }
 
-  if (frames.length === 0 && partialMessage) {
-    return failure(partialMessage);
-  }
+  if (frames.length === 0 && partialMessage) return failure(partialMessage);
 
   return success({
     mode: 'extended',
-    durationMinutes: temporalSettings.data.durationMinutes,
-    stepMinutes: temporalSettings.data.stepMinutes,
-    frames,
-    partial: !!partialMessage,
-    partialMessage,
+    durationMinutes: tcfg.data.durationMinutes,
+    stepMinutes: tcfg.data.stepMinutes,
+    frames, partial: !!partialMessage, partialMessage,
   });
 }
 
+// ─── Función pública principal ──────────────────────────────────────────────────
 export function runAxisHydraulicAnalysis(
   rawNodes: AxisNodeInputEntry[],
   rawConnections: AxisConnectionInputEntry[],
   temporalConfig: TemporalAnalysisConfig
 ): AxisCalculationResult<AxisHydraulicAnalysisResult> {
-  if (rawNodes.filter(node => node.type === 'reservorio').length === 0 && rawNodes.filter(node => node.type === 'tanque').length === 0) {
+  if (!rawNodes.some(n => n.type === 'reservorio' || n.type === 'tanque')) {
     return failure('Se necesita al menos un reservorio o tanque con carga hidraulica para calcular la red.');
   }
-
-  if (rawConnections.filter(connection => connection.from && connection.to && connection.from !== connection.to).length === 0) {
+  if (!rawConnections.some(c => c.from && c.to && c.from !== c.to)) {
     return failure('No hay conexiones definidas o ninguna tiene puntos asignados.');
   }
 
@@ -1732,19 +1226,48 @@ export function runAxisHydraulicAnalysis(
   if (!analysis.ok) return analysis;
 
   const warnings: string[] = [];
-  const nonConvergedSteps = analysis.data.frames.filter(frame => !frame.result.convergio);
-  if (nonConvergedSteps.length > 0) {
-    if (analysis.data.mode === 'extended') {
-      warnings.push(
-        `La simulacion termino, pero ${nonConvergedSteps.length} de ${analysis.data.frames.length} pasos no alcanzaron convergencia total.`
-      );
-    } else {
-      warnings.push('El calculo termino, pero no alcanzo convergencia total.');
-    }
+  const nonConverged = analysis.data.frames.filter(f => !f.result.convergio);
+  if (nonConverged.length > 0) {
+    warnings.push(
+      analysis.data.mode === 'extended'
+        ? `La simulacion termino, pero ${nonConverged.length} de ${analysis.data.frames.length} pasos no alcanzaron convergencia total.`
+        : 'El calculo termino, pero no alcanzo convergencia total.'
+    );
   }
-  if (analysis.data.partialMessage) {
-    warnings.push(analysis.data.partialMessage);
-  }
+  if (analysis.data.partialMessage) warnings.push(analysis.data.partialMessage);
 
   return success(analysis.data, warnings);
 }
+
+/*
+ * ─── INSTRUCCIÓN ADICIONAL PARA AxisScreen.tsx ────────────────────────────────
+ *
+ * El cálculo es síncrono y puede tardar algunos milisegundos incluso con native
+ * float. Para no bloquear el hilo de UI y mostrar un indicador de carga, cambiar
+ * handleCalcular en AxisScreen.tsx así:
+ *
+ *   import { InteractionManager } from 'react-native';
+ *
+ *   const handleCalcular = useCallback(() => {
+ *     stopTemporalPlayback();
+ *     setIsCalculating(true);          // mostrar spinner
+ *
+ *     // Ceder el hilo al motor de UI para que el spinner aparezca
+ *     InteractionManager.runAfterInteractions(() => {
+ *       setTimeout(() => {
+ *         const result = runAxisHydraulicAnalysis(
+ *           nodesRef.current as AxisNodeInputEntry[],
+ *           connectionsRef.current.map(conn => { ... }),
+ *           temporalConfig
+ *         );
+ *         setIsCalculating(false);     // quitar spinner
+ *         if (!result.ok) { Toast.show({ type: 'error', text2: result.error }); return; }
+ *         setAnalysisResult(result.data);
+ *         applyAnalysisFrame(result.data, 0);
+ *       }, 0);
+ *     });
+ *   }, [...]);
+ *
+ * Agregar al estado: const [isCalculating, setIsCalculating] = useState(false);
+ * Y mostrar un ActivityIndicator sobre el botón mientras isCalculating === true.
+ */

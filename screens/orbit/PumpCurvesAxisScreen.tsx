@@ -673,12 +673,14 @@ const PumpCurvesAxisScreen: React.FC = () => {
                           })),
                           { compact: true },
                         )}
-                        <Pressable
-                          onPress={() => removePoint(curve.id, point.id)}
-                          style={[styles.pointDeleteButton, { backgroundColor: themeColors.blockInput }]}
-                        >
-                          <Icon name="x" size={18} color={themeColors.icon} />
-                        </Pressable>
+                        <View style={[styles.pointDeleteButtonWrapper, { experimental_backgroundImage: themeColors.gradient }]}>
+                          <Pressable
+                            onPress={() => removePoint(curve.id, point.id)}
+                            style={[styles.pointDeleteButtonInner, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                          >
+                            <Icon name="x" size={18} color={themeColors.icon} />
+                          </Pressable>
+                        </View>
                       </View>
                     ))}
 
@@ -798,6 +800,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingHorizontal: 20,
     marginTop: 10,
+  },
+  pointDeleteButtonWrapper: {
+    width: 50,          // antes 40
+    height: 50,         // antes 40
+    borderRadius: 25,   // antes 20 (mitad de 50)
+    padding: 1,
+    marginBottom: 10,   // se mantiene igual que los inputs
+  },
+  pointDeleteButtonInner: {
+    flex: 1,
+    borderRadius: 25,   // antes 20
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   subtitle: {
     fontSize: 18,

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useContext, useCallback, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, Pressable, ScrollView, TextInput,
-  Animated, LayoutChangeEvent, Dimensions, Modal, Easing,
+  Animated, LayoutChangeEvent, Dimensions, Modal, Easing, InteractionManager
 } from 'react-native';
 import { Slider } from '@miblanchard/react-native-slider';
 import { WebView } from 'react-native-webview';
@@ -38,11 +38,13 @@ import {
   runAxisHydraulicAnalysis,
 } from './axisHydraulics';
 import type {
+  AxisCalculationResult,
   AxisConnectionInputEntry,
   AxisHydraulicAnalysisResult,
   AxisHydraulicStepResult,
   AxisNodeInputEntry,
 } from './axisHydraulics';
+import { pick } from '@react-native-documents/picker';
 
 const STORAGE_KEY = 'axis_screen_state';
 const logoLight = require('../../assets/icon/iconblack.webp');
@@ -187,6 +189,24 @@ const TEXTO_ESCALA     = 0.4;
 const CONN_CONE_R      = 0.035;
 const CONN_CONE_H      = 0.14;
 const CONN_COLOR = ${CONN_CLR};
+
+// ── Revestimiento cromático de tuberías ───────────────────────────────────────
+const PIPE_COATING_RADIUS  = 0.02;   // radio del cilindro de color
+const PIPE_COATING_OPACITY = 0.6;    // transparencia (0=invisible, 1=sólido)
+const COLOR_RANGES_CAUDAL = [
+    { max: 5,        color: 0x1a3a8a },
+    { max: 15,       color: 0x29aaff },
+    { max: 25,       color: 0x22cc55 },
+    { max: 35,       color: 0xffcc00 },
+    { max: Infinity, color: 0xee2200 }
+];
+const COLOR_RANGES_VELOCIDAD = [
+    { max: 0.5,      color: 0x1a3a8a },
+    { max: 1.0,      color: 0x29aaff },
+    { max: 1.5,      color: 0x22cc55 },
+    { max: 2.0,      color: 0xffcc00 },
+    { max: Infinity, color: 0xee2200 }
+];
 
 document.getElementById('right-column').style.width = CUBE_SIZE + 'px';
 document.getElementById('ui-container').style.alignSelf = 'stretch';
@@ -440,6 +460,10 @@ function setUI2D(show) {
 window.rn_rotate2D = function(sign) { rotate90(sign); };
 window.rn_resetTo3D = function() { resetTo3D(); };
 
+let elementScale = 1.0;
+window.rn_scaleUp   = function() { elementScale = Math.min(parseFloat((elementScale + 0.1).toFixed(2)), 5.0); };
+window.rn_scaleDown = function() { elementScale = Math.max(parseFloat((elementScale - 0.1).toFixed(2)), 0.2); };
+
 function getEffectiveDist() {
     if (is2DMode && activeCamera.isOrthographicCamera)
         return (activeCamera.top/activeCamera.zoom)/TAN_HALF_FOV;
@@ -557,6 +581,11 @@ function crearConexionGroup() {
     const cone = new THREE.Mesh(new THREE.ConeGeometry(CONN_CONE_R, CONN_CONE_H, 12), coneMat);
     cone.name = 'conn-cone'; cone.renderOrder = 6;
     group.add(cone);
+    // Cilindro de revestimiento cromático — color según caudal/velocidad
+    const cylMat = new THREE.MeshPhongMaterial({ color: 0x888888, shininess: 20, transparent: true, opacity: PIPE_COATING_OPACITY, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
+    const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 16), cylMat);
+    cylinder.name = 'conn-cylinder'; cylinder.renderOrder = 4; cylinder.visible = false;
+    group.add(cylinder);
     group.visible = false;
     scene.add(group);
     return group;
@@ -588,6 +617,18 @@ function updateConexionGroup(entry, rs) {
         cone.quaternion.set(dir.y < 0 ? 1 : 0, 0, 0, dir.y < 0 ? 0 : 1);
     } else {
         _quat.setFromUnitVectors(_up, dir); cone.quaternion.copy(_quat);
+    }
+    // Actualizar posición/orientación del cilindro de revestimiento
+    const cylinder = entry.group.getObjectByName('conn-cylinder');
+    if (cylinder) {
+        const cylR = rs * PIPE_COATING_RADIUS;
+        cylinder.position.copy(mid);
+        cylinder.scale.set(cylR, dist3, cylR);
+        if (Math.abs(dir.dot(_up)) > 0.9999) {
+            cylinder.quaternion.set(dir.y < 0 ? 1 : 0, 0, 0, dir.y < 0 ? 0 : 1);
+        } else {
+            _quat.setFromUnitVectors(_up, dir); cylinder.quaternion.copy(_quat);
+        }
     }
 }
 
@@ -644,14 +685,16 @@ window.rn_rebuild = function(jsonStr) {
     (data.connections || []).forEach(function(c) {
         var group = crearConexionGroup();
         var entry = {
-            group:          group,
-            tipoEnlace:     c.type || 'tuberia',
-            tubId:          c.tubId    || '',
-            fromSel:        { value: c.from      || '' },
-            toSel:          { value: c.to        || '' },
-            longInput:      null,
-            diametroInput:  { value: c.diametro  || '' },
-            rugosidadInput: { value: c.rugosidad || '' }
+            group:                 group,
+            tipoEnlace:            c.type || 'tuberia',
+            tubId:                 c.tubId    || '',
+            fromSel:               { value: c.from      || '' },
+            toSel:                 { value: c.to        || '' },
+            longInput:             null,
+            diametroInput:         { value: c.diametro  || '' },
+            rugosidadInput:        { value: c.rugosidad || '' },
+            caudalResultadoLs:     null,
+            velocidadResultadoMs:  null
         };
         tuberias.push(entry);
         updateConexionGroup(entry, 1);
@@ -664,6 +707,7 @@ window.rn_rebuild = function(jsonStr) {
     });
 
     actualizarCentroide();
+    actualizarColoresCilindros(null); // ocultar cilindros tras reconstrucción
 
     if (window.ReactNativeWebView && Object.keys(lengthsUpdate).length > 0) {
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LENGTHS_UPDATE', lengths: lengthsUpdate }));
@@ -709,6 +753,12 @@ window.rn_showResults = function(jsonStr) {
     var modoNodo = data.modoNodo || 'P';
     var modoTub  = data.modoTuberia || 'Q';
 
+    // Limpiar resultados previos en todas las tuberías
+    tuberias.forEach(function(t) {
+        t.caudalResultadoLs    = null;
+        t.velocidadResultadoMs = null;
+    });
+
     (data.nodos || []).forEach(function(r) {
         if (modoNodo === 'none') return;
         var texto = modoNodo === 'H' ? ('H=' + r.H.toFixed(2) + ' m') : ('P=' + r.P.toFixed(2) + ' m');
@@ -723,6 +773,15 @@ window.rn_showResults = function(jsonStr) {
     });
 
     (data.tuberias || []).forEach(function(r) {
+        // Almacenar resultados hidráulicos en la entrada de tubería correspondiente
+        var tEntry = tuberias.find(function(t) {
+            return t.fromSel.value === r.from && t.toSel.value === r.to;
+        });
+        if (tEntry) {
+            tEntry.caudalResultadoLs    = (typeof r.Q_ls  === 'number') ? r.Q_ls  : null;
+            tEntry.velocidadResultadoMs = (typeof r.V_ms  === 'number') ? r.V_ms  : null;
+        }
+
         if (modoTub === 'none') return;
         if (r.tipoEnlace === 'bomba' && modoTub !== 'Q') return;
         var texto = modoTub === 'V' && typeof r.V_ms === 'number' ? ('V=' + Math.abs(r.V_ms).toFixed(2) + ' m/s')
@@ -739,7 +798,49 @@ window.rn_showResults = function(jsonStr) {
         sprite._toId = r.to;
         scene.add(sprite); _resultSprites.push(sprite);
     });
+
+    // Aplicar cilindros de color a todas las tuberías según resultados
+    actualizarColoresCilindros(modoTub);
 };
+
+// ── Helpers de color para cilindros ───────────────────────────────────────────
+function colorFromRanges(value, ranges) {
+    for (var i = 0; i < ranges.length; i++) {
+        if (value <= ranges[i].max) return ranges[i].color;
+    }
+    return ranges[ranges.length - 1].color;
+}
+
+function obtenerColorCilindroTuberia(entry, modoTub) {
+    if (modoTub === 'V') {
+        var v = entry.velocidadResultadoMs;
+        if (v === null || v === undefined || !isFinite(v)) return 0x888888;
+        return colorFromRanges(Math.abs(v), COLOR_RANGES_VELOCIDAD);
+    }
+    var q = entry.caudalResultadoLs;
+    if (q === null || q === undefined || !isFinite(q)) return 0x888888;
+    return colorFromRanges(Math.abs(q), COLOR_RANGES_CAUDAL);
+}
+
+function actualizarColoresCilindros(modoTub) {
+    var tieneResultados = tuberias.some(function(e) {
+        return e.caudalResultadoLs !== null && e.caudalResultadoLs !== undefined;
+    });
+    tuberias.forEach(function(entry) {
+        var cyl  = entry.group && entry.group.getObjectByName('conn-cylinder');
+        var line = entry.group && entry.group.getObjectByName('conn-line');
+        if (!cyl) return;
+        if (!tieneResultados || !entry.group.visible) {
+            cyl.visible = false;
+            if (line) { line.material.color.setHex(CONN_COLOR); line.material.opacity = 0.7; }
+            return;
+        }
+        var colorNum = obtenerColorCilindroTuberia(entry, modoTub);
+        cyl.material.color.setHex(colorNum);
+        cyl.visible = true;
+        if (line) line.material.opacity = 0; // línea invisible cuando hay cilindro
+    });
+}
 
 // ── Loop de animación ─────────────────────────────────────────────────────────
 function animate() {
@@ -748,28 +849,29 @@ function animate() {
 
     const dist = getEffectiveDist();
     const rs   = dist / initial_dist;
+    const es = rs * elementScale * 0.8;
     const ls   = Math.max(1, dist / initial_dist);
 
     updateAxis(ejeX,'z',ls,rs); updateAxis(ejeY,'x',ls,rs); updateAxis(ejeZ,'y',ls,rs);
     updateNeg(negXLine,'z',ls); updateNeg(negYLine,'x',ls); updateNeg(negZLine,'y',ls);
-    puntoOrigen.scale.set(rs,rs,rs);
+    puntoOrigen.scale.set(es,es,es);
 
     puntosData.forEach(function(e) {
-        if (e.mesh) e.mesh.scale.set(rs, rs, rs);
+        if (e.mesh) e.mesh.scale.set(es, es, es);
         if (e.label) {
             const img = e.label.material.map.image;
-            e.label.scale.set((img.width / img.height) * TEXTO_ESCALA * rs, TEXTO_ESCALA * rs, 1);
-            actualizarPosLabel(e, rs);
+            e.label.scale.set((img.width / img.height) * TEXTO_ESCALA * es, TEXTO_ESCALA * es, 1);
+            actualizarPosLabel(e, es);
         }
     });
-    tuberias.forEach(function(conn) { updateConexionGroup(conn, rs); });
+    tuberias.forEach(function(conn) { updateConexionGroup(conn, es); });
 
     _resultSprites.forEach(function(sprite) {
         if (sprite._type === 'nodo' && sprite._nodEntry && sprite._nodEntry.mesh) {
             var pos = sprite._nodEntry.mesh.position.clone();
-            pos.y += PUNTO_RADIO * 7.5 * rs;
+            pos.y += PUNTO_RADIO * 7.5 * es;
             sprite.position.copy(pos);
-            sprite.scale.set(sprite._aspect * sprite._baseEscala * rs, sprite._baseEscala * rs, 1);
+            sprite.scale.set(sprite._aspect * sprite._baseEscala * es, sprite._baseEscala * es, 1);
         } else if (sprite._type === 'tuberia') {
             var fE = _nodeMap.get(sprite._fromId);
             var tE = _nodeMap.get(sprite._toId);
@@ -777,9 +879,9 @@ function animate() {
                 var mid = new THREE.Vector3()
                     .addVectors(fE.mesh.position, tE.mesh.position)
                     .multiplyScalar(0.5);
-                mid.y += PUNTO_RADIO * 6 * rs;
+                mid.y += PUNTO_RADIO * 6 * es;
                 sprite.position.copy(mid);
-                sprite.scale.set(sprite._aspect * sprite._baseEscala * rs, sprite._baseEscala * rs, 1);
+                sprite.scale.set(sprite._aspect * sprite._baseEscala * es, sprite._baseEscala * es, 1);
             }
         }
     });
@@ -1078,6 +1180,8 @@ const AxisScreen: React.FC = () => {
   const [_tablaModalTanquesVisible, _setTablaModalTanquesVisible] = useState(false);
   const [tablaModalTubeVisible,    setTablaModalTubeVisible]    = useState(false);
 
+  const [isCalculating, setIsCalculating] = useState(false);
+
   // ── Animación del selector de modo ───────────────────────────────────────────
   const animatedValue = useRef(new Animated.Value(0)).current;
   const animatedScale = useRef(new Animated.Value(1)).current;
@@ -1096,6 +1200,362 @@ const AxisScreen: React.FC = () => {
     () => (temporalConfig.enabled ? (temporalPatternIds[0] ?? '') : ''),
     [temporalConfig.enabled, temporalPatternIds]
   );
+
+  const parseEpanetSections = (text: string): Record<string, string[]> => {
+    const sections: Record<string, string[]> = {};
+    let current: string | null = null;
+    const lines = text.split(/\r?\n/);
+    for (const lineRaw of lines) {
+      const line = lineRaw.trim();
+      if (!line || line.startsWith(';')) continue;
+      const matchSec = line.match(/^\[([^\]]+)\]/);
+      if (matchSec) {
+        current = matchSec[1].toUpperCase().trim();
+        if (!sections[current]) sections[current] = [];
+        continue;
+      }
+      if (current) {
+        const sinComentario = line.split(';')[0].trim();
+        if (sinComentario) sections[current].push(sinComentario);
+      }
+    }
+    return sections;
+  };
+
+  const getFlowFactor = (units: string): number => {
+    const map: Record<string, number> = {
+      'LPS': 1, 'LPM': 1/60, 'MLD': 1000/86.4, 'CMH': 1000/3600,
+      'CMD': 1000/86400, 'CFS': 28.3168, 'GPM': 0.0630902,
+      'MGD': 43.8126, 'IMGD': 52.6168, 'AFD': 14.2764
+    };
+    return map[units] ?? 1;
+  };
+
+  const stopTemporalPlayback = useCallback(() => {
+    if (temporalPlaybackTimerRef.current !== null) {
+      clearInterval(temporalPlaybackTimerRef.current);
+      temporalPlaybackTimerRef.current = null;
+    }
+    setIsTemporalPlaying(false);
+  }, []);
+
+  const importFromEpanet = useCallback((fileContent: string) => {
+    const sections = parseEpanetSections(fileContent);
+  
+    // --- 1. Determinar unidades ---
+    let flowUnits = 'LPS';
+    let lengthIsMetric = true;
+    let headlossFormula = 'H-W';
+    if (sections['OPTIONS']) {
+      for (const line of sections['OPTIONS']) {
+        const parts = line.split(/\s+/);
+        if (parts[0]?.toUpperCase() === 'UNITS' && parts[1]) {
+          flowUnits = parts[1].toUpperCase();
+          const metricFlowUnits = ['LPS', 'LPM', 'MLD', 'CMH', 'CMD'];
+          lengthIsMetric = metricFlowUnits.includes(flowUnits);
+        }
+        if (parts[0]?.toUpperCase() === 'HEADLOSS' && parts[1]) {
+          headlossFormula = parts[1].toUpperCase();
+        }
+      }
+    }
+    const flowFactor = getFlowFactor(flowUnits);
+    const lengthToMeters = lengthIsMetric ? 1 : 0.3048;
+    // Diámetro: SI → ya en mm (×1), US → pulgadas a mm (×25.4)
+    const diamFactor = lengthIsMetric ? 1 : 25.4;
+    // Rugosidad D-W: SI → ya en mm (×1), US → milipies a mm (×0.3048)
+    // Rugosidad H-W / C-M: adimensional, sin conversión (×1)
+    const roughFactor = headlossFormula === 'D-W' ? (lengthIsMetric ? 1 : 0.3048) : 1;
+  
+    // --- 2. Leer coordenadas ---
+    const coords: Record<string, { x: number; y: number }> = {};
+    for (const line of (sections['COORDINATES'] || [])) {
+      const [id, x, y] = line.split(/\s+/);
+      if (id && x && y) {
+        coords[id] = { x: parseFloat(x) * lengthToMeters, y: parseFloat(y) * lengthToMeters };
+      }
+    }
+  
+    // --- 3. Leer patrones ---
+    const patternsRaw: Record<string, number[]> = {};
+    for (const line of (sections['PATTERNS'] || [])) {
+      const parts = line.split(/\s+/);
+      const id = parts[0];
+      if (!id) continue;
+      if (!patternsRaw[id]) patternsRaw[id] = [];
+      for (let i = 1; i < parts.length; i++) {
+        const val = parseFloat(parts[i]);
+        if (!isNaN(val)) patternsRaw[id].push(val);
+      }
+    }
+    // Normalizar a 24 horas
+    const importedPatterns: TemporalPatternEntry[] = [];
+    for (const [id, vals] of Object.entries(patternsRaw)) {
+      const multipliers: string[] = Array.from({ length: 24 }, (_, i) => {
+        const val = i < vals.length ? vals[i] : (vals.length > 0 ? vals[i % vals.length] : 1);
+        return String(val);
+      });
+      importedPatterns.push({ id: importedPatterns.length + 1, patternId: id, multipliers });
+    }
+  
+    // --- 4. Leer curvas de bomba (solo las referenciadas) ---
+    const curvesRaw: Record<string, { flow: number; head: number }[]> = {};
+    for (const line of (sections['CURVES'] || [])) {
+      const [id, xv, yv] = line.split(/\s+/);
+      if (!id || !xv || !yv) continue;
+      const flow = parseFloat(xv);
+      const head = parseFloat(yv);
+      if (!isNaN(flow) && !isNaN(head)) {
+        if (!curvesRaw[id]) curvesRaw[id] = [];
+        curvesRaw[id].push({ flow: flow * flowFactor, head });
+      }
+    }
+    // Identificar curvas usadas por bombas
+    const usedCurves = new Set<string>();
+    for (const line of (sections['PUMPS'] || [])) {
+      const parts = line.split(/\s+/);
+      for (let i = 3; i < parts.length - 1; i++) {
+        const kw = parts[i].toUpperCase();
+        if (kw === 'HEAD' || kw === 'CURVE') usedCurves.add(parts[i + 1]);
+      }
+      // Formato antiguo
+      if (parts.length >= 4 && !['HEAD','CURVE','POWER','SPEED','PATTERN'].includes(parts[3]?.toUpperCase())) {
+        usedCurves.add(parts[3]);
+      }
+    }
+    const importedCurves: PumpCurveEntry[] = [];
+    for (const curveId of usedCurves) {
+      const points = curvesRaw[curveId];
+      if (points && points.length >= 2) {
+        importedCurves.push({
+          id: importedCurves.length + 1,
+          curveId,
+          points: points.map((p, i) => ({
+            id: i + 1,
+            flow: String(p.flow),
+            head: String(p.head),
+          }))
+        });
+      }
+    }
+  
+    // --- 5. Leer demandas extra ---
+    const extraDemands: Record<string, { demand: number; pattern: string }> = {};
+    for (const line of (sections['DEMANDS'] || [])) {
+      const [id, dem, pat] = line.split(/\s+/);
+      if (id && dem) {
+        extraDemands[id] = { demand: parseFloat(dem) * flowFactor, pattern: pat || '' };
+      }
+    }
+  
+    // --- 6. Construir nodos (junctions, reservorios, tanques) ---
+    const newNodes: NodeEntry[] = [];
+    const usedNodeIds = new Set<string>();
+  
+    // Junctions
+    for (const line of (sections['JUNCTIONS'] || [])) {
+      const parts = line.split(/\s+/);
+      const [id, elev, demStr, patStr] = parts;
+      if (!id || elev === undefined) continue;
+      const elevM = parseFloat(elev) * lengthToMeters;
+      if (isNaN(elevM)) continue;
+  
+      let demand = 0;
+      let patternId = '';
+      if (extraDemands[id]) {
+        demand = extraDemands[id].demand;
+        patternId = extraDemands[id].pattern;
+      } else {
+        demand = parseFloat(demStr) * flowFactor || 0;
+        patternId = patStr || '';
+      }
+  
+      const coord = coords[id] || { x: 0, y: 0 };
+      newNodes.push({
+        id: newId(),
+        type: 'nodo',
+        nodeId: id,
+        colorHex: randomVividColorHex(),
+        x: coord.x.toString(), xUnit: 'm',
+        y: coord.y.toString(), yUnit: 'm',
+        z: elevM.toString(), zUnit: 'm',
+        demanda: demand.toString(), demandaUnit: 'l/s',
+        patternId,
+        nivelIni: '', nivelIniUnit: 'm',
+        nivelMin: '', nivelMinUnit: 'm',
+        nivelMax: '', nivelMaxUnit: 'm',
+        diametro: '', diametroUnit: 'm',
+      });
+      usedNodeIds.add(id);
+    }
+  
+    // Reservoirs
+    for (const line of (sections['RESERVOIRS'] || [])) {
+      const [id, head] = line.split(/\s+/);
+      if (!id || head === undefined) continue;
+      const headM = parseFloat(head) * lengthToMeters;
+      if (isNaN(headM)) continue;
+      const coord = coords[id] || { x: 0, y: 0 };
+      newNodes.push({
+        id: newId(),
+        type: 'reservorio',
+        nodeId: id,
+        colorHex: randomVividColorHex(),
+        x: coord.x.toString(), xUnit: 'm',
+        y: coord.y.toString(), yUnit: 'm',
+        z: headM.toString(), zUnit: 'm',
+        demanda: '', demandaUnit: 'l/s',
+        patternId: '',
+        nivelIni: '', nivelIniUnit: 'm',
+        nivelMin: '', nivelMinUnit: 'm',
+        nivelMax: '', nivelMaxUnit: 'm',
+        diametro: '', diametroUnit: 'm',
+      });
+      usedNodeIds.add(id);
+    }
+  
+    // Tanks
+    for (const line of (sections['TANKS'] || [])) {
+      const parts = line.split(/\s+/);
+      const [id, elev, initLev, minLev, maxLev, diam] = parts;
+      if (!id || elev === undefined) continue;
+      const elevM = parseFloat(elev) * lengthToMeters;
+      const initM = parseFloat(initLev) * lengthToMeters;
+      const minM = parseFloat(minLev) * lengthToMeters;
+      let maxM = parseFloat(maxLev) * lengthToMeters;
+      const diamM = parseFloat(diam) * lengthToMeters;
+      if (isNaN(elevM) || isNaN(initM) || isNaN(minM) || isNaN(maxM) || isNaN(diamM)) continue;
+      if (maxM <= 0) maxM = initM + 1;
+      const coord = coords[id] || { x: 0, y: 0 };
+      newNodes.push({
+        id: newId(),
+        type: 'tanque',
+        nodeId: id,
+        colorHex: randomVividColorHex(),
+        x: coord.x.toString(), xUnit: 'm',
+        y: coord.y.toString(), yUnit: 'm',
+        z: elevM.toString(), zUnit: 'm',
+        demanda: '', demandaUnit: 'l/s',
+        patternId: '',
+        nivelIni: initM.toString(), nivelIniUnit: 'm',
+        nivelMin: minM.toString(), nivelMinUnit: 'm',
+        nivelMax: maxM.toString(), nivelMaxUnit: 'm',
+        diametro: diamM.toString(), diametroUnit: 'm',
+      });
+      usedNodeIds.add(id);
+    }
+  
+    // --- 7. Construir conexiones (tuberías y bombas) ---
+    const newConnections: ConnectionEntry[] = [];
+  
+    // Pipes
+    for (const line of (sections['PIPES'] || [])) {
+      const parts = line.split(/\s+/);
+      const [id, from, to, len, diam, rough] = parts;
+      if (!id || !from || !to) continue;
+      const lengthM = parseFloat(len) * lengthToMeters;
+      const diamMM = parseFloat(diam) * diamFactor;
+      const roughMM = parseFloat(rough) * roughFactor;
+      if (isNaN(lengthM) || isNaN(diamMM) || isNaN(roughMM)) continue;
+  
+      newConnections.push({
+        id: newId(),
+        type: 'tuberia',
+        tubId: id,
+        from,
+        to,
+        curveId: '',
+        longitud: lengthM.toString(),
+        longitudAuto: '',
+        longitudManual: true,
+        diametro: diamMM.toString(),
+        diametroUnit: 'mm',
+        rugosidad: roughMM.toString(),
+        rugosidadUnit: 'mm',
+      });
+    }
+  
+    // Pumps
+    for (const line of (sections['PUMPS'] || [])) {
+      const parts = line.split(/\s+/);
+      const [id, from, to, ...kw] = parts;
+      if (!id || !from || !to) continue;
+      let curveId = '';
+      for (let i = 0; i < kw.length - 1; i++) {
+        const k = kw[i].toUpperCase();
+        if (k === 'HEAD' || k === 'CURVE') {
+          curveId = kw[i + 1];
+          break;
+        }
+      }
+      // Formato antiguo
+      if (!curveId && kw.length >= 1 && !['HEAD','CURVE','POWER','SPEED','PATTERN'].includes(kw[0]?.toUpperCase())) {
+        curveId = kw[0];
+      }
+      newConnections.push({
+        id: newId(),
+        type: 'bomba',
+        tubId: id,
+        from,
+        to,
+        curveId: curveId || '',
+        longitud: '',
+        longitudAuto: '',
+        longitudManual: false,
+        diametro: '',
+        diametroUnit: 'mm',
+        rugosidad: '',
+        rugosidadUnit: 'mm',
+      });
+    }
+  
+    // --- 8. Actualizar estados ---
+    // Limpiar estados anteriores
+    stopTemporalPlayback();
+    setNodes(newNodes);
+    setConnections(newConnections);
+    setPumpCurves(importedCurves);
+    setTemporalConfig(prev => ({ ...prev, patterns: importedPatterns, enabled: importedPatterns.length > 0 ? prev.enabled : false }));
+    setAnalysisResult(null);
+    setCalcResult(null);
+    setCurrentFrameIndex(0);
+
+    const allIds = [...newNodes.map(n => n.id), ...newConnections.map(c => c.id)];
+    setCollapsedCards(new Set(allIds));
+    allIds.forEach(id => {
+      collapseAnimsRef.current[id] = new Animated.Value(0);
+    });
+  
+    // Mostrar toast de éxito
+    const totalNodes = newNodes.length;
+    const totalConns = newConnections.length;
+    Toast.show({
+      type: 'success',
+      text1: t('common.success') || 'Importado',
+      text2: `${totalNodes} nodos, ${totalConns} conexiones, ${importedCurves.length} curvas, ${importedPatterns.length} patrones`,
+    });
+  }, [stopTemporalPlayback, newId, setNodes, setConnections, setPumpCurves, setTemporalConfig, setAnalysisResult, setCalcResult, setCurrentFrameIndex, setCollapsedCards, t]);
+
+  const handleImportEpanet = useCallback(async () => {
+    try {
+      const [result] = await pick({
+        allowMultiSelection: false,
+        mode: 'open',
+      });
+      if (!result || !result.uri) return;
+  
+      const response = await fetch(result.uri);
+      const text = await response.text();
+      importFromEpanet(text);
+    } catch (err) {
+      console.error('Error picking file:', err);
+      Toast.show({
+        type: 'error',
+        text1: t('common.error') || 'Error',
+        text2: 'No se pudo seleccionar el archivo.',
+      });
+    }
+  }, [importFromEpanet, t]);
 
   useEffect(() => {
     if (buttonMetrics.nodes > 0 && buttonMetrics.connections > 0) {
@@ -1281,18 +1741,39 @@ const AxisScreen: React.FC = () => {
         if (saved.pumpCurves) {
           setPumpCurves(normalizePumpCurves(saved.pumpCurves));
         }
+        if (saved.collapsedCards && Array.isArray(saved.collapsedCards)) {
+          const restoredSet = new Set<number>(saved.collapsedCards);
+          setCollapsedCards(restoredSet);
+          // Inicializar collapseAnimsRef para cada nodo y conexión
+          const allIds = [
+            ...(saved.nodes || []).map((n: any) => n.id),
+            ...(saved.connections || []).map((c: any) => c.id),
+          ];
+          allIds.forEach((id: number) => {
+            if (!collapseAnimsRef.current[id]) {
+              collapseAnimsRef.current[id] = new Animated.Value(restoredSet.has(id) ? 0 : 1);
+            }
+          });
+        }
       } catch {}
     });
   }, []); // Solo al montar — sin dependencias
 
   useEffect(() => {
-    // Debounce: espera 800ms de inactividad antes de guardar.
-    // Si nodes/connections cambian de nuevo antes de ese tiempo, cancela y reinicia.
     const timer = setTimeout(() => {
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, connections, temporalConfig, pumpCurves })).catch(() => {});
+      AsyncStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          nodes,
+          connections,
+          temporalConfig,
+          pumpCurves,
+          collapsedCards: Array.from(collapsedCards), // <-- añadir esto
+        })
+      ).catch(() => {});
     }, 800);
-    return () => clearTimeout(timer); // cleanup cancela el timer anterior
-  }, [nodes, connections, temporalConfig, pumpCurves]);
+    return () => clearTimeout(timer);
+  }, [nodes, connections, temporalConfig, pumpCurves, collapsedCards]); // <-- añadir collapsedCards a dependencias
 
   useEffect(() => {
     setConnections(prev => {
@@ -1382,6 +1863,18 @@ const AxisScreen: React.FC = () => {
     webViewRef.current?.injectJavaScript('try { window.rn_resetTo3D && window.rn_resetTo3D(); } catch(e){} true;');
   }, []);
 
+  const handleScaleUp = useCallback(() => {
+    webViewRef.current?.injectJavaScript(
+      'try { window.rn_scaleUp && window.rn_scaleUp(); } catch(e){} true;'
+    );
+  }, []);
+  
+  const handleScaleDown = useCallback(() => {
+    webViewRef.current?.injectJavaScript(
+      'try { window.rn_scaleDown && window.rn_scaleDown(); } catch(e){} true;'
+    );
+  }, []);
+
   const pushResultToWebView = useCallback(
     (result: AxisHydraulicStepResult | null) => {
       if (!result) return;
@@ -1400,14 +1893,6 @@ const AxisScreen: React.FC = () => {
     [modoVisualNodo, modoVisualTuberia]
   );
 
-  const stopTemporalPlayback = useCallback(() => {
-    if (temporalPlaybackTimerRef.current !== null) {
-      clearInterval(temporalPlaybackTimerRef.current);
-      temporalPlaybackTimerRef.current = null;
-    }
-    setIsTemporalPlaying(false);
-  }, []);
-
   const applyAnalysisFrame = useCallback((analysis: AxisHydraulicAnalysisResult, frameIndex: number) => {
     const safeIndex = Math.max(0, Math.min(frameIndex, analysis.frames.length - 1));
     setCurrentFrameIndex(safeIndex);
@@ -1416,45 +1901,80 @@ const AxisScreen: React.FC = () => {
 
 
   const handleCalcular = useCallback(() => {
+    if (isCalculating) return;          // evitar doble tap
     stopTemporalPlayback();
-    const result = runAxisHydraulicAnalysis(
-      nodesRef.current as AxisNodeInputEntry[],
-      connectionsRef.current.map(connection => {
-        if (connection.type !== 'bomba') {
-          return connection as AxisConnectionInputEntry;
-        }
-      
-        const curve = pumpCurves.find(entry => entry.curveId.trim() === connection.curveId.trim());
-        const derived = curve ? derivePumpCurveState(curve) : null;
-        return {
-          ...connection,
-          curveCoefficients: derived?.coefficients ?? undefined,
-          maxFlowLs: derived?.maxFlowLs ?? undefined,
-        } as AxisConnectionInputEntry;
-      }),
-      temporalConfig
-    );
-
-    if (!result.ok) {
-      Toast.show({
-        type: 'error',
-        text1: t('common.error') || 'Error',
-        text2: result.error,
-      });
-      return;
-    }
-
-    setAnalysisResult(result.data);
-    applyAnalysisFrame(result.data, 0);
-
-    result.warnings.forEach(message => {
-      Toast.show({
-        type: 'error',
-        text1: t('common.error') || 'Aviso',
-        text2: message,
-      });
+    setIsCalculating(true);             // mostrar spinner en el botón
+   
+    // Capturar los datos ahora (antes de ceder el hilo),
+    // porque los refs pueden cambiar si el usuario sigue tocando la UI.
+    const currentNodes = nodesRef.current as AxisNodeInputEntry[];
+    const currentConnections = connectionsRef.current.map(connection => {
+      if (connection.type !== 'bomba') {
+        return connection as AxisConnectionInputEntry;
+      }
+      const curve = pumpCurves.find(entry => entry.curveId.trim() === connection.curveId.trim());
+      const derived = curve ? derivePumpCurveState(curve) : null;
+      return {
+        ...connection,
+        curveCoefficients: derived?.coefficients ?? undefined,
+        maxFlowLs: derived?.maxFlowLs ?? undefined,
+      } as AxisConnectionInputEntry;
     });
-  }, [applyAnalysisFrame, pumpCurves, stopTemporalPlayback, t, temporalConfig]);
+    const currentTemporalConfig = temporalConfig;
+   
+    // runAfterInteractions → espera a que terminen las animaciones actuales,
+    // luego setTimeout(0) → cede el hilo al motor de render para que
+    // el spinner aparezca ANTES de empezar el cálculo.
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
+        let result: AxisCalculationResult<AxisHydraulicAnalysisResult>;
+        try {
+          result = runAxisHydraulicAnalysis(
+            currentNodes,
+            currentConnections,
+            currentTemporalConfig
+          );
+        } catch (err: any) {
+          setIsCalculating(false);
+          Toast.show({
+            type: 'error',
+            text1: t('common.error') || 'Error',
+            text2: err?.message || 'Error interno del solver.',
+          });
+          return;
+        }
+   
+        setIsCalculating(false);
+   
+        if (!result.ok) {
+          Toast.show({
+            type: 'error',
+            text1: t('common.error') || 'Error',
+            text2: result.error,
+          });
+          return;
+        }
+   
+        setAnalysisResult(result.data);
+        applyAnalysisFrame(result.data, 0);
+   
+        result.warnings.forEach(message => {
+          Toast.show({
+            type: 'error',
+            text1: t('common.error') || 'Aviso',
+            text2: message,
+          });
+        });
+      }, 0);
+    });
+  }, [
+    isCalculating,           // <— nuevo
+    applyAnalysisFrame,
+    pumpCurves,
+    stopTemporalPlayback,
+    t,
+    temporalConfig,
+  ]);
 
   // ── Actualizar labels en WebView cuando cambia el modo visual ─────────────────
   useEffect(() => {
@@ -1518,6 +2038,9 @@ const AxisScreen: React.FC = () => {
 
   // ── CRUD Nodos ────────────────────────────────────────────────────────────────
   const addNode = useCallback(() => {
+    const newNodeId = newId();
+    collapseAnimsRef.current[newNodeId] = new Animated.Value(1);
+  
     const currentNodes = nodesRef.current;
     if (currentNodes.length > 0) {
       currentNodes.forEach(n => {
@@ -1536,7 +2059,7 @@ const AxisScreen: React.FC = () => {
       return [
         ...prev,
         {
-          id: newId(),
+          id: newNodeId, // ← usa el ID pre-generado
           colorHex: randomVividColorHex(),
           ...makeDefaultNode('nodo', 'N' + n),
           patternId: temporalDefaultPatternId,
@@ -1573,6 +2096,9 @@ const AxisScreen: React.FC = () => {
 
   // ── CRUD Conexiones ───────────────────────────────────────────────────────────
   const addConnection = useCallback(() => {
+    const newConnId = newId();
+    collapseAnimsRef.current[newConnId] = new Animated.Value(1);
+  
     const currentConns = connectionsRef.current;
     if (currentConns.length > 0) {
       currentConns.forEach(c => {
@@ -1591,7 +2117,7 @@ const AxisScreen: React.FC = () => {
       return [
         ...prev,
         {
-          id: newId(),
+          id: newConnId, // ← usa el ID pre-generado
           ...makeDefaultConnection(
             'P' + n,
             nodesRef.current[0]?.nodeId ?? '',
@@ -2483,6 +3009,15 @@ const AxisScreen: React.FC = () => {
                 <Icon name="chevron-left" size={20} color={themeColors.icon} />
               </Pressable>
             </View>
+            {/* Botón importar — ahora circular como el de calcular */}
+            <View style={[styles.iconWrapperRound, { experimental_backgroundImage: themeColors.gradient }]}>
+              <Pressable
+                style={[styles.iconContainerRound, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
+                onPress={handleImportEpanet}
+              >
+                <Icon name="external-link" size={20} color={themeColors.icon} />
+              </Pressable>
+            </View>
           </View>
           <View style={styles.rightIconsContainer}>
             {/* Botón calcular */}
@@ -2490,6 +3025,7 @@ const AxisScreen: React.FC = () => {
               <Pressable
                 style={[styles.iconContainerRound, { backgroundColor: 'transparent', experimental_backgroundImage: themeColors.cardGradient }]}
                 onPress={handleCalcular}
+                disabled={isCalculating}
               >
                 <Icon name="zap" size={20} color={themeColors.icon} />
               </Pressable>
@@ -2568,6 +3104,34 @@ const AxisScreen: React.FC = () => {
               {/* CAMBIA ESTA LÍNEA: reemplaza Octicons por Icon con el estado */}
               <Icon name={cartesianIconLeft} size={18} color={themeColors.icon} style={styles.buttonIcon} />
               </Pressable>
+
+              <View style={styles.cartesianScaleButtonsContainer}>
+                <Pressable
+                  style={[styles.simpleButtonContainer, styles.cartesianScaleButton]}
+                  onPress={handleScaleUp}
+                >
+                  <View style={[styles.cartesianOverlayButtonBackground]}>
+                    <View style={[styles.cartesianOverlayButtonBackgroundFill, { backgroundColor: 'transparent', experimental_backgroundImage: theoryButtonColors.cardGradient }]} />
+                  </View>
+                  <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
+                    <View style={[styles.buttonGradient, { experimental_backgroundImage: theoryButtonColors.gradient }]} />
+                  </MaskedView>
+                  <Icon name="plus" size={18} color={themeColors.icon} style={styles.buttonIcon} />
+                </Pressable>
+
+                <Pressable
+                  style={[styles.simpleButtonContainer, styles.cartesianScaleButton]}
+                  onPress={handleScaleDown}
+                >
+                  <View style={[styles.cartesianOverlayButtonBackground]}>
+                    <View style={[styles.cartesianOverlayButtonBackgroundFill, { backgroundColor: 'transparent', experimental_backgroundImage: theoryButtonColors.cardGradient }]} />
+                  </View>
+                  <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
+                    <View style={[styles.buttonGradient, { experimental_backgroundImage: theoryButtonColors.gradient }]} />
+                  </MaskedView>
+                  <Icon name="minus" size={18} color={themeColors.icon} style={styles.buttonIcon} />
+                </Pressable>
+              </View>
 
               <Pressable
               style={[styles.simpleButtonContainer, styles.cartesianOverlayButton, styles.cartesianOverlayButtonRight]}
@@ -2658,7 +3222,7 @@ const AxisScreen: React.FC = () => {
                   isTemporalAtStart
                 )}
                 {renderTemporalPlaybackButton(
-                  <Icon name="rewind" size={20} color={themeColors.icon} style={styles.buttonIcon} />,
+                  <Icon name="chevron-left" size={20} color={themeColors.icon} style={styles.buttonIcon} />,
                   () => goToTemporalFrame(currentFrameIndex - 1),
                   isTemporalAtStart
                 )}
@@ -2668,7 +3232,7 @@ const AxisScreen: React.FC = () => {
                   !canPlayTemporalSeries
                 )}
                 {renderTemporalPlaybackButton(
-                  <Icon name="fast-forward" size={20} color={themeColors.icon} style={styles.buttonIcon} />,
+                  <Icon name="chevron-right" size={20} color={themeColors.icon} style={styles.buttonIcon} />,
                   () => goToTemporalFrame(currentFrameIndex + 1),
                   isTemporalAtEnd
                 )}
@@ -3165,6 +3729,17 @@ const styles = StyleSheet.create({
   },
   cartesianOverlayButtonRight: {
     right: 14,
+  },
+  cartesianScaleButtonsContainer: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    zIndex: 3,
+    flexDirection: 'column',
+    gap: 8,
+  },
+  cartesianScaleButton: {
+    // sin estilos propios — hereda todo de simpleButtonContainer
   },
   webView: {
     flex: 1,

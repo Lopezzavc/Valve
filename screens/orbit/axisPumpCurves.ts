@@ -79,58 +79,70 @@ function gaussianElimination(matrix: number[][], vector: number[]): number[] | n
   return solution;
 }
 
-export function fitPumpCurveQuadratic(points: PumpCurvePointValue[]): PumpCurveCoefficients | null {
+export function fitPumpCurvePower(points: PumpCurvePointValue[]): PumpCurveCoefficients | null {
   if (!Array.isArray(points) || points.length < 3) return null;
 
-  let s0 = 0;
-  let s1 = 0;
-  let s2 = 0;
-  let s3 = 0;
-  let s4 = 0;
-  let t0 = 0;
-  let t1 = 0;
-  let t2 = 0;
+  const pts = points.slice().sort((a, b) => a.flow - b.flow);
+  if (pts[pts.length - 1].flow <= pts[0].flow) return null;
 
-  points.forEach(point => {
-    const q = point.flow;
-    const h = point.head;
-    const q2 = q * q;
-    s0 += 1;
-    s1 += q;
-    s2 += q2;
-    s3 += q2 * q;
-    s4 += q2 * q2;
-    t0 += h;
-    t1 += q * h;
-    t2 += q2 * h;
-  });
+  // Para cada exponente fijo, ajusta linealmente H = a + b·Q^exp
+  function fitLinear(exp: number) {
+    let sx = 0, sy = 0, sxx = 0, sxy = 0;
+    const N = pts.length;
+    for (const p of pts) {
+      const x = Math.pow(p.flow, exp);
+      sx += x; sy += p.head; sxx += x * x; sxy += x * p.head;
+    }
+    const denom = N * sxx - sx * sx;
+    if (Math.abs(denom) < 1e-12) return null;
+    const b = (N * sxy - sx * sy) / denom;
+    const a = (sy - b * sx) / N;
+    let ssr = 0;
+    for (const p of pts) {
+      const res = p.head - (a + b * Math.pow(p.flow, exp));
+      ssr += res * res;
+    }
+    return { a, b, ssr };
+  }
 
-  const solution = gaussianElimination(
-    [
-      [s0, s1, s2],
-      [s1, s2, s3],
-      [s2, s3, s4],
-    ],
-    [t0, t1, t2],
-  );
+  // Búsqueda de sección áurea para el exponente óptimo en [0.5, 4.0]
+  const phi = (Math.sqrt(5) - 1) / 2;
+  let lo = 0.5, hi = 4.0;
+  let x1 = hi - phi * (hi - lo);
+  let x2 = lo + phi * (hi - lo);
+  let f1 = fitLinear(x1);
+  let f2 = fitLinear(x2);
 
-  if (!solution || solution.some(value => !Number.isFinite(value))) return null;
+  for (let i = 0; i < 80; i++) {
+    if (!f1 || !f2) break;
+    if (f1.ssr < f2.ssr) {
+      hi = x2; x2 = x1; f2 = f1;
+      x1 = hi - phi * (hi - lo);
+      f1 = fitLinear(x1);
+    } else {
+      lo = x1; x1 = x2; f1 = f2;
+      x2 = lo + phi * (hi - lo);
+      f2 = fitLinear(x2);
+    }
+  }
 
-  return {
-    a: solution[0],
-    b: solution[1],
-    c: solution[2],
-  };
+  const bestExp = (lo + hi) / 2;
+  const res = fitLinear(bestExp);
+  if (!res || !Number.isFinite(res.a) || !Number.isFinite(res.b)) return null;
+
+  return { a: res.a, b: res.b, c: bestExp };
 }
 
 export function evaluatePumpCurve(coefficients: PumpCurveCoefficients | null, flow: number): number | null {
   if (!coefficients) return null;
-  return coefficients.a + coefficients.b * flow + coefficients.c * flow * flow;
+  // H = a + b * Q^c
+  return coefficients.a + coefficients.b * Math.pow(flow, coefficients.c);
 }
 
 export function evaluatePumpCurveSlope(coefficients: PumpCurveCoefficients | null, flow: number): number | null {
   if (!coefficients) return null;
-  return coefficients.b + 2 * coefficients.c * flow;
+  // dH/dQ = b * c * Q^(c-1)
+  return coefficients.b * coefficients.c * Math.pow(flow, coefficients.c - 1);
 }
 
 function buildPumpCurveSamples(
@@ -230,7 +242,7 @@ export function derivePumpCurveState(curve: PumpCurveEntry): PumpCurveDerivedSta
     };
   }
 
-  const coefficients = fitPumpCurveQuadratic(validPoints);
+  const coefficients = fitPumpCurvePower(validPoints);
   if (!coefficients) {
     return {
       validPoints,
