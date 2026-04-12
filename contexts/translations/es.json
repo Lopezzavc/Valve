@@ -1494,24 +1494,30 @@
   },
   "orbit": {
     "title": "NODARA",
-    "subtitle": "Simulador hidráulico"
+    "subtitle": "Simulador hidráulico",
+    "toastPump": "Bombas aún no implementadas"
   },
   "axis": {
     "field": {
       "nodeType": "Tipo de elemento",
+      "connectionType": "Tipo de conexion",
       "id": "ID",
       "x": "X",
       "y": "Y",
       "ht": "Ht",
       "elevation": "Elevación",
       "demanda": "Dem. Base",
-      "nivelIni": "Nivel Ini.",
+      "pattern": "Patrón",
+      "nivelIni": "Nivel inicial",
+      "nivelMin": "Nivel mínimo",
+      "nivelMax": "Nivel máximo",
       "diametro": "Diámetro",
       "volumen": "Volumen",
       "desde": "Desde",
       "hasta": "Hasta",
       "longitud": "Longitud (m)",
-      "rugosidad": "Rugosidad"
+      "rugosidad": "Rugosidad",
+      "pumpCurve": "Curva de bomba"
     },
     "nodeType": {
       "nodo": "Nodo",
@@ -1519,12 +1525,18 @@
       "reservorio": "Reservorio"
     },
     "pipe": "Tubería",
+    "pump": "Bomba",
+    "connectionType": {
+      "tuberia": "Tuberia",
+      "bomba": "Bomba"
+    },
     "tab": {
       "elementos": "Elementos",
       "conexiones": "Conexiones"
     },
     "section": {
       "elementos": "Elementos de la red",
+      "conexiones": "Conexiones",
       "tuberias": "Tuberías",
       "nodos": "Nodos",
       "resultados": "Resultados"
@@ -1554,7 +1566,7 @@
     "action": {
       "verMas": "Ver más"
     },
-    "infoText": "La funcionalidad de tanque aún no está integrada en el cálculo hidráulico de esta pantalla, ya que por el momento no aporta utilidad práctica dentro del flujo actual de modelado y análisis. Su soporte se incorporará cuando forme parte de una etapa operativa completa del simulador.",
+    "infoText": "__N",
     "options": {
       "selectOption": "Selecciona una opción",
       "selectNode": "Seleccionar nodo",
@@ -1562,9 +1574,60 @@
         "length": "Longitud",
         "flow": "Caudal",
         "volume": "Volumen",
+        "pattern": "Patrón",
         "modoNodo": "Mostrar en nodos",
         "modoTuberia": "Mostrar en tuberías"
       }
+    }
+  },
+  "axisTemporal": {
+    "title": "ANÁLISIS TEMPORAL",
+    "subtitle": "Configuración de patrones",
+    "enabled": "Activar análisis temporal por periodo",
+    "globalSection": "Parámetros globales",
+    "totalDuration": "Duración total",
+    "analysisStep": "Paso de análisis",
+    "hours": "Horas",
+    "minutes": "Minutos",
+    "patternsSection": "Patrones",
+    "patternCardTitle": "Patrón",
+    "patternIdLabel": "ID del patrón",
+    "patternHour": "H{{hour}}",
+    "unnamedPattern": "Sin ID",
+    "noPatternAssigned": "Sin patrón",
+    "defaultPatternId": "BASE",
+    "patternIdPrefix": "PAT",
+    "playback": {
+      "horizon": "Horizonte",
+      "step": "Paso",
+      "block": "Bloque"
+    }
+  },
+  "axisPump": {
+    "title": "CURVAS DE BOMBA",
+    "subtitle": "Configuracion de curvas",
+    "section": "Curvas disponibles",
+    "curveCardTitle": "Curva",
+    "unnamedCurve": "Sin ID",
+    "curveIdPrefix": "CB",
+    "emptyState": "Aun no hay curvas de bomba. Crea una para poder asignarla desde las conexiones.",
+    "addPoint": "Punto",
+    "noCurveAssigned": "Selecciona una curva",
+    "noCurvesAvailable": "Sin curvas disponibles",
+    "field": {
+      "curveId": "ID de la curva",
+      "flow": "Caudal (L/s)",
+      "head": "Cabeza (m)"
+    },
+    "chart": {
+      "empty": "Sin datos suficientes"
+    },
+    "status": {
+      "needThreePoints": "Ingresa al menos 3 pares validos de caudal y cabeza.",
+      "needThreePointsWithErrors": "Ingresa al menos 3 pares validos de caudal y cabeza y corrige las filas incompletas.",
+      "fitError": "No fue posible ajustar la curva con esos puntos.",
+      "ready": "Curva calculada correctamente.",
+      "readyWithErrors": "Curva calculada, pero aun hay filas incompletas o invalidas."
     }
   },
   "homeNodara": {

@@ -82,8 +82,8 @@ android {
         applicationId "com.valve"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 102
-        versionName "Beta 26M03.28.01 [Build IDK_F"
+        versionCode 103
+        versionName "Beta 26M04.07.01 [Build IDK_F]"
     }
 signingConfigs {
         release {

@@ -105,6 +105,8 @@ import paraleloPotenciaCalc from './screens/calculators/14_ParaleloPotencia/Para
 // ORBIT
 import AxisScreen from './screens/orbit/AxisScreen';
 import OptionsScreenAxis from './screens/orbit/OptionsScreenAxis';
+import TemporalAnalysisAxisScreen from './screens/orbit/TemporalAnalysisAxisScreen';
+import PumpCurvesAxisScreen from './screens/orbit/PumpCurvesAxisScreen';
 
 import ColebrookCalc from './screens/calculators/Ffactor/ColebrookCalc';
 import HistoryScreenColebrook from './screens/calculators/Ffactor/HistoryScreenColebrook';
@@ -168,6 +170,8 @@ export type RootStackParamList = {
   AxisScreen: undefined;
   CalculatorOptionsScreen: CalculatorOptionsScreenParams | undefined;
   OptionsScreenAxis: undefined;
+  TemporalAnalysisAxisScreen: undefined;
+  PumpCurvesAxisScreen: undefined;
 };
 
 export type RootTabParamList = {
@@ -637,6 +641,22 @@ const App = () => {
                       <Stack.Screen
                         name="OptionsScreenAxis"
                         component={OptionsScreenAxis}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="TemporalAnalysisAxisScreen"
+                        component={TemporalAnalysisAxisScreen}
+                        options={{
+                          headerShown: false,
+                          cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="PumpCurvesAxisScreen"
+                        component={PumpCurvesAxisScreen}
                         options={{
                           headerShown: false,
                           cardStyleInterpolator: CardStyleInterpolators.forRevealFromBottomAndroid,

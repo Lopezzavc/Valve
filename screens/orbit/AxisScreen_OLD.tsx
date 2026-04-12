@@ -645,7 +645,6 @@ window.rn_rebuild = function(jsonStr) {
         var group = crearConexionGroup();
         var entry = {
             group:          group,
-            tipoEnlace:     c.type || 'tuberia',
             tubId:          c.tubId    || '',
             fromSel:        { value: c.from      || '' },
             toSel:          { value: c.to        || '' },
@@ -724,9 +723,8 @@ window.rn_showResults = function(jsonStr) {
 
     (data.tuberias || []).forEach(function(r) {
         if (modoTub === 'none') return;
-        if (r.tipoEnlace === 'bomba' && modoTub !== 'Q') return;
-        var texto = modoTub === 'V' && typeof r.V_ms === 'number' ? ('V=' + Math.abs(r.V_ms).toFixed(2) + ' m/s')
-                  : modoTub === 'f' && typeof r.f === 'number' ? ('f=' + r.f.toFixed(4))
+        var texto = modoTub === 'V' ? ('V=' + Math.abs(r.V_ms).toFixed(2) + ' m/s')
+                  : modoTub === 'f' ? ('f=' + r.f.toFixed(4))
                   : ('Q=' + Math.abs(r.Q_ls).toFixed(2) + ' l/s');
         var fromE = puntosData.find(function(e){ return e.idInput.value === r.from; });
         var toE   = puntosData.find(function(e){ return e.idInput.value === r.to;   });
@@ -1303,18 +1301,18 @@ const AxisScreen: React.FC = () => {
           changed = true;
           return { ...connection, curveId: '' };
         }
-  
+
         if (!pumpCurveIds.length) {
           if (!connection.curveId) return connection;
           changed = true;
           return { ...connection, curveId: '' };
         }
-  
+
         if (pumpCurveIds.includes(connection.curveId)) return connection;
         changed = true;
         return { ...connection, curveId: pumpCurveIds[0] ?? '' };
       });
-  
+
       return changed ? next : prev;
     });
   }, [pumpCurveIds]);
@@ -1423,7 +1421,7 @@ const AxisScreen: React.FC = () => {
         if (connection.type !== 'bomba') {
           return connection as AxisConnectionInputEntry;
         }
-      
+
         const curve = pumpCurves.find(entry => entry.curveId.trim() === connection.curveId.trim());
         const derived = curve ? derivePumpCurveState(curve) : null;
         return {
@@ -2168,7 +2166,7 @@ const AxisScreen: React.FC = () => {
         tuberia: t('axis.connectionType.tuberia'),
         bomba: t('axis.connectionType.bomba'),
       };
-  
+
       return (
         <View style={styles.inputWrapper}>
           <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
@@ -2211,7 +2209,7 @@ const AxisScreen: React.FC = () => {
   const renderPumpCurvePicker = useCallback(
     (entry: ConnectionEntry) => {
       const hasCurves = pumpCurveIds.length > 0;
-  
+
       return (
         <View style={styles.inputWrapper}>
           <Text style={[styles.inputLabel, { color: themeColors.text, fontSize: 16 * fontSizeFactor }]}>
@@ -2502,7 +2500,6 @@ const AxisScreen: React.FC = () => {
                   stopTemporalPlayback();
                   setNodes([]);
                   setConnections([]);
-                  setPumpCurves([]);
                   setTemporalConfig(createDefaultTemporalConfig());
                   setAnalysisResult(null);
                   setCalcResult(null);
@@ -2734,11 +2731,11 @@ const AxisScreen: React.FC = () => {
             </View>
 
             <View style={styles.modeSelectorActions}>
-              <Pressable style={styles.simpleButtonContainer} onPress={handlePumpCurvesFeaturePress}>
+              <Pressable style={styles.simpleButtonContainer} onPress={handleTankFeaturePress}>
                 <View style={[styles.buttonBackground, { backgroundColor: 'transparent', experimental_backgroundImage: theoryButtonColors.cardGradient }]} />
-                  <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
-                    <View style={[styles.buttonGradient, { experimental_backgroundImage: theoryButtonColors.gradient }]} />
-                  </MaskedView>
+                <MaskedView style={styles.maskedButton} maskElement={<View style={styles.transparentButtonMask} />}>
+                  <View style={[styles.buttonGradient, { experimental_backgroundImage: theoryButtonColors.gradient }]} />
+                </MaskedView>
                 <Entypo name="line-graph" size={18} color={themeColors.icon} style={styles.buttonIcon} />
               </Pressable>
 
@@ -2772,9 +2769,9 @@ const AxisScreen: React.FC = () => {
           {/* Cards de Conexiones */}
           {mode === 'connections' && (
             <View style={styles.inputsContainer}>
-            <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
-              {t('axis.section.conexiones')}
-            </Text>
+              <Text style={[styles.sectionSubtitle, { color: themeColors.textStrong, fontSize: 18 * fontSizeFactor }]}>
+                {t('axis.section.tuberias')}
+              </Text>
               {connections.map((conn, index) => renderConnectionCard(conn, index))}
               <View style={styles.addButtonRow}>
                 <Pressable style={styles.addButton} onPress={addConnection}>
@@ -2958,14 +2955,7 @@ const AxisScreen: React.FC = () => {
                     </View>
                     {calcResult.tuberias.map((r, i) => {
                       const rowBg = i % 2 !== 0 ? (currentTheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent';
-                      const vals = [
-                        r.id,
-                        r.from,
-                        r.to,
-                        r.Q_ls.toFixed(3),
-                        typeof r.V_ms === 'number' ? r.V_ms.toFixed(3) : '-',
-                        typeof r.f === 'number' ? r.f.toFixed(5) : '-',
-                      ];
+                      const vals = [r.id, r.from, r.to, r.Q_ls.toFixed(3), r.V_ms.toFixed(3), r.f.toFixed(5)];
                       const colors = [themeColors.textStrong, themeColors.text, themeColors.text, themeColors.text, themeColors.text, themeColors.text];
                       return (
                         <View key={`tr-${i}`} style={[styles.tableRow, { backgroundColor: rowBg }]}>

@@ -622,7 +622,7 @@ const HomeScreen = () => {
                   ]}
                 />
               </MaskedView>
-              <Icon name="plus" size={22} color={themeColors.icon} style={styles.buttonIcon} />
+              <Icon name="smile" size={22} color={themeColors.icon} style={styles.buttonIcon} />
             </Pressable>
           </View>
         </View>

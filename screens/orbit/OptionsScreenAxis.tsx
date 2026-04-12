@@ -146,7 +146,10 @@ const OptionsScreenAxis = () => {
   const titleMap = useMemo<Record<string, string>>(
     () => ({
       nodeType:    t('axis.field.nodeType'),
+      connectionType: t('axis.field.connectionType'),
       nodeIds:     t('axis.options.selectNode'),
+      pattern:     t('axis.field.pattern'),
+      pumpCurve:   t('axis.field.pumpCurve'),
       length:      t('axis.options.title.length'),
       flow:        t('axis.options.title.flow'),
       volume:      t('axis.options.title.volume'),
@@ -159,7 +162,10 @@ const OptionsScreenAxis = () => {
   const subtitleMap = useMemo<Record<string, string>>(
     () => ({
       nodeType:    t('axis.options.selectOption'),
+      connectionType: t('axis.options.selectOption'),
       nodeIds:     t('axis.options.selectOption'),
+      pattern:     t('axis.options.selectOption'),
+      pumpCurve:   t('axis.options.selectOption'),
       length:      t('axis.options.selectOption'),
       flow:        t('axis.options.selectOption'),
       volume:      t('axis.options.selectOption'),
